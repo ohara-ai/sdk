@@ -68,6 +68,7 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
 
           // Only add if match exists (has players)
           if (players && players.length > 0) {
+            console.log(`[MatchList] Found match ${i} with ${players.length} players`)
             fetchedMatches.push({
               id: i,
               stakeAmount: formatEther(stakeAmount),
@@ -80,9 +81,12 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
           }
         } catch (err) {
           // Match doesn't exist or error, skip
+          console.log(`[MatchList] Skipping match ${i}: ${err instanceof Error ? err.message : 'unknown error'}`)
           continue
         }
       }
+      
+      console.log(`[MatchList] Total matches found: ${fetchedMatches.length}`)
 
       setMatches(fetchedMatches)
       setIsLoading(false)
@@ -158,6 +162,7 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
                         string
                       ]
                       if (players && players.length > 0) {
+                        console.log(`[MatchList] Found match ${i} with ${players.length} players`)
                         fetchedMatches.push({
                           id: i,
                           stakeAmount: formatEther(stakeAmount),
@@ -169,9 +174,11 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
                         })
                       }
                     } catch (err) {
+                      console.log(`[MatchList] Skipping match ${i}: ${err instanceof Error ? err.message : 'unknown error'}`)
                       continue
                     }
                   }
+                  console.log(`[MatchList] Total matches found: ${fetchedMatches.length}`)
                   setMatches(fetchedMatches)
                   setIsLoading(false)
                 }
@@ -205,7 +212,10 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
             className={`cursor-pointer transition-colors ${
               selectedMatchId === match.id ? 'border-primary' : 'hover:border-primary/50'
             }`}
-            onClick={() => onSelectMatch(match.id)}
+            onClick={() => {
+              console.log(`[MatchList] Selected match: ${match.id}`)
+              onSelectMatch(match.id)
+            }}
           >
             <CardHeader>
               <div className="flex items-center justify-between">

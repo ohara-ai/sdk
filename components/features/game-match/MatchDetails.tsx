@@ -27,6 +27,7 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
   const contractAddress = getGameMatchAddress()
   const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)
+  const [fetchError, setFetchError] = useState<string | null>(null)
 
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
@@ -46,9 +47,12 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
 
     const fetchMatchData = async () => {
       setIsLoadingMatch(true)
+      setFetchError(null)
       try {
         const { readContract } = await import('wagmi/actions')
         const { config } = await import('@/lib/wagmi')
+
+        console.log(`[MatchDetails] Fetching match ${matchId} from ${contractAddress}`)
 
         const result = await readContract(config, {
           address: contractAddress,
@@ -66,6 +70,22 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
           string
         ]
 
+        console.log(`[MatchDetails] Fetched match ${matchId}:`, {
+          token,
+          stakeAmount: stakeAmount.toString(),
+          maxPlayers: maxPlayers.toString(),
+          playersCount: players.length,
+          status,
+        })
+
+        // Check if match actually exists (has players)
+        if (!players || players.length === 0) {
+          console.warn(`[MatchDetails] Match ${matchId} has no players`)
+          setFetchError('This match does not exist or has been deleted')
+          setMatchData(null)
+          return
+        }
+
         setMatchData({
           token,
           stakeAmount,
@@ -74,8 +94,11 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
           status,
           winner,
         })
+        setFetchError(null)
       } catch (error) {
-        console.error('Error fetching match data:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        console.error(`[MatchDetails] Error fetching match ${matchId}:`, error)
+        setFetchError(errorMessage)
         setMatchData(null)
       } finally {
         setIsLoadingMatch(false)
@@ -142,8 +165,21 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
         <CardHeader>
           <CardTitle>Match Details</CardTitle>
         </CardHeader>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          Match not found
+        <CardContent className="py-8 text-center">
+          {fetchError ? (
+            <div className="space-y-2">
+              <p className="text-muted-foreground">Match not found</p>
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-left">
+                <p className="text-sm text-red-500 font-semibold mb-1">Error:</p>
+                <p className="text-xs text-red-500/90">{fetchError}</p>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Match ID: {matchId}
+              </p>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Match not found</p>
+          )}
         </CardContent>
       </Card>
     )
