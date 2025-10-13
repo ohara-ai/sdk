@@ -32,7 +32,8 @@ contract GameMatchFactoryTest is Test {
         GameMatch gameMatch = GameMatch(instance);
         assertEq(gameMatch.owner(), owner);
         assertEq(gameMatch.controller(), controller);
-        assertEq(gameMatch.featureName(), "GameMatch");
+        assertEq(gameMatch.featureName(), "GameMatch - OCI-001");
+        assertEq(gameMatch.version(), "1.0.0");
     }
 
     function test_DeployMultipleInstances() public {

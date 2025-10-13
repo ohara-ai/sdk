@@ -393,7 +393,7 @@ contract GameMatchTest is Test {
 
     function test_FeatureMetadata() public {
         assertEq(gameMatch.version(), "1.0.0");
-        assertEq(gameMatch.featureName(), "GameMatch");
+        assertEq(gameMatch.featureName(), "GameMatch - OCI-001");
     }
 
     function test_OwnershipTransfer() public {

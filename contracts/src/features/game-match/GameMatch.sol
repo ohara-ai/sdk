@@ -269,6 +269,6 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
 
     /// @inheritdoc IFeature
     function featureName() external pure returns (string memory) {
-        return "GameMatch";
+        return "GameMatch - OCI-001";
     }
 }

@@ -5,6 +5,10 @@ This guide covers the development workflow for adding new on-chain features to t
 ## Repository Structure
 
 ```
+├── proposals/              # Feature proposals and design documents
+│   ├── README.md          # Proposal process guide
+│   ├── TEMPLATE.md        # Proposal template
+│   └── 001-game-match.md  # Example proposal
 ├── contracts/              # Solidity smart contracts
 │   ├── src/
 │   │   ├── base/          # Base contracts (Owned, FeatureController)
@@ -25,6 +29,28 @@ This guide covers the development workflow for adding new on-chain features to t
 ```
 
 ## Adding a New Feature
+
+### 0. Create a Proposal (Recommended)
+
+Before implementing a new feature, create a proposal to document requirements and design:
+
+1. Copy the template: `cp proposals/TEMPLATE.md proposals/XXX-feature-name.md`
+2. Fill in all sections:
+   - **Problem Statement**: What need does this address?
+   - **Interface Specification**: Define the contract interface
+   - **Integration**: Document dependencies and inter-contract communication
+   - **Security Considerations**: Identify risks and mitigations
+3. Share for review and iterate on design
+4. Use the proposal as implementation guide
+
+See [`proposals/README.md`](./proposals/README.md) for detailed guidance.
+
+**Benefits of proposals:**
+- Clear requirements before coding
+- Better architectural decisions
+- Easier review process
+- AI-friendly documentation
+- Reduced implementation churn
 
 ### 1. Smart Contract Development
 
@@ -246,15 +272,16 @@ forge script contracts/script/DeployYourFeature.s.sol:DeployYourFeature \
 
 ## Development Workflow
 
-1. **Design**: Plan your feature's functionality and interface
-2. **Implement**: Write the smart contract
-3. **Test**: Write comprehensive tests
-4. **Deploy Locally**: Test on local hardhat network
-5. **Build UI**: Create the demo interface
-6. **Deploy Testnet**: Deploy to Sepolia for testing
-7. **Document**: Update README with feature documentation
-8. **Review**: Code review and security audit
-9. **Deploy Mainnet**: Production deployment
+1. **Propose**: Create feature proposal documenting requirements and interface
+2. **Review Proposal**: Get feedback and iterate on design
+3. **Implement**: Write the smart contract following the approved interface
+4. **Test**: Write comprehensive tests (aim for 100% coverage)
+5. **Deploy Locally**: Test on local hardhat network
+6. **Build UI**: Create the demo interface
+7. **Deploy Testnet**: Deploy to Sepolia for testing
+8. **Document**: Update README and mark proposal as implemented
+9. **Review Code**: Code review and security audit
+10. **Deploy Mainnet**: Production deployment
 
 ## Useful Commands
 

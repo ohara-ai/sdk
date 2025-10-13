@@ -2,10 +2,32 @@
 
 A repository for modular on-chain gaming features with Solidity smart contracts and interactive demo applications.
 
+## Adding New Features
+
+We use a lightweight proposal process to ensure features are well-designed before implementation:
+
+1. **Create Proposal**: Use the template in `proposals/TEMPLATE.md` to document:
+   - Problem statement and user needs
+   - Interface specification
+   - Integration requirements and dependencies
+   - Security considerations
+   
+2. **Review**: Share proposal for feedback and iterate on design
+
+3. **Implement**: Once approved:
+   - Create directory under `contracts/src/features/[feature-name]/`
+   - Implement the feature contract following the interface
+   - Add comprehensive tests in `contracts/test/`
+   - Create demo UI in `app/features/[feature-name]/`
+   - Update documentation
+
+See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the proposal process.
+
 ## Structure
 
 ```
-├── contracts/           # Solidity smart contracts
+├── proposals/          # Feature proposals and design documents
+├── contracts/          # Solidity smart contracts
 │   ├── src/
 │   │   ├── base/       # Base contracts and utilities
 │   │   ├── factories/  # Contract factories for efficient deployment
@@ -20,14 +42,7 @@ A repository for modular on-chain gaming features with Solidity smart contracts 
 
 ## Features
 
-### Game Match (game-match)
-An escrow-based match system where:
-- Players stake tokens to create/join matches
-- Stakes can be withdrawn before match activation
-- Match activation locks stakes and fixes participants
-- Controller finalizes match and distributes winnings
-- Optional scoreboard integration
-- Optional fee distribution to predefined addresses
+For detailed information about implemented and proposed features, see the [`proposals/`](./proposals/) directory. Each feature has its own design document with specifications, use cases, and implementation details.
 
 ## Development
 
@@ -74,14 +89,6 @@ npm run build
 # Start production server
 npm run start
 ```
-
-## Adding New Features
-
-1. Create new directory under `contracts/src/features/[feature-name]/`
-2. Implement the feature contract
-3. Add tests in `contracts/test/[feature-name]/`
-4. Create demo UI in `app/features/[feature-name]/`
-5. Update this README with feature documentation
 
 ## License
 
