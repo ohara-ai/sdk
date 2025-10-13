@@ -43,6 +43,7 @@ contracts/cache/
 contracts/out/
 contracts/broadcast/
 contracts/lib/
+.anvil-dev-state.json
 
 # IDE
 .vscode/

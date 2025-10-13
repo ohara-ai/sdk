@@ -283,6 +283,47 @@ forge script contracts/script/DeployYourFeature.s.sol:DeployYourFeature \
 9. **Review Code**: Code review and security audit
 10. **Deploy Mainnet**: Production deployment
 
+## Development Tokens
+
+### DEVWORLD Token
+
+The DEVWORLD token is a reference ERC20 token for development and testing purposes. It's designed for use with features like GameMatch that require ERC20 token support.
+
+**Token Details:**
+- Name: `DEVWORLD`
+- Symbol: `DEVWORLD`
+- Decimals: `18`
+- Mintable: Yes (owner only)
+- Initial Supply: `1,000,000` tokens (configurable)
+
+**Deploy DEVWORLD Token:**
+
+```bash
+# Deploy to local Anvil node
+forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
+  --rpc-url http://localhost:8545 --broadcast
+
+# Deploy to testnet (e.g., Sepolia)
+forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
+  --rpc-url sepolia --broadcast --verify
+```
+
+After deployment, add the token address to your `.env`:
+```
+NEXT_PUBLIC_DEVWORLD_TOKEN=0x...
+```
+
+**Using DEVWORLD in Features:**
+
+```solidity
+// In tests or scripts
+DevWorldToken token = new DevWorldToken(1_000_000 * 10**18);
+token.mint(user, 1000 * 10**18);
+
+// Use with GameMatch
+gameMatch.createMatch(address(token), stakeAmount, maxPlayers);
+```
+
 ## Useful Commands
 
 ```bash

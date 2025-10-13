@@ -43,8 +43,23 @@ npm run forge:coverage
 anvil
 
 # Terminal 2: Deploy contracts locally
+# Deploy GameMatch
 forge script contracts/script/DeployGameMatch.s.sol:DeployGameMatch \
   --rpc-url http://localhost:8545 --broadcast
+
+# Deploy DEVWORLD token (for testing ERC20 features)
+forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
+  --rpc-url http://localhost:8545 --broadcast
+```
+
+Tips:
+```
+# Dump state 
+anvil --dump-state .anvil-dev-state.json
+
+# Load previously saved state
+anvil --load-state .anvil-dev-state.json
+
 ```
 
 ## Demo Application
