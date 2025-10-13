@@ -1,54 +1,112 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, Clock } from 'lucide-react'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi'
+import { formatEther, zeroAddress, parseEther } from 'viem'
+import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
 
 interface MatchDetailsProps {
   matchId: number | null
 }
 
-// Mock data for demonstration
-const mockMatchDetails = {
-  0: {
-    id: 0,
-    stakeAmount: '0.01',
-    maxPlayers: 3,
-    status: 'Open',
-    token: 'ETH',
-    players: ['0x1234...5678', '0xabcd...ef01'],
-    canJoin: true,
-    canWithdraw: false,
-    isPlayer: false,
-  },
-  1: {
-    id: 1,
-    stakeAmount: '0.05',
-    maxPlayers: 2,
-    status: 'Active',
-    token: 'ETH',
-    players: ['0x1234...5678', '0xabcd...ef01'],
-    canJoin: false,
-    canWithdraw: false,
-    isPlayer: true,
-  },
-  2: {
-    id: 2,
-    stakeAmount: '0.02',
-    maxPlayers: 4,
-    status: 'Finalized',
-    token: 'ETH',
-    players: ['0x1234...5678', '0xabcd...ef01', '0x9876...5432', '0xfedc...ba98'],
-    winner: '0x1234...5678',
-    prize: '0.08',
-    canJoin: false,
-    canWithdraw: false,
-    isPlayer: false,
-  },
+interface MatchData {
+  token: string
+  stakeAmount: bigint
+  maxPlayers: bigint
+  players: string[]
+  status: number
+  winner: string
 }
 
 export function MatchDetails({ matchId }: MatchDetailsProps) {
+  const { address } = useAccount()
+  const contractAddress = getGameMatchAddress()
+  const [matchData, setMatchData] = useState<MatchData | null>(null)
+  const [isLoadingMatch, setIsLoadingMatch] = useState(false)
+
+  const { data: blockNumber } = useBlockNumber({ watch: true })
+
+  // Write hooks for actions
+  const { data: joinHash, writeContract: joinMatch, isPending: isJoining, error: joinError } = useWriteContract()
+  const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } = useWaitForTransactionReceipt({ hash: joinHash })
+
+  const { data: withdrawHash, writeContract: withdrawStake, isPending: isWithdrawing, error: withdrawError } = useWriteContract()
+  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawHash })
+
+  // Fetch match data
+  useEffect(() => {
+    if (matchId === null || !contractAddress) {
+      setMatchData(null)
+      return
+    }
+
+    const fetchMatchData = async () => {
+      setIsLoadingMatch(true)
+      try {
+        const { readContract } = await import('wagmi/actions')
+        const { config } = await import('@/lib/wagmi')
+
+        const result = await readContract(config, {
+          address: contractAddress,
+          abi: GAME_MATCH_ABI,
+          functionName: 'getMatch',
+          args: [BigInt(matchId)],
+        })
+
+        const [token, stakeAmount, maxPlayers, players, status, winner] = result as [
+          string,
+          bigint,
+          bigint,
+          string[],
+          number,
+          string
+        ]
+
+        setMatchData({
+          token,
+          stakeAmount,
+          maxPlayers,
+          players,
+          status,
+          winner,
+        })
+      } catch (error) {
+        console.error('Error fetching match data:', error)
+        setMatchData(null)
+      } finally {
+        setIsLoadingMatch(false)
+      }
+    }
+
+    fetchMatchData()
+  }, [matchId, contractAddress, blockNumber, isJoinSuccess, isWithdrawSuccess])
+  const handleJoinMatch = () => {
+    if (!contractAddress || matchId === null || !matchData) return
+
+    joinMatch({
+      address: contractAddress,
+      abi: GAME_MATCH_ABI,
+      functionName: 'joinMatch',
+      args: [BigInt(matchId)],
+      value: matchData.token === zeroAddress ? matchData.stakeAmount : 0n,
+    })
+  }
+
+  const handleWithdrawStake = () => {
+    if (!contractAddress || matchId === null) return
+
+    withdrawStake({
+      address: contractAddress,
+      abi: GAME_MATCH_ABI,
+      functionName: 'withdrawStake',
+      args: [BigInt(matchId)],
+    })
+  }
+
   if (matchId === null) {
     return (
       <Card className="h-fit sticky top-8">
@@ -65,9 +123,20 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
     )
   }
 
-  const match = mockMatchDetails[matchId as keyof typeof mockMatchDetails]
+  if (isLoadingMatch) {
+    return (
+      <Card className="h-fit sticky top-8">
+        <CardHeader>
+          <CardTitle>Match Details</CardTitle>
+        </CardHeader>
+        <CardContent className="py-8 text-center text-muted-foreground">
+          Loading match data...
+        </CardContent>
+      </Card>
+    )
+  }
 
-  if (!match) {
+  if (!matchData) {
     return (
       <Card className="h-fit sticky top-8">
         <CardHeader>
@@ -79,6 +148,13 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
       </Card>
     )
   }
+
+  const statusLabels = ['Open', 'Active', 'Finalized']
+  const statusLabel = statusLabels[matchData.status] || 'Unknown'
+  const tokenDisplay = matchData.token === zeroAddress ? 'ETH' : `${matchData.token.slice(0, 6)}...${matchData.token.slice(-4)}`
+  const isPlayer = matchData.players.some(p => p.toLowerCase() === address?.toLowerCase())
+  const canJoin = matchData.status === MatchStatus.Open && !isPlayer && matchData.players.length < Number(matchData.maxPlayers)
+  const canWithdraw = matchData.status === MatchStatus.Open && isPlayer
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -97,9 +173,9 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
     <Card className="h-fit sticky top-8">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Match #{match.id}</CardTitle>
-          <Badge className={getStatusColor(match.status)}>
-            {match.status}
+          <CardTitle>Match #{matchId}</CardTitle>
+          <Badge className={getStatusColor(statusLabel)}>
+            {statusLabel}
           </Badge>
         </div>
       </CardHeader>
@@ -107,18 +183,18 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Stake Amount</span>
-            <span className="font-semibold">{match.stakeAmount} {match.token}</span>
+            <span className="font-semibold">{formatEther(matchData.stakeAmount)} {tokenDisplay}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Total Prize</span>
             <span className="font-semibold">
-              {(parseFloat(match.stakeAmount) * match.players.length).toFixed(4)} {match.token}
+              {formatEther(matchData.stakeAmount * BigInt(matchData.players.length))} {tokenDisplay}
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Players</span>
             <span className="font-semibold">
-              {match.players.length}/{match.maxPlayers}
+              {matchData.players.length}/{Number(matchData.maxPlayers)}
             </span>
           </div>
         </div>
@@ -126,13 +202,16 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
         <div className="space-y-2">
           <h4 className="text-sm font-semibold">Players</h4>
           <div className="space-y-2">
-            {match.players.map((player, index) => (
+            {matchData.players.map((player: string, index: number) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-2 rounded-md bg-muted/50"
               >
-                <span className="text-sm font-mono">{player}</span>
-                {match.winner === player && (
+                <span className="text-sm font-mono">
+                  {player.slice(0, 6)}...{player.slice(-4)}
+                  {player.toLowerCase() === address?.toLowerCase() && ' (You)'}
+                </span>
+                {matchData.winner !== zeroAddress && matchData.winner.toLowerCase() === player.toLowerCase() && (
                   <Trophy className="w-4 h-4 text-yellow-500" />
                 )}
               </div>
@@ -140,36 +219,78 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
           </div>
         </div>
 
-        {match.winner && (
+        {matchData.winner !== zeroAddress && (
           <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
             <div className="flex items-center gap-2 mb-2">
               <Trophy className="w-5 h-5 text-yellow-500" />
               <h4 className="font-semibold text-yellow-500">Winner</h4>
             </div>
-            <p className="text-sm font-mono">{match.winner}</p>
+            <p className="text-sm font-mono">
+              {matchData.winner.slice(0, 6)}...{matchData.winner.slice(-4)}
+            </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Prize: {match.prize} {match.token}
+              Prize: {formatEther(matchData.stakeAmount * BigInt(matchData.players.length))} {tokenDisplay}
             </p>
           </div>
         )}
 
         <div className="space-y-2">
-          {match.canJoin && (
-            <Button className="w-full">
-              Join Match
+          {canJoin && (
+            <Button 
+              className="w-full"
+              onClick={handleJoinMatch}
+              disabled={isJoining || isJoinConfirming}
+            >
+              {isJoining ? 'Confirming...' : isJoinConfirming ? 'Joining...' : 'Join Match'}
             </Button>
           )}
-          {match.canWithdraw && match.isPlayer && (
-            <Button variant="outline" className="w-full">
-              Withdraw Stake
+          {canWithdraw && (
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={handleWithdrawStake}
+              disabled={isWithdrawing || isWithdrawConfirming}
+            >
+              {isWithdrawing ? 'Confirming...' : isWithdrawConfirming ? 'Withdrawing...' : 'Withdraw Stake'}
             </Button>
           )}
-          {match.status === 'Open' && !match.canJoin && !match.isPlayer && (
+          
+          {isJoinSuccess && (
+            <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+              <p className="text-sm text-green-500">
+                Successfully joined match!
+              </p>
+            </div>
+          )}
+          {joinError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-sm text-red-500">
+                Error: {joinError.message}
+              </p>
+            </div>
+          )}
+          
+          {isWithdrawSuccess && (
+            <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+              <p className="text-sm text-green-500">
+                Successfully withdrawn stake!
+              </p>
+            </div>
+          )}
+          {withdrawError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-sm text-red-500">
+                Error: {withdrawError.message}
+              </p>
+            </div>
+          )}
+
+          {statusLabel === 'Open' && !canJoin && !isPlayer && (
             <p className="text-xs text-center text-muted-foreground">
-              Match is full or you're already a player
+              Match is full
             </p>
           )}
-          {match.status === 'Active' && (
+          {statusLabel === 'Active' && (
             <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-500" />

@@ -5,26 +5,45 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { parseEther } from 'viem'
+import { parseEther, isAddress, zeroAddress } from 'viem'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { GAME_MATCH_ABI, getGameMatchAddress } from '@/lib/contracts/gameMatch'
 
 export function CreateMatchForm() {
   const [stakeAmount, setStakeAmount] = useState('')
   const [maxPlayers, setMaxPlayers] = useState('2')
   const [tokenAddress, setTokenAddress] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { address } = useAccount()
+  
+  const { data: hash, writeContract, isPending, error } = useWriteContract()
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+
+  const contractAddress = getGameMatchAddress()
 
   const handleCreateMatch = async () => {
-    setIsLoading(true)
+    if (!contractAddress) {
+      alert('Contract not deployed on this network')
+      return
+    }
+
     try {
-      // TODO: Implement contract interaction
-      console.log('Creating match:', { stakeAmount, maxPlayers, tokenAddress })
-      alert('Match creation will be implemented with contract integration')
+      const token = tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress
+      const stake = parseEther(stakeAmount)
+      const maxPlayersNum = BigInt(maxPlayers)
+
+      writeContract({
+        address: contractAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'createMatch',
+        args: [token, stake, maxPlayersNum],
+        value: token === zeroAddress ? stake : 0n,
+      })
     } catch (error) {
       console.error('Error creating match:', error)
-    } finally {
-      setIsLoading(false)
     }
   }
+
+  const isLoading = isPending || isConfirming
 
   return (
     <Card>
@@ -80,11 +99,35 @@ export function CreateMatchForm() {
 
         <Button 
           onClick={handleCreateMatch} 
-          disabled={!stakeAmount || !maxPlayers || isLoading}
+          disabled={!stakeAmount || !maxPlayers || isLoading || !contractAddress}
           className="w-full"
         >
-          {isLoading ? 'Creating...' : 'Create Match'}
+          {isPending ? 'Confirming...' : isConfirming ? 'Creating...' : 'Create Match'}
         </Button>
+
+        {isSuccess && (
+          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+            <p className="text-sm text-green-500">
+              Match created successfully! Transaction hash: {hash?.slice(0, 10)}...
+            </p>
+          </div>
+        )}
+
+        {error && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+            <p className="text-sm text-red-500">
+              Error: {error.message}
+            </p>
+          </div>
+        )}
+
+        {!contractAddress && (
+          <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+            <p className="text-sm text-yellow-500">
+              Contract not deployed on this network. Please switch to a supported network.
+            </p>
+          </div>
+        )}
 
         <div className="pt-4 border-t">
           <p className="text-sm text-muted-foreground">

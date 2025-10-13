@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,11 @@ import { useAccount } from 'wagmi'
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <main className="min-h-screen p-8">
@@ -37,7 +42,16 @@ export default function GameMatchPage() {
           </div>
         </div>
 
-        {!isConnected ? (
+        {!mounted ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loading...</CardTitle>
+              <CardDescription>
+                Initializing application
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : !isConnected ? (
           <Card>
             <CardHeader>
               <CardTitle>Connect Wallet</CardTitle>

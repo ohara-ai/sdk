@@ -143,17 +143,14 @@ export interface Match {
 }
 
 // Contract addresses (to be filled after deployment)
-export const CONTRACT_ADDRESSES = {
-  hardhat: {
-    factory: '0x...',
-    instance: '0x...',
-  },
-  sepolia: {
-    factory: '0x...',
-    instance: '0x...',
-  },
-  mainnet: {
-    factory: '0x...',
-    instance: '0x...',
-  },
+export function getGameMatchAddress(): `0x${string}` | undefined {
+  const address = process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE
+  if (!address || address === '...') return undefined
+  return address as `0x${string}`
+}
+
+export function getGameMatchFactoryAddress(): `0x${string}` | undefined {
+  const address = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
+  if (!address || address === '...') return undefined
+  return address as `0x${string}`
 }
