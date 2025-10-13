@@ -79,10 +79,56 @@ npm run forge:coverage
 
 ### Demo Application
 
-```bash
-# Run development server
-npm run dev
+#### Quick Start with Anvil (Local Development)
 
+1. **Start local Anvil node**:
+   ```bash
+   anvil
+   ```
+
+2. **Deploy contracts**:
+   ```bash
+   # Deploy the GameMatchFactory
+   forge script contracts/script/DeployGameMatch.s.sol:DeployGameMatch \
+     --rpc-url http://localhost:8545 \
+     --broadcast
+   ```
+
+3. **Configure environment**:
+   ```bash
+   # Copy the example env file
+   cp .env.example .env.local
+   
+   # Edit .env.local and set the factory address from the deployment output
+   # Example:
+   # NEXT_PUBLIC_GAME_MATCH_FACTORY=0x5FbDB2315678afecb367f032d93F642f64180aa3
+   ```
+
+4. **Run the app**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Deploy GameMatch instance**:
+   - Open http://localhost:3000
+   - Click the "Deploy" button on the GameMatch feature card
+   - The contract will be deployed automatically using the owner's private key (no wallet signature needed)
+   - Once deployed, the contract address will be saved and the feature becomes accessible
+
+#### Deployment Flow
+
+The app supports **dynamic contract deployment** with graceful handling of chain resets:
+
+- **ENV variable priority**: Set `NEXT_PUBLIC_GAME_MATCH_INSTANCE` for persistent deployments
+- **localStorage fallback**: Dynamically deployed contracts are saved per-chain in localStorage
+- **Automatic validation**: On app load, validates that saved addresses still exist on-chain
+- **Graceful reset handling**: Automatically clears invalid addresses when local chain resets
+
+See [DEPLOYMENT_FLOW.md](./DEPLOYMENT_FLOW.md) for detailed documentation.
+
+#### Other Commands
+
+```bash
 # Build for production
 npm run build
 

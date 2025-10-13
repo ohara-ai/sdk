@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { GAME_MATCH_ABI, getGameMatchAddress } from '@/lib/contracts/gameMatch'
 
 export function CreateMatchForm() {
@@ -14,11 +14,12 @@ export function CreateMatchForm() {
   const [maxPlayers, setMaxPlayers] = useState('2')
   const [tokenAddress, setTokenAddress] = useState('')
   const { address } = useAccount()
+  const chainId = useChainId()
   
   const { data: hash, writeContract, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
 
-  const contractAddress = getGameMatchAddress()
+  const contractAddress = getGameMatchAddress(chainId)
 
   const handleCreateMatch = async () => {
     if (!contractAddress) {

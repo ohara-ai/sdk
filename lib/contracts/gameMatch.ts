@@ -143,10 +143,22 @@ export interface Match {
 }
 
 // Contract addresses (to be filled after deployment)
-export function getGameMatchAddress(): `0x${string}` | undefined {
+export function getGameMatchAddress(chainId?: number): `0x${string}` | undefined {
+  // First check ENV variable
   const address = process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE
-  if (!address || address === '...') return undefined
-  return address as `0x${string}`
+  if (address && address !== '...') {
+    return address as `0x${string}`
+  }
+  
+  // Then check localStorage if we're in browser and have chainId
+  if (typeof window !== 'undefined' && chainId) {
+    const stored = localStorage.getItem(`deployed_game_match_${chainId}`)
+    if (stored) {
+      return stored as `0x${string}`
+    }
+  }
+  
+  return undefined
 }
 
 export function getGameMatchFactoryAddress(): `0x${string}` | undefined {
@@ -154,3 +166,27 @@ export function getGameMatchFactoryAddress(): `0x${string}` | undefined {
   if (!address || address === '...') return undefined
   return address as `0x${string}`
 }
+
+// GameMatchFactory ABI
+export const GAME_MATCH_FACTORY_ABI = [
+  {
+    inputs: [
+      { internalType: 'address', name: '_owner', type: 'address' },
+      { internalType: 'address', name: '_controller', type: 'address' },
+    ],
+    name: 'deployGameMatch',
+    outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
+      { indexed: true, internalType: 'address', name: 'controller', type: 'address' },
+    ],
+    name: 'GameMatchDeployed',
+    type: 'event',
+  },
+] as const

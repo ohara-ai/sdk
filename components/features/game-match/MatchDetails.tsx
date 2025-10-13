@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, Clock } from 'lucide-react'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress, parseEther } from 'viem'
 import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
 
@@ -24,7 +24,8 @@ interface MatchData {
 
 export function MatchDetails({ matchId }: MatchDetailsProps) {
   const { address } = useAccount()
-  const contractAddress = getGameMatchAddress()
+  const chainId = useChainId()
+  const contractAddress = getGameMatchAddress(chainId)
   const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)

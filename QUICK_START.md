@@ -97,18 +97,40 @@ Key test scenarios:
 
 ### Using the Demo UI
 
-1. Start the development server: `npm run dev`
-2. Navigate to the Game Match feature
-3. Connect your wallet (requires local node or testnet)
-4. Create a match with stake amount and max players
-5. Other players can join by staking the same amount
-6. Controller activates the match (locks stakes)
-7. Controller finalizes match and distributes prizes
+#### With Dynamic Deployment (Recommended for Local Development)
 
-**Note**: The demo UI currently uses mock data. To connect to actual contracts:
-1. Deploy contracts to a network
-2. Update contract addresses in `lib/contracts/gameMatch.ts`
-3. Implement contract interactions in the UI components
+1. **Setup environment** (first time only):
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local and set NEXT_PUBLIC_GAME_MATCH_FACTORY address from your deployment
+   ```
+
+2. **Start the app**: `npm run dev`
+
+3. **Deploy a GameMatch instance**:
+   - Visit http://localhost:3000
+   - Click the **Deploy** button on the GameMatch feature card
+   - The contract deploys automatically using the server-side private key (no wallet signature needed)
+   - The contract address will be saved automatically
+
+4. **Use the feature**:
+   - Click on the GameMatch card to open the feature page
+   - Create matches with stake amounts and max players
+   - Join matches created by others
+   - The controller account can activate and finalize matches
+
+**How it works**: The app uses localStorage to persist deployed addresses across restarts. When Anvil resets, the app automatically detects invalid addresses and shows the deploy button again.
+
+#### With Pre-deployed Contracts
+
+If you prefer to pre-deploy the GameMatch instance:
+
+```bash
+# Add to .env.local
+NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x...
+```
+
+The app will always use the ENV address when set, ignoring localStorage.
 
 ## Next Steps
 

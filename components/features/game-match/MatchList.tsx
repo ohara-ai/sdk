@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw } from 'lucide-react'
-import { useAccount, useReadContract, useBlockNumber } from 'wagmi'
+import { useAccount, useReadContract, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
 
@@ -25,7 +25,8 @@ interface MatchData {
 }
 
 export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
-  const contractAddress = getGameMatchAddress()
+  const chainId = useChainId()
+  const contractAddress = getGameMatchAddress(chainId)
   const [matches, setMatches] = useState<MatchData[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [matchCount, setMatchCount] = useState(10) // Fetch first 10 matches by default

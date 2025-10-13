@@ -1,16 +1,27 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ArrowRight } from 'lucide-react'
+import { useDeployedGameMatchAddress } from '@/lib/hooks/useDeployedAddress'
+import { DeployContract } from '@/components/features/game-match/DeployContract'
 
 export default function Home() {
-  const features = [
-    {
-      name: 'Game Match',
-      description: 'Escrow-based match system with stake management and winner selection',
-      href: '/features/game-match',
-      status: 'Available',
-    },
-  ]
+  const { address, setAddress, isValidating, isFromEnv } = useDeployedGameMatchAddress()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const handleDeployed = (newAddress: `0x${string}`) => {
+    setAddress(newAddress)
+  }
+
+  const formatAddress = (addr: string) => {
+    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  }
 
   return (
     <main className="min-h-screen p-8">
@@ -23,26 +34,43 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature) => (
-            <Link key={feature.name} href={feature.href}>
+          <div className="flex flex-col gap-4">
+            <Link href="/features/game-match" className={!address ? 'pointer-events-none opacity-60' : ''}>
               <Card className="hover:border-primary transition-colors cursor-pointer h-full">
                 <CardHeader>
                   <div className="flex items-start justify-between mb-2">
-                    <CardTitle>{feature.name}</CardTitle>
+                    <CardTitle>Game Match</CardTitle>
                     <ArrowRight className="w-5 h-5 text-muted-foreground" />
                   </div>
                   <CardDescription className="text-base">
-                    {feature.description}
+                    Escrow-based match system with stake management and winner selection
                   </CardDescription>
                   <div className="mt-4">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
-                      {feature.status}
-                    </span>
+                    {mounted && !isValidating && address ? (
+                      <div className="space-y-1">
+                        <div className="text-xs text-muted-foreground">Contract Address:</div>
+                        <code className="inline-flex items-center px-3 py-1 rounded-md text-sm font-mono bg-primary/10 text-primary">
+                          {formatAddress(address)}
+                        </code>
+                        {isFromEnv && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            (from environment)
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-muted text-muted-foreground">
+                        Not Deployed
+                      </span>
+                    )}
                   </div>
                 </CardHeader>
               </Card>
             </Link>
-          ))}
+            {mounted && !isValidating && !address && (
+              <DeployContract onDeployed={handleDeployed} />
+            )}
+          </div>
         </div>
 
         <div className="mt-12 p-6 rounded-lg bg-muted/50">
