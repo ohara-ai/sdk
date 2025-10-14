@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {Owned} from "./Owned.sol";
+import {FeeCollector} from "./FeeCollector.sol";
 
 /**
  * @title FeatureController
  * @notice Base contract for features with controller role
  */
-abstract contract FeatureController is Owned {
+abstract contract FeatureController is FeeCollector {
     address public controller;
 
     event ControllerUpdated(address indexed previousController, address indexed newController);
@@ -24,7 +24,7 @@ abstract contract FeatureController is Owned {
         _;
     }
 
-    constructor(address _owner, address _controller) Owned(_owner) {
+    constructor(address _owner, address _controller) FeeCollector(_owner) {
         if (_controller == address(0)) revert InvalidController();
         controller = _controller;
         emit ControllerUpdated(address(0), _controller);

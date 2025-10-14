@@ -17,9 +17,6 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
 
     // Optional integrations
     IScoreBoard public scoreBoard;
-    address[] public feeRecipients;
-    uint256[] public feeShares; // In basis points (100 = 1%)
-    uint256 public totalFeeShare; // Total fee in basis points
 
     error InvalidStakeAmount();
     error InvalidMaxPlayers();
@@ -29,9 +26,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     error InsufficientStake();
     error NotAPlayer();
     error NoStakeToWithdraw();
-    error TransferFailed();
     error InvalidWinner();
-    error InvalidFeeConfiguration();
 
     constructor(
         address _owner,
@@ -44,28 +39,6 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
      */
     function setScoreBoard(address _scoreBoard) external onlyOwner {
         scoreBoard = IScoreBoard(_scoreBoard);
-    }
-
-    /**
-     * @notice Configure fee recipients and their shares
-     * @param _recipients Array of recipient addresses
-     * @param _shares Array of shares in basis points (100 = 1%)
-     */
-    function configureFees(
-        address[] calldata _recipients,
-        uint256[] calldata _shares
-    ) external onlyOwner {
-        if (_recipients.length != _shares.length) revert InvalidFeeConfiguration();
-
-        uint256 total = 0;
-        for (uint256 i = 0; i < _shares.length; i++) {
-            total += _shares[i];
-        }
-        if (total > 5000) revert InvalidFeeConfiguration(); // Max 50% fee
-
-        feeRecipients = _recipients;
-        feeShares = _shares;
-        totalFeeShare = total;
     }
 
     /// @inheritdoc IGameMatch
@@ -179,17 +152,9 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         m.winner = winner;
 
         uint256 totalPrize = m.stakeAmount * m.players.length;
-        uint256 feeAmount = 0;
-
-        // Distribute fees if configured
-        if (totalFeeShare > 0 && feeRecipients.length > 0) {
-            for (uint256 i = 0; i < feeRecipients.length; i++) {
-                uint256 fee = (totalPrize * feeShares[i]) / 10000;
-                feeAmount += fee;
-                _transfer(m.token, feeRecipients[i], fee);
-            }
-        }
-
+        
+        // Distribute fees using inherited FeeCollector functionality
+        uint256 feeAmount = _distributeFees(m.token, totalPrize);
         uint256 winnerAmount = totalPrize - feeAmount;
 
         // Transfer winnings to winner
@@ -220,22 +185,6 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
             delete m.stakes[players[i]];
         }
         delete m.players;
-    }
-
-    function _transfer(address token, address to, uint256 amount) internal {
-        if (token == address(0)) {
-            // Native token
-            (bool success, ) = to.call{value: amount}("");
-            if (!success) revert TransferFailed();
-        } else {
-            // ERC20 token
-            (bool success, bytes memory data) = token.call(
-                abi.encodeWithSignature("transfer(address,uint256)", to, amount)
-            );
-            if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
-                revert TransferFailed();
-            }
-        }
     }
 
     /// @inheritdoc IGameMatch

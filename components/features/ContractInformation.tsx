@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Shield, FileCode, Factory, Percent, Coins } from 'lucide-react'
 import { useContractInfo } from '@/lib/hooks/useContractInfo'
@@ -17,6 +18,11 @@ interface ContractInformationProps {
 export function ContractInformation({ factoryAddress, contractAddress }: ContractInformationProps) {
   const { ownerAddress, controllerAddress, devWorldTokenAddress } = useContractInfo()
   const { totalFeePercentage, scoreBoard, isLoading: isFeeLoading } = useFeeConfig(contractAddress || undefined)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <Card>
@@ -35,7 +41,7 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium mb-1">Contract Address</p>
               <p className="text-xs text-muted-foreground font-mono break-all">
-                {contractAddress || 'Not deployed'}
+                {!mounted ? 'Loading...' : contractAddress || 'Not deployed'}
               </p>
             </div>
           </div>
@@ -46,7 +52,7 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium mb-1">Factory Address</p>
               <p className="text-xs text-muted-foreground font-mono break-all">
-                {factoryAddress || 'Not configured'}
+                {!mounted ? 'Loading...' : factoryAddress || 'Not configured'}
               </p>
             </div>
           </div>
@@ -57,7 +63,7 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium mb-1">App Controller Address (App secret key)</p>
               <p className="text-xs text-muted-foreground font-mono break-all">
-                {controllerAddress || 'Not configured'}
+                {!mounted ? 'Loading...' : controllerAddress || 'Not configured'}
               </p>
             </div>
           </div>
@@ -68,7 +74,7 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium mb-1">System Owner Address (Ohara secret key)</p>
               <p className="text-xs text-muted-foreground font-mono break-all">
-                {ownerAddress || 'Not configured'}
+                {!mounted ? 'Loading...' : ownerAddress || 'Not configured'}
               </p>
             </div>
           </div>
@@ -79,12 +85,12 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium mb-1">Fee Configuration</p>
               <p className="text-xs text-muted-foreground">
-                {isFeeLoading ? 'Loading...' : 
+                {!mounted || isFeeLoading ? 'Loading...' : 
                  contractAddress ? 
                    totalFeePercentage > 0 ? `${totalFeePercentage}% total fee` : 'No fees configured' 
                  : 'Contract not deployed'}
               </p>
-              {scoreBoard && scoreBoard !== '0x0000000000000000000000000000000000000000' && (
+              {mounted && scoreBoard && scoreBoard !== '0x0000000000000000000000000000000000000000' && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Scoreboard: {scoreBoard.slice(0, 10)}...{scoreBoard.slice(-8)}
                 </p>
@@ -98,7 +104,7 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium mb-1">DEVWORLD Token</p>
               <p className="text-xs text-muted-foreground font-mono break-all">
-                {devWorldTokenAddress || 'Not configured'}
+                {!mounted ? 'Loading...' : devWorldTokenAddress || 'Not configured'}
               </p>
             </div>
           </div>
