@@ -4,13 +4,15 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Trophy, Clock } from 'lucide-react'
+import { Users, Trophy, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress, parseEther } from 'viem'
 import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
+import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
 
 interface MatchDetailsProps {
   matchId: number | null
+  onMatchDeleted?: () => void
 }
 
 interface MatchData {
@@ -22,7 +24,7 @@ interface MatchData {
   winner: string
 }
 
-export function MatchDetails({ matchId }: MatchDetailsProps) {
+export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { address } = useAccount()
   const chainId = useChainId()
   const contractAddress = getGameMatchAddress(chainId)
@@ -33,11 +35,17 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   // Write hooks for actions
-  const { data: joinHash, writeContract: joinMatch, isPending: isJoining, error: joinError } = useWriteContract()
+  const { data: joinHash, writeContract: joinMatch, isPending: isJoining, error: joinError, reset: resetJoin } = useWriteContract()
   const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } = useWaitForTransactionReceipt({ hash: joinHash })
 
-  const { data: withdrawHash, writeContract: withdrawStake, isPending: isWithdrawing, error: withdrawError } = useWriteContract()
+  const { data: withdrawHash, writeContract: withdrawStake, isPending: isWithdrawing, error: withdrawError, reset: resetWithdraw } = useWriteContract()
   const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawHash })
+
+  // Reset transaction states when matchId changes to clear success/error messages
+  useEffect(() => {
+    resetJoin()
+    resetWithdraw()
+  }, [matchId, resetJoin, resetWithdraw])
 
   // Fetch match data
   useEffect(() => {
@@ -84,6 +92,11 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
           console.warn(`[MatchDetails] Match ${matchId} has no players`)
           setFetchError('This match does not exist or has been deleted')
           setMatchData(null)
+          // If this happened after a successful withdrawal, clear the selection
+          if (isWithdrawSuccess && onMatchDeleted) {
+            console.log('[MatchDetails] Match deleted after withdrawal, clearing selection')
+            onMatchDeleted()
+          }
           return
         }
 
@@ -108,6 +121,23 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
 
     fetchMatchData()
   }, [matchId, contractAddress, blockNumber, isJoinSuccess, isWithdrawSuccess])
+
+  // Token approval for joining matches with custom tokens
+  const {
+    needsApproval,
+    isNativeToken,
+    approve,
+    isApprovePending,
+    isApproveConfirming,
+    isApproveSuccess,
+    approveError,
+  } = useTokenApproval({
+    tokenAddress: matchData?.token || zeroAddress,
+    spenderAddress: contractAddress || zeroAddress,
+    amount: matchData?.stakeAmount || 0n,
+    enabled: !!matchData && !!contractAddress && matchData.status === MatchStatus.Open,
+  })
+
   const handleJoinMatch = () => {
     if (!contractAddress || matchId === null || !matchData) return
 
@@ -272,11 +302,45 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
         )}
 
         <div className="space-y-2">
+          {/* Show approval status for custom tokens when user can join */}
+          {canJoin && !isNativeToken && matchData.token !== zeroAddress && (
+            <div className="p-3 rounded-lg border space-y-2">
+              <div className="flex items-start gap-2">
+                {isApproveSuccess || !needsApproval ? (
+                  <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    {isApproveSuccess || !needsApproval ? 'Token Approved' : 'Token Approval Required'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isApproveSuccess || !needsApproval
+                      ? 'You can now join the match'
+                      : 'Approve the contract to spend your tokens'}
+                  </p>
+                </div>
+              </div>
+              {needsApproval && (
+                <Button
+                  onClick={approve}
+                  disabled={isApprovePending || isApproveConfirming}
+                  variant="outline"
+                  className="w-full"
+                  size="sm"
+                >
+                  {isApprovePending ? 'Confirming...' : isApproveConfirming ? 'Approving...' : 'Approve Token'}
+                </Button>
+              )}
+            </div>
+          )}
+
           {canJoin && (
             <Button 
               className="w-full"
               onClick={handleJoinMatch}
-              disabled={isJoining || isJoinConfirming}
+              disabled={isJoining || isJoinConfirming || needsApproval}
             >
               {isJoining ? 'Confirming...' : isJoinConfirming ? 'Joining...' : 'Join Match'}
             </Button>
@@ -303,6 +367,13 @@ export function MatchDetails({ matchId }: MatchDetailsProps) {
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
               <p className="text-sm text-red-500">
                 Error: {joinError.message}
+              </p>
+            </div>
+          )}
+          {approveError && (
+            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <p className="text-sm text-red-500">
+                Approval Error: {approveError.message}
               </p>
             </div>
           )}

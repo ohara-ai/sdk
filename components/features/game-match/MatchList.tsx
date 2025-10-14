@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Trophy, RefreshCw } from 'lucide-react'
+import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
 import { useAccount, useReadContract, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
@@ -21,6 +21,8 @@ interface MatchData {
   currentPlayers: number
   status: string
   token: string
+  tokenAddress: string // Raw token address
+  isNativeToken: boolean
   winner?: string
 }
 
@@ -70,13 +72,16 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
           // Only add if match exists (has players)
           if (players && players.length > 0) {
             console.log(`[MatchList] Found match ${i} with ${players.length} players`)
+            const isNativeToken = token === zeroAddress
             fetchedMatches.push({
               id: i,
               stakeAmount: formatEther(stakeAmount),
               maxPlayers: Number(maxPlayers),
               currentPlayers: players.length,
               status: ['Open', 'Active', 'Finalized'][status] || 'Unknown',
-              token: token === zeroAddress ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
+              token: isNativeToken ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
+              tokenAddress: token,
+              isNativeToken,
               winner: winner !== zeroAddress ? `${winner.slice(0, 6)}...${winner.slice(-4)}` : undefined,
             })
           }
@@ -164,13 +169,16 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
                       ]
                       if (players && players.length > 0) {
                         console.log(`[MatchList] Found match ${i} with ${players.length} players`)
+                        const isNativeToken = token === zeroAddress
                         fetchedMatches.push({
                           id: i,
                           stakeAmount: formatEther(stakeAmount),
                           maxPlayers: Number(maxPlayers),
                           currentPlayers: players.length,
                           status: ['Open', 'Active', 'Finalized'][status] || 'Unknown',
-                          token: token === zeroAddress ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
+                          token: isNativeToken ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
+                          tokenAddress: token,
+                          isNativeToken,
                           winner: winner !== zeroAddress ? `${winner.slice(0, 6)}...${winner.slice(-4)}` : undefined,
                         })
                       }
@@ -220,7 +228,20 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
           >
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Match #{match.id}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg">Match #{match.id}</CardTitle>
+                  {match.isNativeToken ? (
+                    <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                      <Banknote className="w-3 h-3 mr-1" />
+                      ETH
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+                      <Coins className="w-3 h-3 mr-1" />
+                      ERC20
+                    </Badge>
+                  )}
+                </div>
                 <Badge className={getStatusColor(match.status)}>
                   {match.status}
                 </Badge>
@@ -230,7 +251,14 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Stake Amount</p>
-                  <p className="font-semibold">{match.stakeAmount} {match.token}</p>
+                  <div className="flex items-center gap-1">
+                    {match.isNativeToken ? (
+                      <Banknote className="w-4 h-4 text-blue-500" />
+                    ) : (
+                      <Coins className="w-4 h-4 text-purple-500" />
+                    )}
+                    <p className="font-semibold">{match.stakeAmount} {match.token}</p>
+                  </div>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Players</p>

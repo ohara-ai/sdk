@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,8 +8,14 @@ import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { GAME_MATCH_ABI, getGameMatchAddress } from '@/lib/contracts/gameMatch'
+import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
+import { CheckCircle2, AlertCircle } from 'lucide-react'
 
-export function CreateMatchForm() {
+interface CreateMatchFormProps {
+  onMatchCreated?: (matchId: number) => void
+}
+
+export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const [stakeAmount, setStakeAmount] = useState('')
   const [maxPlayers, setMaxPlayers] = useState('2')
   const [tokenAddress, setTokenAddress] = useState('')
@@ -17,9 +23,52 @@ export function CreateMatchForm() {
   const chainId = useChainId()
   
   const { data: hash, writeContract, isPending, error } = useWriteContract()
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
+  const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash })
 
   const contractAddress = getGameMatchAddress(chainId)
+
+  // Parse token and stake for approval hook
+  const token = tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress
+  const stake = stakeAmount ? parseEther(stakeAmount) : 0n
+
+  // Use token approval hook
+  const {
+    needsApproval,
+    isNativeToken,
+    approve,
+    isApprovePending,
+    isApproveConfirming,
+    isApproveSuccess,
+    approveError,
+  } = useTokenApproval({
+    tokenAddress: token,
+    spenderAddress: contractAddress || zeroAddress,
+    amount: stake,
+    enabled: !!stakeAmount && !!contractAddress,
+  })
+
+  // Extract matchId from transaction logs when match is created successfully
+  useEffect(() => {
+    if (isSuccess && receipt && onMatchCreated && contractAddress) {
+      try {
+        // Find the MatchCreated event in the logs from our contract
+        const matchCreatedLog = receipt.logs.find(log => 
+          log.address.toLowerCase() === contractAddress.toLowerCase() &&
+          log.topics && 
+          log.topics.length > 1
+        )
+
+        if (matchCreatedLog?.topics?.[1]) {
+          // The matchId is the first indexed parameter (topics[1])
+          const matchId = Number(BigInt(matchCreatedLog.topics[1]))
+          console.log('[CreateMatchForm] New match created with ID:', matchId)
+          onMatchCreated(matchId)
+        }
+      } catch (error) {
+        console.error('[CreateMatchForm] Error extracting matchId from logs:', error)
+      }
+    }
+  }, [isSuccess, receipt, onMatchCreated, contractAddress])
 
   const handleCreateMatch = async () => {
     if (!contractAddress) {
@@ -28,8 +77,6 @@ export function CreateMatchForm() {
     }
 
     try {
-      const token = tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress
-      const stake = parseEther(stakeAmount)
       const maxPlayersNum = BigInt(maxPlayers)
 
       writeContract({
@@ -45,6 +92,7 @@ export function CreateMatchForm() {
   }
 
   const isLoading = isPending || isConfirming
+  const isApprovalLoading = isApprovePending || isApproveConfirming
 
   return (
     <Card>
@@ -98,9 +146,43 @@ export function CreateMatchForm() {
           </p>
         </div>
 
+        {/* Show approval status for custom tokens */}
+        {!isNativeToken && token !== zeroAddress && (
+          <div className="p-3 rounded-lg border space-y-2">
+            <div className="flex items-start gap-2">
+              {isApproveSuccess || !needsApproval ? (
+                <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
+              )}
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {isApproveSuccess || !needsApproval ? 'Token Approved' : 'Token Approval Required'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isApproveSuccess || !needsApproval
+                    ? 'You can now create the match'
+                    : 'Approve the contract to spend your tokens'}
+                </p>
+              </div>
+            </div>
+            {needsApproval && (
+              <Button
+                onClick={approve}
+                disabled={isApprovalLoading}
+                variant="outline"
+                className="w-full"
+                size="sm"
+              >
+                {isApprovePending ? 'Confirming...' : isApproveConfirming ? 'Approving...' : 'Approve Token'}
+              </Button>
+            )}
+          </div>
+        )}
+
         <Button 
           onClick={handleCreateMatch} 
-          disabled={!stakeAmount || !maxPlayers || isLoading || !contractAddress}
+          disabled={!stakeAmount || !maxPlayers || isLoading || !contractAddress || needsApproval}
           className="w-full"
         >
           {isPending ? 'Confirming...' : isConfirming ? 'Creating...' : 'Create Match'}
@@ -118,6 +200,14 @@ export function CreateMatchForm() {
           <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
             <p className="text-sm text-red-500">
               Error: {error.message}
+            </p>
+          </div>
+        )}
+
+        {approveError && (
+          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+            <p className="text-sm text-red-500">
+              Approval Error: {approveError.message}
             </p>
           </div>
         )}

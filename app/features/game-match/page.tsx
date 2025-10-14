@@ -18,6 +18,7 @@ export default function GameMatchPage() {
   const { contractAddress, factoryAddress } = useContractInfo()
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [activeTab, setActiveTab] = useState('matches')
 
   useEffect(() => {
     setMounted(true)
@@ -65,7 +66,7 @@ export default function GameMatchPage() {
           {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <Tabs defaultValue="matches" className="w-full">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="matches">Matches</TabsTrigger>
                   <TabsTrigger value="create">Create Match</TabsTrigger>
@@ -77,13 +78,22 @@ export default function GameMatchPage() {
                   />
                 </TabsContent>
                 <TabsContent value="create" className="mt-6">
-                  <CreateMatchForm />
+                  <CreateMatchForm 
+                    onMatchCreated={(matchId) => {
+                      console.log('[GameMatchPage] Match created, selecting match:', matchId)
+                      setSelectedMatchId(matchId)
+                      setActiveTab('matches')
+                    }}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
             
             <div className="lg:col-span-1">
-              <MatchDetails matchId={selectedMatchId} />
+              <MatchDetails 
+                matchId={selectedMatchId} 
+                onMatchDeleted={() => setSelectedMatchId(null)}
+              />
             </div>
           </div>
           </>
