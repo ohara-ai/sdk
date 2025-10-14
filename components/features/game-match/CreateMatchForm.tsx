@@ -56,7 +56,7 @@ export function CreateMatchForm() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="stakeAmount">Stake Amount (ETH)</Label>
+          <Label htmlFor="stakeAmount">Stake Amount</Label>
           <Input
             id="stakeAmount"
             type="number"

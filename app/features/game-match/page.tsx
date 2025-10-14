@@ -2,20 +2,20 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { MatchList } from '@/components/features/game-match/MatchList'
 import { CreateMatchForm } from '@/components/features/game-match/CreateMatchForm'
 import { MatchDetails } from '@/components/features/game-match/MatchDetails'
+import { ContractInformation } from '@/components/features/ContractInformation'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
+import { useContractInfo } from '@/lib/hooks/useContractInfo'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
+  const { contractAddress, factoryAddress } = useContractInfo()
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
 
@@ -61,6 +61,8 @@ export default function GameMatchPage() {
             </CardHeader>
           </Card>
         ) : (
+          <>
+          {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <Tabs defaultValue="matches" className="w-full">
@@ -84,6 +86,7 @@ export default function GameMatchPage() {
               <MatchDetails matchId={selectedMatchId} />
             </div>
           </div>
+          </>
         )}
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -94,8 +97,8 @@ export default function GameMatchPage() {
             <CardContent className="text-sm text-muted-foreground space-y-2">
               <p>1. Create a match by specifying stake amount and max players</p>
               <p>2. Other players join by staking the same amount</p>
-              <p>3. Controller activates the match, locking all stakes</p>
-              <p>4. Match concludes and winner receives all stakes</p>
+              <p>3. App activates the match, locking all stakes</p>
+              <p>4. App finalizes match and winner receives all stakes</p>
             </CardContent>
           </Card>
 
@@ -122,6 +125,14 @@ export default function GameMatchPage() {
               <p>• Comprehensive event emissions</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Contract Information */}
+        <div className="mt-12">
+          <ContractInformation 
+            factoryAddress={factoryAddress}
+            contractAddress={contractAddress}
+          />
         </div>
       </div>
     </main>
