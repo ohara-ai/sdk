@@ -55,13 +55,12 @@ forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactor
 ```
 
 Tips:
-```
+```bash
 # Dump state 
 anvil --dump-state .anvil-dev-state.json
 
 # Load previously saved state
 anvil --load-state .anvil-dev-state.json
-
 ```
 
 ## Demo Application
