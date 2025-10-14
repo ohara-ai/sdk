@@ -67,23 +67,10 @@ export default function Home() {
                 </CardHeader>
               </Card>
             </Link>
-            {mounted && !isValidating && !address && (
+            {mounted && !isValidating && (
               <DeployContract onDeployed={handleDeployed} />
             )}
           </div>
-        </div>
-
-        <div className="mt-12 p-6 rounded-lg bg-muted/50">
-          <h2 className="text-xl font-semibold mb-2">Getting Started</h2>
-          <p className="text-muted-foreground mb-4">
-            Connect your wallet to interact with the features. Each feature is deployed as an
-            independent smart contract that can be easily integrated into your gaming application.
-          </p>
-          <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-            <li>Smart contracts are deployed through efficient factory patterns</li>
-            <li>All features include comprehensive test coverage</li>
-            <li>Demo applications showcase real-world usage patterns</li>
-          </ul>
         </div>
       </div>
     </main>

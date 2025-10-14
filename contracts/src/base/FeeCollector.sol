@@ -30,6 +30,18 @@ abstract contract FeeCollector is Owned {
         address[] calldata _recipients,
         uint256[] calldata _shares
     ) external onlyOwner {
+        _initializeFees(_recipients, _shares);
+    }
+
+    /**
+     * @notice Internal function to initialize or update fee configuration
+     * @param _recipients Array of recipient addresses
+     * @param _shares Array of shares in basis points (100 = 1%)
+     */
+    function _initializeFees(
+        address[] memory _recipients,
+        uint256[] memory _shares
+    ) internal {
         if (_recipients.length != _shares.length) revert InvalidFeeConfiguration();
 
         uint256 total = 0;

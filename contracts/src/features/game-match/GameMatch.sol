@@ -30,8 +30,21 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
 
     constructor(
         address _owner,
-        address _controller
-    ) FeatureController(_owner, _controller) {}
+        address _controller,
+        address _scoreBoard,
+        address[] memory _feeRecipients,
+        uint256[] memory _feeShares
+    ) FeatureController(_owner, _controller) {
+        // Initialize scoreboard if provided
+        if (_scoreBoard != address(0)) {
+            scoreBoard = IScoreBoard(_scoreBoard);
+        }
+        
+        // Initialize fees if provided
+        if (_feeRecipients.length > 0) {
+            _initializeFees(_feeRecipients, _feeShares);
+        }
+    }
 
     /**
      * @notice Set the scoreboard contract

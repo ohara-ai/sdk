@@ -14,7 +14,8 @@ contract GameMatchFactoryTest is Test {
     event GameMatchDeployed(
         address indexed instance,
         address indexed owner,
-        address indexed controller
+        address indexed controller,
+        address scoreBoard
     );
 
     function setUp() public {
@@ -22,10 +23,13 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployGameMatch() public {
-        vm.expectEmit(false, true, true, false);
-        emit GameMatchDeployed(address(0), owner, controller);
+        address[] memory emptyRecipients = new address[](0);
+        uint256[] memory emptyShares = new uint256[](0);
         
-        address instance = factory.deployGameMatch(owner, controller);
+        vm.expectEmit(false, true, true, true);
+        emit GameMatchDeployed(address(0), owner, controller, address(0));
+        
+        address instance = factory.deployGameMatch(owner, controller, address(0), emptyRecipients, emptyShares);
         
         assertTrue(instance != address(0));
         
@@ -37,9 +41,57 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployMultipleInstances() public {
-        address instance1 = factory.deployGameMatch(owner, controller);
-        address instance2 = factory.deployGameMatch(owner, controller);
+        address[] memory emptyRecipients = new address[](0);
+        uint256[] memory emptyShares = new uint256[](0);
+        
+        address instance1 = factory.deployGameMatch(owner, controller, address(0), emptyRecipients, emptyShares);
+        address instance2 = factory.deployGameMatch(owner, controller, address(0), emptyRecipients, emptyShares);
         
         assertTrue(instance1 != instance2);
+    }
+
+    function test_DeployWithFullConfiguration() public {
+        // Setup fee configuration
+        address feeRecipient = address(0x999);
+        address[] memory feeRecipients = new address[](1);
+        feeRecipients[0] = feeRecipient;
+        uint256[] memory feeShares = new uint256[](1);
+        feeShares[0] = 1000; // 10%
+        
+        // Setup scoreboard
+        address scoreBoardAddress = address(0x888);
+        
+        // Deploy with full configuration
+        address instance = factory.deployGameMatch(
+            owner, 
+            controller, 
+            scoreBoardAddress, 
+            feeRecipients, 
+            feeShares
+        );
+        
+        assertTrue(instance != address(0));
+        
+        GameMatch gameMatch = GameMatch(instance);
+        
+        // Verify basic configuration
+        assertEq(gameMatch.owner(), owner);
+        assertEq(gameMatch.controller(), controller);
+        
+        // Verify scoreboard is set
+        assertEq(address(gameMatch.scoreBoard()), scoreBoardAddress);
+        
+        // Verify fee configuration
+        (
+            address[] memory recipients,
+            uint256[] memory shares,
+            uint256 totalShare
+        ) = gameMatch.getFeeConfiguration();
+        
+        assertEq(recipients.length, 1);
+        assertEq(recipients[0], feeRecipient);
+        assertEq(shares.length, 1);
+        assertEq(shares[0], 1000);
+        assertEq(totalShare, 1000);
     }
 }

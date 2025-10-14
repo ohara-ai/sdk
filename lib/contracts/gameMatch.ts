@@ -201,6 +201,9 @@ export const GAME_MATCH_FACTORY_ABI = [
     inputs: [
       { internalType: 'address', name: '_owner', type: 'address' },
       { internalType: 'address', name: '_controller', type: 'address' },
+      { internalType: 'address', name: '_scoreBoard', type: 'address' },
+      { internalType: 'address[]', name: '_feeRecipients', type: 'address[]' },
+      { internalType: 'uint256[]', name: '_feeShares', type: 'uint256[]' },
     ],
     name: 'deployGameMatch',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
@@ -213,6 +216,7 @@ export const GAME_MATCH_FACTORY_ABI = [
       { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
       { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
       { indexed: true, internalType: 'address', name: 'controller', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'scoreBoard', type: 'address' },
     ],
     name: 'GameMatchDeployed',
     type: 'event',

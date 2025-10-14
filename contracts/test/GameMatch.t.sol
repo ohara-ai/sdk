@@ -41,7 +41,9 @@ contract GameMatchTest is Test {
 
     function setUp() public {
         vm.startPrank(owner);
-        gameMatch = new GameMatch(owner, controller);
+        address[] memory emptyRecipients = new address[](0);
+        uint256[] memory emptyShares = new uint256[](0);
+        gameMatch = new GameMatch(owner, controller, address(0), emptyRecipients, emptyShares);
         token = new MockERC20(1000000 ether);
         scoreBoard = new MockScoreBoard();
         vm.stopPrank();
@@ -391,7 +393,7 @@ contract GameMatchTest is Test {
         gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
     }
 
-    function test_FeatureMetadata() public {
+    function test_FeatureMetadata() public view {
         assertEq(gameMatch.version(), "1.0.0");
         assertEq(gameMatch.featureName(), "GameMatch - OCI-001");
     }

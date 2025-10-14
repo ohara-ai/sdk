@@ -27,10 +27,7 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Contract Information</CardTitle>
-        <CardDescription>
-          System addresses and configuration
-        </CardDescription>
+        <CardTitle className="text-lg">Shared Information</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

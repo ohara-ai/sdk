@@ -39,6 +39,17 @@ export default function GameMatchPage() {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-bold">Game Match</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="text-xl text-muted-foreground">
+                  Escrow-based match system with stake management
+                </p>
+              </div>
+            </div>
+            <div>
+              <ConnectWallet />
+
+              <div className="flex items-center justify-end gap-3">
                 <Button
                   variant="outline"
                   size="sm"
@@ -48,11 +59,7 @@ export default function GameMatchPage() {
                   Info
                   {showContractInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </Button>
-              </div>
-              <div className="flex items-center gap-3">
-                <p className="text-xl text-muted-foreground">
-                  Escrow-based match system with stake management
-                </p>
+
                 <Button
                   variant="outline"
                   size="sm"
@@ -64,7 +71,6 @@ export default function GameMatchPage() {
                 </Button>
               </div>
             </div>
-            <ConnectWallet />
           </div>
 
           {/* Contract Information */}
