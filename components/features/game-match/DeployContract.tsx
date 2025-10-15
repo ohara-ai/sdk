@@ -29,7 +29,6 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
   const factoryAddress = getGameMatchFactoryAddress()
-  const ownerAddress = process.env.NEXT_PUBLIC_OWNER_ADDRESS || 'Not configured'
   const controllerAddress = process.env.NEXT_PUBLIC_CONTROLLER_ADDRESS || 'Not configured'
 
   const addFeeRecipient = () => {
@@ -171,15 +170,6 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
             <div className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="cursor-help underline decoration-dotted">OWNER</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">{ownerAddress}</p>
-                </TooltipContent>
-              </Tooltip>
-              <span>·</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
                   <span className="cursor-help underline decoration-dotted">CONTROLLER</span>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -189,7 +179,7 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
             </div>
           </CardTitle>
           <CardDescription className="text-xs">
-            Deploy new instance
+            Deploy new instance · Owner managed by factory
           </CardDescription>
         </CardHeader>
         

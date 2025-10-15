@@ -199,7 +199,6 @@ export function getGameMatchFactoryAddress(): `0x${string}` | undefined {
 export const GAME_MATCH_FACTORY_ABI = [
   {
     inputs: [
-      { internalType: 'address', name: '_owner', type: 'address' },
       { internalType: 'address', name: '_controller', type: 'address' },
       { internalType: 'address', name: '_scoreBoard', type: 'address' },
       { internalType: 'address[]', name: '_feeRecipients', type: 'address[]' },

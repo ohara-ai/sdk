@@ -9,7 +9,7 @@ The GameMatch deployment flow uses **server-side signing** to provide a seamless
 1. **User clicks "Deploy"** button on the UI
 2. **Client sends request** to `/api/deploy-game-match` API route
 3. **Server uses private key** from environment variables to sign the deployment transaction
-4. **Contract deploys** with owner/controller addresses from environment
+4. **Factory deploys contract** with controller from environment; owner is managed by the factory
 5. **Server returns** deployed contract address to client
 6. **Client saves** address to localStorage
 
@@ -21,9 +21,6 @@ The deployment uses these server-side environment variables:
 # Private key used to sign deployment transactions (kept on server)
 PRIVATE_KEY=0x...
 
-# Owner of the deployed GameMatch contract
-NEXT_PUBLIC_OWNER_ADDRESS=0x...
-
 # Controller of the deployed GameMatch contract
 NEXT_PUBLIC_CONTROLLER_ADDRESS=0x...
 
@@ -32,6 +29,9 @@ NEXT_PUBLIC_RPC_URL=http://localhost:8545
 
 # Factory contract address (public)
 NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
+
+# Optional: Owner address for deployed instances (uses factory owner if not set)
+# NEXT_PUBLIC_OWNER_ADDRESS=0x...
 ```
 
 ## Security Considerations

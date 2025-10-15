@@ -24,7 +24,6 @@ contract FeeCollectorValidationTest is Test {
         feeShares[0] = 1000;
         
         address instance = factory.deployGameMatch(
-            owner,
             controller, 
             address(0),
             feeRecipients,
@@ -44,7 +43,6 @@ contract FeeCollectorValidationTest is Test {
         feeShares[0] = 1000;
         
         address instance = factory.deployGameMatch(
-            owner,
             controller, 
             address(0),
             feeRecipients,

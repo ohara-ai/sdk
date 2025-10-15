@@ -69,9 +69,9 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
               <User className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">System Owner Address (Ohara secret key)</p>
+              <p className="text-sm font-medium mb-1">Instance Owner (Managed by Factory)</p>
               <p className="text-xs text-muted-foreground font-mono break-all">
-                {!mounted ? 'Loading...' : ownerAddress || 'Not configured'}
+                {!mounted ? 'Loading...' : ownerAddress || 'Factory owner'}
               </p>
             </div>
           </div>

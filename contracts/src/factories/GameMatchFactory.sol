@@ -2,13 +2,13 @@
 pragma solidity ^0.8.23;
 
 import {GameMatch} from "../features/game-match/GameMatch.sol";
-import {Owned} from "../base/Owned.sol";
+import {OwnedFactory} from "../base/OwnedFactory.sol";
 
 /**
  * @title GameMatchFactory
  * @notice Factory for deploying GameMatch contracts
  */
-contract GameMatchFactory is Owned {
+contract GameMatchFactory is OwnedFactory {
     event GameMatchDeployed(
         address indexed instance,
         address indexed owner,
@@ -16,11 +16,10 @@ contract GameMatchFactory is Owned {
         address scoreBoard
     );
 
-    constructor() Owned(msg.sender) {}
+    constructor() OwnedFactory(msg.sender) {}
 
     /**
      * @notice Deploy a new GameMatch contract with full configuration
-     * @param _owner Owner of the new contract
      * @param _controller Controller of the new contract
      * @param _scoreBoard Scoreboard contract address (address(0) if not used)
      * @param _feeRecipients Array of fee recipient addresses
@@ -28,15 +27,16 @@ contract GameMatchFactory is Owned {
      * @return instance Address of the deployed contract
      */
     function deployGameMatch(
-        address _owner,
         address _controller,
         address _scoreBoard,
         address[] memory _feeRecipients,
         uint256[] memory _feeShares
     ) external returns (address instance) {
+        address instanceOwnerAddress = getInstanceOwner();
+        
         instance = address(
-            new GameMatch(_owner, _controller, _scoreBoard, _feeRecipients, _feeShares)
+            new GameMatch(instanceOwnerAddress, _controller, _scoreBoard, _feeRecipients, _feeShares)
         );
-        emit GameMatchDeployed(instance, _owner, _controller, _scoreBoard);
+        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _scoreBoard);
     }
 }

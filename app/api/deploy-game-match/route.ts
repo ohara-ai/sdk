@@ -5,7 +5,6 @@ import { privateKeyToAccount } from 'viem/accounts'
 const GAME_MATCH_FACTORY_ABI = [
   {
     inputs: [
-      { internalType: 'address', name: '_owner', type: 'address' },
       { internalType: 'address', name: '_controller', type: 'address' },
       { internalType: 'address', name: '_scoreBoard', type: 'address' },
       { internalType: 'address[]', name: '_feeRecipients', type: 'address[]' },
@@ -48,7 +47,6 @@ export async function POST(request: NextRequest) {
 
     // Get configuration from environment
     const privateKey = process.env.PRIVATE_KEY
-    const ownerAddress = process.env.NEXT_PUBLIC_OWNER_ADDRESS
     const controllerAddress = process.env.NEXT_PUBLIC_CONTROLLER_ADDRESS
     const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
 
@@ -80,9 +78,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!ownerAddress || !controllerAddress) {
+    if (!controllerAddress) {
       return NextResponse.json(
-        { error: 'Owner and controller addresses not configured' },
+        { error: 'Controller address not configured' },
         { status: 500 }
       )
     }
@@ -102,12 +100,12 @@ export async function POST(request: NextRequest) {
     })
 
     // Deploy the contract
+    // Note: Owner is managed by the factory (uses factory's instanceOwner or factory owner)
     const hash = await walletClient.writeContract({
       address: factoryAddress as `0x${string}`,
       abi: GAME_MATCH_FACTORY_ABI,
       functionName: 'deployGameMatch',
       args: [
-        ownerAddress as `0x${string}`,
         controllerAddress as `0x${string}`,
         scoreBoardAddress as `0x${string}`,
         feeRecipients as `0x${string}`[],
