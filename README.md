@@ -37,14 +37,17 @@ See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the 
 │   └── script/         # Deployment scripts
 ├── sdk/                # UI component SDK for developers
 │   ├── src/            # SDK source code
-│   │   ├── components/ # React UI components
-│   │   ├── hooks/      # Contract interaction hooks
+│   │   ├── components/ # React UI components (LeaderBoard, WageringBox)
 │   │   ├── abis/       # Contract ABIs
 │   │   └── utils/      # Utility functions
-│   ├── demos/          # Example applications
-│   └── docs/           # SDK documentation
+│   ├── package.json    # SDK package configuration
+│   └── README.md       # SDK documentation
 ├── app/                # Next.js demo application
-├── components/         # React components
+│   ├── demos/          # SDK component demos
+│   │   ├── tic-tac-toe/     # Tic-tac-toe game demo
+│   │   └── leaderboard/     # Leaderboard showcase
+│   └── contract-testing/    # Internal contract testing interface
+├── components/         # Shared React components
 └── lib/                # Utilities and helpers
 ```
 
@@ -59,15 +62,20 @@ The **@ohara-ai/game-sdk** provides production-ready UI components and hooks for
 ### Quick Start
 
 ```bash
-cd sdk
-npm install
-npm run build
+# Install SDK dependencies
+npm run sdk:install
+
+# Build the SDK
+npm run sdk:build
+
+# Or run in watch mode for development
+npm run sdk:dev
 ```
 
 ### Components
 
-- **LeaderBoard**: Display high scores from ScoreBoard contracts
-- **WageringBox**: Create and join wagered game matches
+- **LeaderBoard**: Display high scores and player rankings from ScoreBoard contracts with customizable sorting
+- **WageringBox**: Create and join wagered game matches with built-in escrow management
 
 ### Example Usage
 
@@ -80,11 +88,13 @@ function App() {
       <WageringBox 
         gameMatchAddress="0x..."
         onMatchCreated={(id) => console.log('Match created:', id)}
+        onMatchJoined={(id) => console.log('Joined match:', id)}
       />
       <LeaderBoard 
         scoreBoardAddress="0x..."
         limit={10}
         sortBy="wins"
+        showStats={true}
       />
     </>
   )
@@ -93,10 +103,10 @@ function App() {
 
 ### Demo Applications
 
-The SDK includes fully-functional demo apps:
+The main app includes interactive demos showcasing SDK components:
 
-- **Basic Leaderboard** (`sdk/demos/basic-leaderboard/`) - Simple leaderboard showcase
-- **Wagering Game** (`sdk/demos/wagering-game/`) - Complete wagering game with both components
+- **Tic-Tac-Toe** (`/demos/tic-tac-toe`) - Full wagered game implementation using both components
+- **Leaderboard Demo** (`/demos/leaderboard`) - Interactive leaderboard configuration showcase
 
 See [`sdk/README.md`](./sdk/README.md) for detailed documentation.
 
@@ -135,6 +145,11 @@ npm run forge:coverage
 
 ### Demo Application
 
+The demo application showcases SDK components in action. It includes:
+- Interactive game demos (tic-tac-toe)
+- Component showcases (leaderboard)
+- Internal contract testing interface
+
 #### Quick Start with Anvil (Local Development)
 
 1. **Start local Anvil node**:
@@ -145,7 +160,12 @@ npm run forge:coverage
 2. **Deploy contracts**:
    ```bash
    # Deploy the GameMatchFactory
-   forge script contracts/script/DeployGameMatch.s.sol:DeployGameMatch \
+   forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
+     --rpc-url http://localhost:8545 \
+     --broadcast
+   
+   # Deploy the ScoreBoard (optional, for leaderboard features)
+   forge script contracts/script/DeployScoreBoard.s.sol:DeployScoreBoard \
      --rpc-url http://localhost:8545 \
      --broadcast
    ```
@@ -155,9 +175,10 @@ npm run forge:coverage
    # Copy the example env file
    cp .env.example .env.local
    
-   # Edit .env.local and set the factory address from the deployment output
+   # Edit .env.local and set the addresses from deployment output
    # Example:
    # NEXT_PUBLIC_GAME_MATCH_FACTORY=0x5FbDB2315678afecb367f032d93F642f64180aa3
+   # NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
    ```
 
 4. **Run the app**:
@@ -165,11 +186,11 @@ npm run forge:coverage
    npm run dev
    ```
 
-5. **Deploy GameMatch instance**:
+5. **Explore the demos**:
    - Open http://localhost:3000
-   - Click the "Deploy" button on the GameMatch feature card
-   - The contract will be deployed automatically using the owner's private key (no wallet signature needed)
-   - Once deployed, the contract address will be saved and the feature becomes accessible
+   - Try the **Tic-Tac-Toe** demo to see wagering in action
+   - Visit the **Leaderboard Demo** to explore ranking features
+   - Use the **Contract Testing** section to deploy and test contracts directly
 
 #### Deployment Flow
 

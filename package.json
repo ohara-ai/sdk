@@ -13,7 +13,10 @@
     "forge:build": "forge build",
     "forge:test": "forge test",
     "forge:test:verbose": "forge test -vvv",
-    "forge:coverage": "forge coverage"
+    "forge:coverage": "forge coverage",
+    "sdk:build": "cd sdk && npm run build",
+    "sdk:dev": "cd sdk && npm run dev",
+    "sdk:install": "cd sdk && npm install"
   },
   "dependencies": {
     "next": "^14.0.4",

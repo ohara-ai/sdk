@@ -1,0 +1,222 @@
+'use client'
+
+import { useState } from 'react'
+import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
+import { WageringBox } from '@/sdk/src/components/WageringBox'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { X, Circle, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { useDeployedGameMatchAddress } from '@/lib/hooks/useDeployedAddress'
+import { ConnectWallet } from '@/components/ConnectWallet'
+
+type CellValue = 'X' | 'O' | null
+type Board = CellValue[]
+
+const WINNING_COMBINATIONS = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+]
+
+export default function TicTacToePage() {
+  const [board, setBoard] = useState<Board>(Array(9).fill(null))
+  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>('X')
+  const [winner, setWinner] = useState<'X' | 'O' | 'draw' | null>(null)
+  const [matchId, setMatchId] = useState<bigint | null>(null)
+  
+  const { address: gameMatchAddress } = useDeployedGameMatchAddress()
+  
+  // Mock scoreboard address - in production, this would come from contract or env
+  const scoreBoardAddress = (process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`
+
+  const checkWinner = (newBoard: Board): 'X' | 'O' | 'draw' | null => {
+    for (const combo of WINNING_COMBINATIONS) {
+      const [a, b, c] = combo
+      if (newBoard[a] && newBoard[a] === newBoard[b] && newBoard[a] === newBoard[c]) {
+        return newBoard[a]!
+      }
+    }
+    if (newBoard.every((cell) => cell !== null)) {
+      return 'draw'
+    }
+    return null
+  }
+
+  const handleCellClick = (index: number) => {
+    if (board[index] || winner) return
+
+    const newBoard = [...board]
+    newBoard[index] = currentPlayer
+    setBoard(newBoard)
+
+    const gameWinner = checkWinner(newBoard)
+    if (gameWinner) {
+      setWinner(gameWinner)
+    } else {
+      setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X')
+    }
+  }
+
+  const resetGame = () => {
+    setBoard(Array(9).fill(null))
+    setCurrentPlayer('X')
+    setWinner(null)
+  }
+
+  const handleMatchCreated = (id: bigint) => {
+    setMatchId(id)
+    resetGame()
+  }
+
+  const handleMatchJoined = (id: bigint) => {
+    setMatchId(id)
+    resetGame()
+  }
+
+  return (
+    <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <Link href="/">
+            <Button variant="ghost" className="mb-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Home
+            </Button>
+          </Link>
+          <h1 className="text-4xl font-bold mb-2">Wagered Tic-Tac-Toe</h1>
+          <p className="text-gray-600">
+            Play tic-tac-toe with real stakes. Create or join a match to start playing.
+          </p>
+        </div>
+
+        <div className="mb-6">
+          <ConnectWallet />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Game Board */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Game Board</span>
+                  {matchId !== null && (
+                    <span className="text-sm font-normal text-gray-500">
+                      Match #{matchId.toString()}
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-md mx-auto">
+                  {winner ? (
+                    <div className="mb-6 text-center">
+                      <div className="text-2xl font-bold mb-2">
+                        {winner === 'draw' ? "It's a Draw!" : `Player ${winner} Wins!`}
+                      </div>
+                      <Button onClick={resetGame} className="mt-4">
+                        Play Again
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mb-6 text-center">
+                      <div className="text-xl font-semibold">
+                        Current Player: {currentPlayer}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-3 gap-3 aspect-square">
+                    {board.map((cell, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleCellClick(index)}
+                        disabled={!!cell || !!winner}
+                        className="bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 
+                                 transition-all disabled:cursor-not-allowed disabled:hover:border-gray-300
+                                 flex items-center justify-center text-4xl font-bold"
+                      >
+                        {cell === 'X' && <X className="w-16 h-16 text-blue-600" />}
+                        {cell === 'O' && <Circle className="w-16 h-16 text-red-600" />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 className="font-semibold mb-2">How to Play:</h3>
+                    <ol className="text-sm text-gray-700 space-y-1">
+                      <li>1. Create or join a wagered match using the WageringBox</li>
+                      <li>2. Players take turns placing X and O</li>
+                      <li>3. First to get 3 in a row wins the match</li>
+                      <li>4. Winner takes the prize pool!</li>
+                    </ol>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Wagering Box */}
+          <div className="space-y-6">
+            {gameMatchAddress ? (
+              <WageringBox
+                gameMatchAddress={gameMatchAddress}
+                onMatchCreated={handleMatchCreated}
+                onMatchJoined={handleMatchJoined}
+              />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Wagering</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-gray-500">
+                    <p>GameMatch contract not deployed.</p>
+                    <p className="text-sm mt-2">
+                      Visit the{' '}
+                      <Link href="/contract-testing" className="text-blue-600 hover:underline">
+                        contract testing page
+                      </Link>{' '}
+                      to deploy contracts.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {/* Leaderboard */}
+        <div className="mt-6">
+          {scoreBoardAddress !== '0x0000000000000000000000000000000000000000' ? (
+            <LeaderBoard
+              scoreBoardAddress={scoreBoardAddress}
+              limit={10}
+              sortBy="wins"
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Leaderboard</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8 text-gray-500">
+                  <p>ScoreBoard contract not configured.</p>
+                  <p className="text-sm mt-2">
+                    Set NEXT_PUBLIC_SCOREBOARD_ADDRESS in your environment to enable leaderboard.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
