@@ -192,4 +192,57 @@ contract ScoreBoardFactoryTest is Test {
     }
 
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
+
+    function test_DefaultLimits() public view {
+        assertEq(factory.maxLosersPerMatch(), 50);
+        assertEq(factory.maxTotalPlayers(), 1000);
+        assertEq(factory.maxTotalMatches(), 100);
+    }
+
+    function test_DeployedScoreBoardUsesFactoryLimits() public {
+        address instance = factory.deployScoreBoard();
+        ScoreBoard scoreBoard = ScoreBoard(instance);
+        
+        assertEq(scoreBoard.maxLosersPerMatch(), 50);
+        assertEq(scoreBoard.maxTotalPlayers(), 1000);
+        assertEq(scoreBoard.maxTotalMatches(), 100);
+    }
+
+    function test_SetDeploymentLimits() public {
+        factory.setDeploymentLimits(100, 20000, 200000);
+        
+        assertEq(factory.maxLosersPerMatch(), 100);
+        assertEq(factory.maxTotalPlayers(), 20000);
+        assertEq(factory.maxTotalMatches(), 200000);
+    }
+
+    function test_OnlyOwnerCanSetDeploymentLimits() public {
+        address nonOwner = address(0x123);
+        
+        vm.prank(nonOwner);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
+        factory.setDeploymentLimits(100, 20000, 200000);
+    }
+
+    function test_NewDeploymentsUseUpdatedLimits() public {
+        // Deploy with default limits
+        address instance1 = factory.deployScoreBoard();
+        ScoreBoard scoreBoard1 = ScoreBoard(instance1);
+        
+        assertEq(scoreBoard1.maxLosersPerMatch(), 50);
+        
+        // Update limits
+        factory.setDeploymentLimits(100, 20000, 200000);
+        
+        // Deploy with new limits
+        address instance2 = factory.deployScoreBoard();
+        ScoreBoard scoreBoard2 = ScoreBoard(instance2);
+        
+        assertEq(scoreBoard2.maxLosersPerMatch(), 100);
+        assertEq(scoreBoard2.maxTotalPlayers(), 20000);
+        assertEq(scoreBoard2.maxTotalMatches(), 200000);
+        
+        // First instance should still have old limits
+        assertEq(scoreBoard1.maxLosersPerMatch(), 50);
+    }
 }

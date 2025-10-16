@@ -29,6 +29,7 @@ export function DeployFactoryContract({
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deployedAddress, setDeployedAddress] = useState<`0x${string}` | null>(null)
+  const [authWarning, setAuthWarning] = useState<string | null>(null)
   
   const controllerAddress = process.env.NEXT_PUBLIC_CONTROLLER_ADDRESS || 'Not configured'
 
@@ -61,6 +62,9 @@ export function DeployFactoryContract({
       if (data.address) {
         setDeployedAddress(data.address)
         setIsSuccess(true)
+        if (data.authorizationWarning) {
+          setAuthWarning(data.authorizationWarning)
+        }
         onDeployed(data.address)
       } else {
         throw new Error('No address returned from deployment')
@@ -76,6 +80,7 @@ export function DeployFactoryContract({
   const handleReset = () => {
     setIsSuccess(false)
     setDeployedAddress(null)
+    setAuthWarning(null)
   }
 
   if (!factoryAddress) {
@@ -110,6 +115,12 @@ export function DeployFactoryContract({
                   {deployedAddress}
                 </code>
               </div>
+              {authWarning && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs font-semibold text-amber-900 mb-1">⚠️ Authorization Warning</p>
+                  <p className="text-xs text-amber-800">{authWarning}</p>
+                </div>
+              )}
             </div>
           </div>
         </CardHeader>

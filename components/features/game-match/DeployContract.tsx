@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getGameMatchFactoryAddress } from '@/lib/contracts/gameMatch'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../DeployFactoryContract'
+import { useDeployedScoreBoardAddress } from '@/lib/hooks/useDeployedAddress'
 
 interface DeployContractProps {
   onDeployed: (address: `0x${string}`) => void
@@ -20,9 +21,11 @@ interface FeeRecipient {
 export function DeployContract({ onDeployed }: DeployContractProps) {
   // Configuration state
   const [scoreBoardAddress, setScoreBoardAddress] = useState('0x0000000000000000000000000000000000000000')
+  const [useDeployedScoreBoard, setUseDeployedScoreBoard] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
   const factoryAddress = getGameMatchFactoryAddress()
+  const { address: deployedScoreBoardAddress } = useDeployedScoreBoardAddress()
 
   const addFeeRecipient = () => {
     setFeeRecipients([...feeRecipients, { address: '', share: '' }])
@@ -42,8 +45,13 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
     // Validate fee recipients
     const validFeeRecipients = feeRecipients.filter(r => r.address && r.share)
     
+    // Use deployed scoreboard if toggle is enabled and address exists
+    const finalScoreBoardAddress = useDeployedScoreBoard && deployedScoreBoardAddress 
+      ? deployedScoreBoardAddress 
+      : scoreBoardAddress
+    
     return {
-      scoreBoardAddress,
+      scoreBoardAddress: finalScoreBoardAddress,
       feeRecipients: validFeeRecipients.map(r => r.address),
       feeShares: validFeeRecipients.map(r => r.share),
     }
@@ -58,14 +66,38 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
   const configSection = (
     <>
       <div>
-        <Label htmlFor="scoreboard" className="text-sm font-medium text-gray-900">ScoreBoard Address</Label>
-        <Input
-          id="scoreboard"
-          value={scoreBoardAddress}
-          onChange={(e) => setScoreBoardAddress(e.target.value)}
-          placeholder="0x0000..."
-          className="font-mono text-xs mt-1.5 h-9 border-gray-300"
-        />
+        <Label htmlFor="scoreboard" className="text-sm font-medium text-gray-900">ScoreBoard Integration</Label>
+        {deployedScoreBoardAddress ? (
+          <div className="mt-1.5 space-y-2">
+            <Button
+              type="button"
+              variant={useDeployedScoreBoard ? "default" : "outline"}
+              size="sm"
+              onClick={() => setUseDeployedScoreBoard(!useDeployedScoreBoard)}
+              className="w-full gap-2 h-9"
+            >
+              <Link2 className="w-4 h-4" />
+              {useDeployedScoreBoard ? "ScoreBoard Enabled (Auto-Authorized)" : "Enable ScoreBoard Integration"}
+            </Button>
+            {useDeployedScoreBoard && (
+              <div className="p-2.5 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-xs font-medium text-green-900 mb-1">ScoreBoard Address</p>
+                <code className="text-xs font-mono text-green-700 break-all">{deployedScoreBoardAddress}</code>
+                <p className="text-xs text-green-700 mt-2">
+                  ✓ GameMatch will be automatically authorized to record results
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <Input
+            id="scoreboard"
+            value={scoreBoardAddress}
+            onChange={(e) => setScoreBoardAddress(e.target.value)}
+            placeholder="0x0000... (no scoreboard)"
+            className="font-mono text-xs mt-1.5 h-9 border-gray-300"
+          />
+        )}
       </div>
 
       <div>

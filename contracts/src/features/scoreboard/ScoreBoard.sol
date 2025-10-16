@@ -44,6 +44,11 @@ contract ScoreBoard is IScoreBoard, Owned {
     // Authorized contracts that can record results
     mapping(address => bool) public authorizedRecorders;
 
+    // Storage limits to prevent state explosion (configurable by owner)
+    uint256 public maxLosersPerMatch; // Limit losers array size
+    uint256 public maxTotalPlayers; // Cap total unique players
+    uint256 public maxTotalMatches; // Cap total matches
+
     event RecorderAuthorized(address indexed recorder, bool authorized);
     event ScoreRecorded(
         uint256 indexed matchId,
@@ -51,11 +56,24 @@ contract ScoreBoard is IScoreBoard, Owned {
         uint256 totalWins,
         uint256 totalPrize
     );
+    event LimitsUpdated(uint256 maxLosersPerMatch, uint256 maxTotalPlayers, uint256 maxTotalMatches);
+    event MatchEvicted(uint256 indexed matchId, uint256 timestamp);
+    event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
 
     error UnauthorizedRecorder();
     error MatchAlreadyRecorded();
+    error InvalidLimit();
 
-    constructor(address _owner) Owned(_owner) {}
+    constructor(
+        address _owner,
+        uint256 _maxLosersPerMatch,
+        uint256 _maxTotalPlayers,
+        uint256 _maxTotalMatches
+    ) Owned(_owner) {
+        maxLosersPerMatch = _maxLosersPerMatch;
+        maxTotalPlayers = _maxTotalPlayers;
+        maxTotalMatches = _maxTotalMatches;
+    }
 
     /**
      * @notice Authorize or revoke a contract's ability to record scores
@@ -67,6 +85,112 @@ contract ScoreBoard is IScoreBoard, Owned {
         emit RecorderAuthorized(recorder, authorized);
     }
 
+    /**
+     * @notice Update storage limits
+     * @param _maxLosersPerMatch Maximum losers per match (0 = no change)
+     * @param _maxTotalPlayers Maximum total players (0 = no change)
+     * @param _maxTotalMatches Maximum total matches (0 = no change)
+     */
+    function updateLimits(
+        uint256 _maxLosersPerMatch,
+        uint256 _maxTotalPlayers,
+        uint256 _maxTotalMatches
+    ) external onlyOwner {
+        if (_maxLosersPerMatch > 0) {
+            maxLosersPerMatch = _maxLosersPerMatch;
+        }
+        if (_maxTotalPlayers > 0) {
+            if (_maxTotalPlayers < _players.length) revert InvalidLimit();
+            maxTotalPlayers = _maxTotalPlayers;
+        }
+        if (_maxTotalMatches > 0) {
+            if (_maxTotalMatches < _matchIds.length) revert InvalidLimit();
+            maxTotalMatches = _maxTotalMatches;
+        }
+        emit LimitsUpdated(maxLosersPerMatch, maxTotalPlayers, maxTotalMatches);
+    }
+
+    /**
+     * @notice Evict the oldest match record
+     */
+    function _evictOldestMatch() internal {
+        if (_matchIds.length == 0) return;
+        
+        // The oldest match is always at index 0
+        uint256 oldestMatchId = _matchIds[0];
+        
+        // Remove from array by shifting all elements left
+        for (uint256 i = 0; i < _matchIds.length - 1; i++) {
+            _matchIds[i] = _matchIds[i + 1];
+        }
+        _matchIds.pop();
+        
+        // Get match data before deleting
+        MatchRecord storage record = _matchRecords[oldestMatchId];
+        uint256 evictedTimestamp = record.timestamp;
+        
+        // Clean up the match record
+        delete _matchRecords[oldestMatchId];
+        
+        emit MatchEvicted(oldestMatchId, evictedTimestamp);
+    }
+
+    /**
+     * @notice Find and evict the player with least wins (and least prize if tied)
+     */
+    function _evictLeastSuccessfulPlayer() internal {
+        if (_players.length == 0) return;
+        
+        address playerToEvict = _players[0];
+        uint256 minWins = _scores[_players[0]].totalWins;
+        uint256 minPrize = _scores[_players[0]].totalPrize;
+        
+        // Find player with least wins, and if tied, least prize
+        for (uint256 i = 1; i < _players.length; i++) {
+            address currentPlayer = _players[i];
+            uint256 currentWins = _scores[currentPlayer].totalWins;
+            uint256 currentPrize = _scores[currentPlayer].totalPrize;
+            
+            if (currentWins < minWins || (currentWins == minWins && currentPrize < minPrize)) {
+                playerToEvict = currentPlayer;
+                minWins = currentWins;
+                minPrize = currentPrize;
+            }
+        }
+        
+        // Remove player from array
+        uint256 indexToRemove = _playerIndex[playerToEvict] - 1; // _playerIndex stores 1-based index
+        
+        // Move last player to the removed position
+        if (indexToRemove < _players.length - 1) {
+            address lastPlayer = _players[_players.length - 1];
+            _players[indexToRemove] = lastPlayer;
+            _playerIndex[lastPlayer] = indexToRemove + 1;
+        }
+        _players.pop();
+        
+        // Clean up player data
+        emit PlayerEvicted(playerToEvict, minWins, minPrize);
+        delete _playerIndex[playerToEvict];
+        delete _scores[playerToEvict];
+    }
+
+    /**
+     * @notice Add a new player, evicting least successful if at capacity
+     */
+    function _addPlayer(address player) internal {
+        if (_playerIndex[player] != 0) return; // Player already exists
+        
+        // If at capacity, evict least successful player
+        if (_players.length >= maxTotalPlayers) {
+            _evictLeastSuccessfulPlayer();
+        }
+        
+        _players.push(player);
+        _playerIndex[player] = _players.length;
+        _scores[player].player = player;
+    }
+
     /// @inheritdoc IScoreBoard
     function recordMatchResult(
         uint256 matchId,
@@ -76,12 +200,24 @@ contract ScoreBoard is IScoreBoard, Owned {
     ) external {
         if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
         if (_matchRecords[matchId].timestamp != 0) revert MatchAlreadyRecorded();
+        
+        // Truncate losers array if it exceeds the limit
+        uint256 losersToRecord = losers.length > maxLosersPerMatch ? maxLosersPerMatch : losers.length;
+        address[] memory processedLosers = new address[](losersToRecord);
+        for (uint256 i = 0; i < losersToRecord; i++) {
+            processedLosers[i] = losers[i];
+        }
+        
+        // If at match capacity, evict oldest match
+        if (_matchIds.length >= maxTotalMatches) {
+            _evictOldestMatch();
+        }
 
         // Record match
         _matchRecords[matchId] = MatchRecord({
             matchId: matchId,
             winner: winner,
-            losers: losers,
+            losers: processedLosers,
             prize: prize,
             timestamp: block.timestamp
         });
@@ -90,8 +226,7 @@ contract ScoreBoard is IScoreBoard, Owned {
         // Update winner score
         PlayerScore storage winnerScore = _scores[winner];
         if (winnerScore.totalWins == 0 && _playerIndex[winner] == 0) {
-            _players.push(winner);
-            _playerIndex[winner] = _players.length;
+            _addPlayer(winner);
         }
         winnerScore.player = winner;
         winnerScore.totalWins++;
@@ -100,11 +235,9 @@ contract ScoreBoard is IScoreBoard, Owned {
         winnerScore.lastWinTimestamp = block.timestamp;
 
         // Track losers (for participation tracking)
-        for (uint256 i = 0; i < losers.length; i++) {
-            if (_scores[losers[i]].totalWins == 0 && _playerIndex[losers[i]] == 0) {
-                _players.push(losers[i]);
-                _playerIndex[losers[i]] = _players.length;
-                _scores[losers[i]].player = losers[i];
+        for (uint256 i = 0; i < processedLosers.length; i++) {
+            if (_scores[processedLosers[i]].totalWins == 0 && _playerIndex[processedLosers[i]] == 0) {
+                _addPlayer(processedLosers[i]);
             }
         }
 
@@ -267,5 +400,23 @@ contract ScoreBoard is IScoreBoard, Owned {
      */
     function getTotalPlayers() external view returns (uint256) {
         return _players.length;
+    }
+
+    /**
+     * @notice Get remaining capacity for players
+     * @return Remaining slots before player limit is reached
+     */
+    function getRemainingPlayerCapacity() external view returns (uint256) {
+        if (_players.length >= maxTotalPlayers) return 0;
+        return maxTotalPlayers - _players.length;
+    }
+
+    /**
+     * @notice Get remaining capacity for matches
+     * @return Remaining slots before match limit is reached
+     */
+    function getRemainingMatchCapacity() external view returns (uint256) {
+        if (_matchIds.length >= maxTotalMatches) return 0;
+        return maxTotalMatches - _matchIds.length;
     }
 }

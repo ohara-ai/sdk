@@ -28,6 +28,19 @@ const GAME_MATCH_FACTORY_ABI = [
   },
 ] as const
 
+const SCOREBOARD_ABI = [
+  {
+    inputs: [
+      { internalType: 'address', name: 'recorder', type: 'address' },
+      { internalType: 'bool', name: 'authorized', type: 'bool' },
+    ],
+    name: 'setRecorderAuthorization',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -136,6 +149,32 @@ export async function POST(request: NextRequest) {
 
     if (!deployedAddress) {
       throw new Error('Could not extract deployed address from transaction receipt')
+    }
+
+    // If scoreboard is configured (not zero address), authorize the GameMatch to record results
+    if (scoreBoardAddress !== '0x0000000000000000000000000000000000000000') {
+      try {
+        const authHash = await walletClient.writeContract({
+          address: scoreBoardAddress as `0x${string}`,
+          abi: SCOREBOARD_ABI,
+          functionName: 'setRecorderAuthorization',
+          args: [deployedAddress, true],
+          chain: null,
+        })
+
+        // Wait for authorization transaction
+        await publicClient.waitForTransactionReceipt({ hash: authHash })
+      } catch (authError) {
+        console.error('Authorization error:', authError)
+        // Return success but with authorization warning
+        return NextResponse.json({
+          success: true,
+          address: deployedAddress,
+          transactionHash: hash,
+          authorizationWarning: 'GameMatch deployed but ScoreBoard authorization failed. You may need to manually authorize the contract.',
+          authorizationError: authError instanceof Error ? authError.message : 'Unknown error'
+        })
+      }
     }
 
     return NextResponse.json({
