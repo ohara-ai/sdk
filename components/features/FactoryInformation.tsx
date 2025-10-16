@@ -176,12 +176,12 @@ export function FactoryInformation() {
         <CardTitle className="text-base font-semibold text-gray-900">Factory Information</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-8">
+        <div className="space-y-2">
           {/* Game Match Factory Section */}
           <div>
             <button
               onClick={() => setIsGameMatchCollapsed(!isGameMatchCollapsed)}
-              className="w-full text-sm font-semibold text-gray-900 mb-4 flex items-center justify-between hover:text-blue-600 transition-colors"
+              className={`w-full text-sm font-semibold text-gray-900 flex items-center justify-between hover:text-blue-600 transition-colors ${isGameMatchCollapsed ? 'mb-0' : 'mb-4'}`}
             >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center">
@@ -359,10 +359,10 @@ export function FactoryInformation() {
           </div>
 
           {/* ScoreBoard Factory Section */}
-          <div className="pt-6 border-t border-gray-200">
+          <div>
             <button
               onClick={() => setIsScoreBoardCollapsed(!isScoreBoardCollapsed)}
-              className="w-full text-sm font-semibold text-gray-900 mb-4 flex items-center justify-between hover:text-purple-600 transition-colors"
+              className={`w-full text-sm font-semibold text-gray-900 flex items-center justify-between hover:text-purple-600 transition-colors ${isScoreBoardCollapsed ? 'mb-0' : 'mb-4'}`}
             >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-purple-50 flex items-center justify-center">
