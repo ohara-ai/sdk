@@ -43,7 +43,7 @@ forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactor
   --rpc-url http://localhost:8545 \
   --broadcast
 
-forge script contracts/script/DeployScoreBoard.s.sol:DeployScoreBoard \
+forge script contracts/script/DeployScoreBoardFactory.s.sol:DeployScoreBoardFactory \
   --rpc-url http://localhost:8545 \
   --broadcast
 ```

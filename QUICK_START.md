@@ -52,6 +52,10 @@ forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
 forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
   --rpc-url http://localhost:8545 --broadcast
 
+# Deploy ScoreBoardFactory
+forge script contracts/script/DeployScoreBoardFactory.s.sol:DeployScoreBoardFactory \
+  --rpc-url http://localhost:8545 --broadcast
+
 ```
 
 Tips:

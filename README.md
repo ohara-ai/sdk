@@ -164,8 +164,8 @@ The demo application showcases SDK components in action. It includes:
      --rpc-url http://localhost:8545 \
      --broadcast
    
-   # Deploy the ScoreBoard (optional, for leaderboard features)
-   forge script contracts/script/DeployScoreBoard.s.sol:DeployScoreBoard \
+   # Deploy the ScoreBoardFactory (optional, for leaderboard features)
+   forge script contracts/script/DeployScoreBoardFactory.s.sol:DeployScoreBoardFactory \
      --rpc-url http://localhost:8545 \
      --broadcast
    ```

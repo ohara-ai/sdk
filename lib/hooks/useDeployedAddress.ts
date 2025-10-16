@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { usePublicClient, useChainId } from 'wagmi'
 
-const STORAGE_KEY_PREFIX = 'deployed_game_match_'
+const STORAGE_KEY_PREFIX_GAME_MATCH = 'deployed_game_match_'
+const STORAGE_KEY_PREFIX_SCOREBOARD = 'deployed_scoreboard_'
 
 /**
- * Hook to manage deployed contract addresses with localStorage persistence
+ * Generic hook to manage deployed contract addresses with localStorage persistence
  * Gracefully handles chain resets by validating the address still exists
  */
-export function useDeployedGameMatchAddress() {
+function useDeployedAddress(storageKeyPrefix: string, envVarName: string) {
   const chainId = useChainId()
   const publicClient = usePublicClient()
   const [address, setAddressState] = useState<`0x${string}` | null>(null)
@@ -17,7 +18,7 @@ export function useDeployedGameMatchAddress() {
   const [envAddress, setEnvAddress] = useState<`0x${string}` | null>(null)
 
   // Get the storage key for the current chain
-  const getStorageKey = () => `${STORAGE_KEY_PREFIX}${chainId}`
+  const getStorageKey = () => `${storageKeyPrefix}${chainId}`
 
   // Load address from ENV or localStorage on mount
   useEffect(() => {
@@ -25,8 +26,8 @@ export function useDeployedGameMatchAddress() {
       setIsValidating(true)
 
       // First check ENV variable
-      const envAddr = process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE
-      if (envAddr && envAddr !== '...') {
+      const envAddr = process.env[envVarName]
+      if (envAddr && envAddr !== '...' && envAddr !== '0x0000000000000000000000000000000000000000') {
         setEnvAddress(envAddr as `0x${string}`)
         setAddressState(envAddr as `0x${string}`)
         setIsValidating(false)
@@ -57,7 +58,7 @@ export function useDeployedGameMatchAddress() {
     }
 
     loadAddress()
-  }, [chainId, publicClient])
+  }, [chainId, publicClient, envVarName])
 
   // Save address to localStorage (but not if it came from ENV)
   const setAddress = (newAddress: `0x${string}` | null) => {
@@ -80,4 +81,18 @@ export function useDeployedGameMatchAddress() {
     isValidating,
     isFromEnv: !!envAddress,
   }
+}
+
+/**
+ * Hook to manage deployed GameMatch contract addresses
+ */
+export function useDeployedGameMatchAddress() {
+  return useDeployedAddress(STORAGE_KEY_PREFIX_GAME_MATCH, 'NEXT_PUBLIC_GAME_MATCH_INSTANCE')
+}
+
+/**
+ * Hook to manage deployed ScoreBoard contract addresses
+ */
+export function useDeployedScoreBoardAddress() {
+  return useDeployedAddress(STORAGE_KEY_PREFIX_SCOREBOARD, 'NEXT_PUBLIC_SCOREBOARD_INSTANCE')
 }
