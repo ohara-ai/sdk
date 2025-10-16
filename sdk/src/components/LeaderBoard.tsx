@@ -1,4 +1,3 @@
-import React from 'react'
 import { useReadContract } from 'wagmi'
 import { SCOREBOARD_ABI } from '../abis/scoreboard'
 import { formatAddress, formatTokenAmount } from '../utils/format'

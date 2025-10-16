@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi'
 import { parseEther, zeroAddress } from 'viem'
 import { GAME_MATCH_ABI } from '../abis/gameMatch'
@@ -76,7 +76,7 @@ export function WageringBox({
     }
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isCreateSuccess && createHash) {
       setStakeAmount('')
       setMaxPlayers('2')
@@ -85,7 +85,7 @@ export function WageringBox({
     }
   }, [isCreateSuccess, createHash, onMatchCreated])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isJoinSuccess && joinHash) {
       setMatchIdToJoin('')
       setStakeAmount('')

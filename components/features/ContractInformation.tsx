@@ -25,82 +25,84 @@ export function ContractInformation({ factoryAddress, contractAddress }: Contrac
   }, [])
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Shared Information</CardTitle>
+    <Card className="border-2 border-gray-200">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-base font-semibold text-gray-900">Contract Information</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <FileCode className="w-5 h-5 text-primary" />
+            <div className="p-2 bg-blue-50 rounded-lg flex-shrink-0">
+              <FileCode className="w-4 h-4 text-blue-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">Contract Address</p>
-              <p className="text-xs text-muted-foreground font-mono break-all">
+              <p className="text-sm font-medium text-gray-900 mb-1.5">Contract Address</p>
+              <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                 {!mounted ? 'Loading...' : contractAddress || 'Not deployed'}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Factory className="w-5 h-5 text-primary" />
+            <div className="p-2 bg-purple-50 rounded-lg flex-shrink-0">
+              <Factory className="w-4 h-4 text-purple-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">Factory Address</p>
-              <p className="text-xs text-muted-foreground font-mono break-all">
+              <p className="text-sm font-medium text-gray-900 mb-1.5">Factory Address</p>
+              <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                 {!mounted ? 'Loading...' : factoryAddress || 'Not configured'}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Shield className="w-5 h-5 text-primary" />
+            <div className="p-2 bg-green-50 rounded-lg flex-shrink-0">
+              <Shield className="w-4 h-4 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">App Controller Address (App secret key)</p>
-              <p className="text-xs text-muted-foreground font-mono break-all">
+              <p className="text-sm font-medium text-gray-900 mb-1.5">App Controller Address</p>
+              <p className="text-xs text-gray-500 mb-1">App secret key</p>
+              <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                 {!mounted ? 'Loading...' : controllerAddress || 'Not configured'}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <User className="w-5 h-5 text-primary" />
+            <div className="p-2 bg-orange-50 rounded-lg flex-shrink-0">
+              <User className="w-4 h-4 text-orange-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">Instance Owner (Managed by Factory)</p>
-              <p className="text-xs text-muted-foreground font-mono break-all">
+              <p className="text-sm font-medium text-gray-900 mb-1.5">Instance Owner</p>
+              <p className="text-xs text-gray-500 mb-1">Managed by Factory</p>
+              <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                 {!mounted ? 'Loading...' : ownerAddress || 'Factory owner'}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Percent className="w-5 h-5 text-primary" />
+            <div className="p-2 bg-amber-50 rounded-lg flex-shrink-0">
+              <Percent className="w-4 h-4 text-amber-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">Fee Configuration</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm font-medium text-gray-900 mb-1.5">Fee Configuration</p>
+              <p className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                 {!mounted || isFeeLoading ? 'Loading...' : 
                  contractAddress ? 
                    totalFeePercentage > 0 ? `${totalFeePercentage}% total fee` : 'No fees configured' 
                  : 'Contract not deployed'}
               </p>
               {mounted && scoreBoard && scoreBoard !== '0x0000000000000000000000000000000000000000' && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-gray-600 mt-2 font-mono bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                   Scoreboard: {scoreBoard.slice(0, 10)}...{scoreBoard.slice(-8)}
                 </p>
               )}
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Coins className="w-5 h-5 text-primary" />
+            <div className="p-2 bg-cyan-50 rounded-lg flex-shrink-0">
+              <Coins className="w-4 h-4 text-cyan-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium mb-1">DEVWORLD Token</p>
-              <p className="text-xs text-muted-foreground font-mono break-all">
+              <p className="text-sm font-medium text-gray-900 mb-1.5">DEVWORLD Token</p>
+              <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                 {!mounted ? 'Loading...' : devWorldTokenAddress || 'Not configured'}
               </p>
             </div>

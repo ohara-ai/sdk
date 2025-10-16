@@ -28,54 +28,50 @@ export default function GameMatchPage() {
   }, [])
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <Link href="/" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Features
+    <main className="min-h-screen bg-white">
+      {/* Header Section */}
+      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <Link href="/contract-testing">
+            <Button variant="ghost" size="sm" className="mb-4 -ml-2">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Contract Testing
+            </Button>
           </Link>
+          
           <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-4xl font-bold">Game Match</h1>
-              </div>
-              <div className="flex items-center gap-3">
-                <p className="text-xl text-muted-foreground">
-                  Escrow-based match system with stake management
-                </p>
-              </div>
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Game Match</h1>
+              <p className="text-base text-gray-600">
+                Escrow-based match system with stake management
+              </p>
             </div>
-            <div>
+            <div className="flex items-center gap-3">
               <ConnectWallet />
-
-              <div className="flex items-center justify-end gap-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowContractInfo(!showContractInfo)}
-                  className="flex items-center gap-1"
-                >
-                  Info
-                  {showContractInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDetails(!showDetails)}
-                  className="flex items-center gap-1"
-                >
-                  Details
-                  {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowContractInfo(!showContractInfo)}
+                className="flex items-center gap-1.5"
+              >
+                Info
+                {showContractInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDetails(!showDetails)}
+                className="flex items-center gap-1.5"
+              >
+                Details
+                {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
 
           {/* Contract Information */}
           {showContractInfo && (
-            <div className="mt-6">
+            <div className="mt-6 animate-in slide-in-from-top duration-200">
               <ContractInformation 
                 factoryAddress={factoryAddress}
                 contractAddress={contractAddress}
@@ -84,62 +80,91 @@ export default function GameMatchPage() {
           )}
 
           {showDetails && (
-            <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">How It Works</CardTitle>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top duration-200">
+              <Card className="border-2 border-gray-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">How It Works</CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>1. Create a match by specifying stake amount and max players, optionally using any ERC20 token as the stake in game</p>
-                  <p>2. Other players join by staking the same amount used to create the match</p>
-                  <p>3. App activates the match, locking all stakes</p>
-                  <p>4. Players play the game following the rules set out by the app.</p>
-                  <p>5. App finalizes match (deciding who wins) and winner receives all stakes</p>
+                <CardContent className="text-sm text-gray-600 space-y-2.5">
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-gray-900 min-w-[20px]">1.</span>
+                    <p>Create a match by specifying stake amount and max players, optionally using any ERC20 token</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-gray-900 min-w-[20px]">2.</span>
+                    <p>Other players join by staking the same amount used to create the match</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-gray-900 min-w-[20px]">3.</span>
+                    <p>App activates the match, locking all stakes</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-gray-900 min-w-[20px]">4.</span>
+                    <p>Players play the game following the rules set out by the app</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="font-semibold text-gray-900 min-w-[20px]">5.</span>
+                    <p>App finalizes match (deciding who wins) and winner receives all stakes</p>
+                  </div>
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Features</CardTitle>
+              <Card className="border-2 border-gray-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">Features</CardTitle>
                 </CardHeader>
-                <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>• Create/join matches with any ERC20 or native token</p>
-                  <p>• Withdraw stakes before match activation</p>
-                  <p>• Optional scoreboard integration</p>
-                  <p>• Optional fee distribution to recipients</p>
+                <CardContent className="text-sm text-gray-600 space-y-2.5">
+                  <div className="flex gap-3">
+                    <span className="text-blue-500">•</span>
+                    <p>Create/join matches with any ERC20 or native token</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-blue-500">•</span>
+                    <p>Withdraw stakes before match activation</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-blue-500">•</span>
+                    <p>Optional scoreboard integration</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <span className="text-blue-500">•</span>
+                    <p>Optional fee distribution to recipients</p>
+                  </div>
                 </CardContent>
               </Card>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Content Section */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
 
         {!mounted ? (
-          <Card>
+          <Card className="border-2 border-gray-200">
             <CardHeader>
-              <CardTitle>Loading...</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-900">Loading...</CardTitle>
+              <CardDescription className="text-gray-600">
                 Initializing application
               </CardDescription>
             </CardHeader>
           </Card>
         ) : !isConnected ? (
-          <Card>
+          <Card className="border-2 border-gray-200">
             <CardHeader>
-              <CardTitle>Connect Wallet</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-900">Connect Wallet</CardTitle>
+              <CardDescription className="text-gray-600">
                 Please connect your wallet to interact with the Game Match feature
               </CardDescription>
             </CardHeader>
           </Card>
         ) : (
-          <>
-          {/* Main Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="matches">Matches</TabsTrigger>
-                  <TabsTrigger value="create">Create Match</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
+                  <TabsTrigger value="matches" className="data-[state=active]:bg-white">Matches</TabsTrigger>
+                  <TabsTrigger value="create" className="data-[state=active]:bg-white">Create Match</TabsTrigger>
                 </TabsList>
                 <TabsContent value="matches" className="mt-6">
                   <MatchList 
@@ -166,7 +191,6 @@ export default function GameMatchPage() {
               />
             </div>
           </div>
-          </>
         )}
 
       </div>
