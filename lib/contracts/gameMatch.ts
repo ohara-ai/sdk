@@ -211,6 +211,50 @@ export function getGameMatchFactoryAddress(): `0x${string}` | undefined {
 
 // GameMatchFactory ABI
 export const GAME_MATCH_FACTORY_ABI = [
+  // Read functions
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'instanceOwner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getInstanceOwner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'defaultMaxActiveMatches',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Write functions
+  {
+    inputs: [{ internalType: 'address', name: '_newInstanceOwner', type: 'address' }],
+    name: 'setInstanceOwner',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: '_defaultMaxActiveMatches', type: 'uint256' }],
+    name: 'setDefaultMaxActiveMatches',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
   {
     inputs: [
       { internalType: 'address', name: '_controller', type: 'address' },
@@ -223,6 +267,7 @@ export const GAME_MATCH_FACTORY_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  // Events
   {
     anonymous: false,
     inputs: [

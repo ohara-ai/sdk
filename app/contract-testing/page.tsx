@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowRight, ArrowLeft } from 'lucide-react'
+import { ArrowRight, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import { useDeployedGameMatchAddress, useDeployedScoreBoardAddress } from '@/lib/hooks/useDeployedAddress'
 import { DeployContract as DeployGameMatch } from '@/components/features/game-match/DeployContract'
 import { DeployContract as DeployScoreBoard } from '@/components/features/scoreboard/DeployContract'
+import { FactoryInformation } from '@/components/features/FactoryInformation'
+import { ConnectWallet } from '@/components/ConnectWallet'
 import { Button } from '@/components/ui/button'
 
 export default function ContractTestingPage() {
@@ -25,6 +27,7 @@ export default function ContractTestingPage() {
   } = useDeployedScoreBoardAddress()
   
   const [mounted, setMounted] = useState(false)
+  const [showFactoryDetails, setShowFactoryDetails] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -53,12 +56,32 @@ export default function ContractTestingPage() {
               Back to Home
             </Button>
           </Link>
-          <div className="space-y-3">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">Contract Testing</h1>
-            <p className="text-lg text-gray-600 leading-relaxed">
-              Internal testing environment for contract deployment and direct interaction
-            </p>
+          <div className="flex items-start justify-between">
+            <div className="space-y-3">
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900">Contract Testing</h1>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Internal testing environment for contract deployment and direct interaction
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <ConnectWallet />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFactoryDetails(!showFactoryDetails)}
+                className="flex items-center gap-1.5"
+              >
+                Factory Details
+                {showFactoryDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
+          
+          {showFactoryDetails && (
+            <div className="mt-6 animate-in slide-in-from-top duration-200">
+              <FactoryInformation />
+            </div>
+          )}
           
           <div className="mt-6 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200">
             <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>

@@ -183,6 +183,68 @@ export function getScoreBoardFactoryAddress(): `0x${string}` | undefined {
 
 // ScoreBoardFactory ABI
 export const SCOREBOARD_FACTORY_ABI = [
+  // Read functions
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'instanceOwner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getInstanceOwner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxLosersPerMatch',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxTotalPlayers',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'maxTotalMatches',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  // Write functions
+  {
+    inputs: [{ internalType: 'address', name: '_newInstanceOwner', type: 'address' }],
+    name: 'setInstanceOwner',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: '_maxLosersPerMatch', type: 'uint256' },
+      { internalType: 'uint256', name: '_maxTotalPlayers', type: 'uint256' },
+      { internalType: 'uint256', name: '_maxTotalMatches', type: 'uint256' },
+    ],
+    name: 'setDeploymentLimits',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
   {
     inputs: [],
     name: 'deployScoreBoard',
@@ -190,6 +252,7 @@ export const SCOREBOARD_FACTORY_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  // Events
   {
     anonymous: false,
     inputs: [
