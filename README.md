@@ -1,6 +1,6 @@
 # On-Chain Features
 
-A repository for modular on-chain gaming features with Solidity smart contracts and interactive demo applications.
+A comprehensive repository for modular on-chain gaming features with Solidity smart contracts, a user-ready SDK, and interactive demo applications.
 
 ## Adding New Features
 
@@ -35,6 +35,14 @@ See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the 
 │   │   └── interfaces/ # Contract interfaces
 │   ├── test/           # Solidity tests
 │   └── script/         # Deployment scripts
+├── sdk/                # UI component SDK for developers
+│   ├── src/            # SDK source code
+│   │   ├── components/ # React UI components
+│   │   ├── hooks/      # Contract interaction hooks
+│   │   ├── abis/       # Contract ABIs
+│   │   └── utils/      # Utility functions
+│   ├── demos/          # Example applications
+│   └── docs/           # SDK documentation
 ├── app/                # Next.js demo application
 ├── components/         # React components
 └── lib/                # Utilities and helpers
@@ -43,6 +51,54 @@ See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the 
 ## Features
 
 For detailed information about implemented and proposed features, see the [`proposals/`](./proposals/) directory. Each feature has its own design document with specifications, use cases, and implementation details.
+
+## SDK
+
+The **@ohara-ai/game-sdk** provides production-ready UI components and hooks for building on-chain gaming applications. The SDK offers a user-centric abstraction over the smart contracts, making it easy to integrate gaming features into your app.
+
+### Quick Start
+
+```bash
+cd sdk
+npm install
+npm run build
+```
+
+### Components
+
+- **LeaderBoard**: Display high scores from ScoreBoard contracts
+- **WageringBox**: Create and join wagered game matches
+
+### Example Usage
+
+```tsx
+import { LeaderBoard, WageringBox } from '@ohara-ai/game-sdk'
+
+function App() {
+  return (
+    <>
+      <WageringBox 
+        gameMatchAddress="0x..."
+        onMatchCreated={(id) => console.log('Match created:', id)}
+      />
+      <LeaderBoard 
+        scoreBoardAddress="0x..."
+        limit={10}
+        sortBy="wins"
+      />
+    </>
+  )
+}
+```
+
+### Demo Applications
+
+The SDK includes fully-functional demo apps:
+
+- **Basic Leaderboard** (`sdk/demos/basic-leaderboard/`) - Simple leaderboard showcase
+- **Wagering Game** (`sdk/demos/wagering-game/`) - Complete wagering game with both components
+
+See [`sdk/README.md`](./sdk/README.md) for detailed documentation.
 
 ## Development
 
