@@ -48,6 +48,7 @@ interface IGameMatch {
         mapping(address => uint256) stakes;
         MatchStatus status;
         address winner;
+        uint256 createdAt;
     }
 
     /**
@@ -103,7 +104,8 @@ interface IGameMatch {
             uint256 maxPlayers,
             address[] memory players,
             MatchStatus status,
-            address winner
+            address winner,
+            uint256 createdAt
         );
 
     /**

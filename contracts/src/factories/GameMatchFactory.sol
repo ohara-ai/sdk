@@ -9,14 +9,30 @@ import {OwnedFactory} from "../base/OwnedFactory.sol";
  * @notice Factory for deploying GameMatch contracts
  */
 contract GameMatchFactory is OwnedFactory {
+    // Default capacity limit for new deployments
+    uint256 public defaultMaxActiveMatches;
+
     event GameMatchDeployed(
         address indexed instance,
         address indexed owner,
         address indexed controller,
         address scoreBoard
     );
+    event DefaultMaxActiveMatchesUpdated(uint256 newDefault);
 
-    constructor() OwnedFactory(msg.sender) {}
+    constructor() OwnedFactory(msg.sender) {
+        // Initialize with default limit
+        defaultMaxActiveMatches = 100;
+    }
+
+    /**
+     * @notice Update the default max active matches for new deployments
+     * @param _defaultMaxActiveMatches Default maximum active matches
+     */
+    function setDefaultMaxActiveMatches(uint256 _defaultMaxActiveMatches) external onlyOwner {
+        defaultMaxActiveMatches = _defaultMaxActiveMatches;
+        emit DefaultMaxActiveMatchesUpdated(_defaultMaxActiveMatches);
+    }
 
     /**
      * @notice Deploy a new GameMatch contract with full configuration
@@ -35,7 +51,14 @@ contract GameMatchFactory is OwnedFactory {
         address instanceOwnerAddress = getInstanceOwner();
         
         instance = address(
-            new GameMatch(instanceOwnerAddress, _controller, _scoreBoard, _feeRecipients, _feeShares)
+            new GameMatch(
+                instanceOwnerAddress,
+                _controller,
+                _scoreBoard,
+                _feeRecipients,
+                _feeShares,
+                defaultMaxActiveMatches
+            )
         );
         emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _scoreBoard);
     }

@@ -14,9 +14,19 @@ import {FeatureController} from "../../base/FeatureController.sol";
 contract GameMatch is IGameMatch, IFeature, FeatureController {
     uint256 private _matchIdCounter;
     mapping(uint256 => Match) private _matches;
+    
+    // Match tracking for capacity management
+    uint256[] private _activeMatchIds;
+    mapping(uint256 => uint256) private _matchIdIndex; // matchId => index in _activeMatchIds (1-based, 0 = not in array)
+    
+    // Capacity limits
+    uint256 public maxActiveMatches;
 
     // Optional integrations
     IScoreBoard public scoreBoard;
+
+    event MaxActiveMatchesUpdated(uint256 newLimit);
+    event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
 
     error InvalidStakeAmount();
     error InvalidMaxPlayers();
@@ -27,13 +37,16 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     error NotAPlayer();
     error NoStakeToWithdraw();
     error InvalidWinner();
+    error MaxActiveMatchesReached();
+    error MatchNotInactive();
 
     constructor(
         address _owner,
         address _controller,
         address _scoreBoard,
         address[] memory _feeRecipients,
-        uint256[] memory _feeShares
+        uint256[] memory _feeShares,
+        uint256 _maxActiveMatches
     ) FeatureController(_owner, _controller) {
         // Initialize scoreboard if provided
         if (_scoreBoard != address(0)) {
@@ -44,6 +57,9 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         if (_feeRecipients.length > 0) {
             _initializeFees(_feeRecipients, _feeShares);
         }
+        
+        // Set capacity limit
+        maxActiveMatches = _maxActiveMatches;
     }
 
     /**
@@ -54,6 +70,89 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         scoreBoard = IScoreBoard(_scoreBoard);
     }
 
+    /**
+     * @notice Set the maximum number of active matches
+     * @param _maxActiveMatches Maximum number of active matches (0 = unlimited)
+     */
+    function setMaxActiveMatches(uint256 _maxActiveMatches) external onlyOwner {
+        maxActiveMatches = _maxActiveMatches;
+        emit MaxActiveMatchesUpdated(_maxActiveMatches);
+    }
+
+    /**
+     * @notice Clean up old inactive (Open status) matches
+     * @param matchId The ID of the match to clean up
+     * @dev Can only clean up matches that are still in Open status and have no players
+     */
+    function cleanupInactiveMatch(uint256 matchId) external onlyOwner {
+        Match storage m = _matches[matchId];
+        if (m.stakeAmount == 0) revert InvalidMatchId();
+        if (m.status != MatchStatus.Open) revert MatchNotInactive();
+        if (m.players.length > 0) revert MatchNotInactive(); // Has players with stakes
+        
+        uint256 createdAt = m.createdAt;
+        
+        // Remove from active tracking
+        _removeFromActiveMatches(matchId);
+        
+        // Delete match data
+        delete _matches[matchId];
+        
+        emit InactiveMatchCleaned(matchId, createdAt);
+    }
+
+    /**
+     * @notice Get current number of active matches
+     * @return Number of matches being tracked (Open or Active status)
+     */
+    function getActiveMatchCount() external view returns (uint256) {
+        return _activeMatchIds.length;
+    }
+
+    /**
+     * @notice Get list of active match IDs
+     * @param offset Starting index
+     * @param limit Maximum number of IDs to return
+     * @return matchIds Array of match IDs
+     */
+    function getActiveMatchIds(uint256 offset, uint256 limit) external view returns (uint256[] memory matchIds) {
+        uint256 total = _activeMatchIds.length;
+        if (offset >= total) {
+            return new uint256[](0);
+        }
+        
+        uint256 count = limit;
+        if (offset + limit > total) {
+            count = total - offset;
+        }
+        
+        matchIds = new uint256[](count);
+        for (uint256 i = 0; i < count; i++) {
+            matchIds[i] = _activeMatchIds[offset + i];
+        }
+    }
+
+    function _addToActiveMatches(uint256 matchId) internal {
+        _activeMatchIds.push(matchId);
+        _matchIdIndex[matchId] = _activeMatchIds.length; // 1-based index
+    }
+
+    function _removeFromActiveMatches(uint256 matchId) internal {
+        uint256 index = _matchIdIndex[matchId];
+        if (index == 0) return; // Not in array
+        
+        uint256 arrayIndex = index - 1; // Convert to 0-based
+        uint256 lastMatchId = _activeMatchIds[_activeMatchIds.length - 1];
+        
+        // Move last element to the position of element to remove
+        _activeMatchIds[arrayIndex] = lastMatchId;
+        _matchIdIndex[lastMatchId] = index; // Update index of moved element
+        
+        // Remove last element
+        _activeMatchIds.pop();
+        delete _matchIdIndex[matchId];
+    }
+
     /// @inheritdoc IGameMatch
     function createMatch(
         address token,
@@ -62,6 +161,11 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     ) external payable returns (uint256 matchId) {
         if (stakeAmount == 0) revert InvalidStakeAmount();
         if (maxPlayers < 2) revert InvalidMaxPlayers();
+        
+        // Check capacity limit
+        if (maxActiveMatches > 0 && _activeMatchIds.length >= maxActiveMatches) {
+            revert MaxActiveMatchesReached();
+        }
 
         matchId = _matchIdCounter++;
         Match storage newMatch = _matches[matchId];
@@ -69,6 +173,10 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         newMatch.stakeAmount = stakeAmount;
         newMatch.maxPlayers = maxPlayers;
         newMatch.status = MatchStatus.Open;
+        newMatch.createdAt = block.timestamp;
+        
+        // Add to active matches tracking
+        _addToActiveMatches(matchId);
 
         emit MatchCreated(matchId, msg.sender, token, stakeAmount, maxPlayers);
 
@@ -186,6 +294,9 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         }
 
         emit MatchFinalized(matchId, winner, totalPrize, winnerAmount);
+        
+        // Remove from active matches tracking
+        _removeFromActiveMatches(matchId);
 
         // Clean up match data to save gas
         _cleanupMatch(matchId);
@@ -212,11 +323,12 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
             uint256 maxPlayers,
             address[] memory players,
             MatchStatus status,
-            address winner
+            address winner,
+            uint256 createdAt
         )
     {
         Match storage m = _matches[matchId];
-        return (m.token, m.stakeAmount, m.maxPlayers, m.players, m.status, m.winner);
+        return (m.token, m.stakeAmount, m.maxPlayers, m.players, m.status, m.winner, m.createdAt);
     }
 
     /// @inheritdoc IGameMatch

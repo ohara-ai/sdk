@@ -153,5 +153,59 @@ contract GameMatchFactoryTest is Test {
         factory.setInstanceOwner(instanceOwner);
     }
 
+    function test_DefaultMaxActiveMatches() public view {
+        assertEq(factory.defaultMaxActiveMatches(), 100);
+    }
+
+    function test_DeployedGameMatchUsesFactoryDefault() public {
+        address[] memory emptyRecipients = new address[](0);
+        uint256[] memory emptyShares = new uint256[](0);
+        
+        address instance = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        GameMatch gameMatch = GameMatch(instance);
+        
+        assertEq(gameMatch.maxActiveMatches(), 100);
+    }
+
+    function test_SetDefaultMaxActiveMatches() public {
+        vm.expectEmit(false, false, false, true);
+        emit DefaultMaxActiveMatchesUpdated(200);
+        factory.setDefaultMaxActiveMatches(200);
+        
+        assertEq(factory.defaultMaxActiveMatches(), 200);
+    }
+
+    function test_OnlyOwnerCanSetDefaultMaxActiveMatches() public {
+        address nonOwner = address(0x123);
+        
+        vm.prank(nonOwner);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
+        factory.setDefaultMaxActiveMatches(200);
+    }
+
+    function test_NewDeploymentsUseUpdatedDefault() public {
+        address[] memory emptyRecipients = new address[](0);
+        uint256[] memory emptyShares = new uint256[](0);
+        
+        // Deploy with default (100)
+        address instance1 = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        GameMatch gameMatch1 = GameMatch(instance1);
+        
+        assertEq(gameMatch1.maxActiveMatches(), 100);
+        
+        // Update default
+        factory.setDefaultMaxActiveMatches(200);
+        
+        // Deploy with new default (200)
+        address instance2 = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        GameMatch gameMatch2 = GameMatch(instance2);
+        
+        assertEq(gameMatch2.maxActiveMatches(), 200);
+        
+        // First instance should still have old limit
+        assertEq(gameMatch1.maxActiveMatches(), 100);
+    }
+
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
+    event DefaultMaxActiveMatchesUpdated(uint256 newDefault);
 }

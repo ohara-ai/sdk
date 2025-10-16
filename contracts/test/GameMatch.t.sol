@@ -43,7 +43,8 @@ contract GameMatchTest is Test {
         vm.startPrank(owner);
         address[] memory emptyRecipients = new address[](0);
         uint256[] memory emptyShares = new uint256[](0);
-        gameMatch = new GameMatch(owner, controller, address(0), emptyRecipients, emptyShares);
+        uint256 defaultMaxActiveMatches = 100; // Default limit
+        gameMatch = new GameMatch(owner, controller, address(0), emptyRecipients, emptyShares, defaultMaxActiveMatches);
         token = new MockERC20(1000000 ether);
         scoreBoard = new MockScoreBoard();
         vm.stopPrank();
@@ -82,10 +83,12 @@ contract GameMatchTest is Test {
             uint256 maxPlayers,
             address[] memory players,
             IGameMatch.MatchStatus status,
-            address winner
+            address winner,
+            uint256 createdAt
         ) = gameMatch.getMatch(matchId);
 
         assertEq(matchToken, address(0));
+        assertGt(createdAt, 0);
         assertEq(stakeAmount, STAKE_AMOUNT);
         assertEq(maxPlayers, MAX_PLAYERS);
         assertEq(players.length, 1);
@@ -121,7 +124,7 @@ contract GameMatchTest is Test {
         emit PlayerJoined(matchId, player2, STAKE_AMOUNT);
         gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
 
-        (, , , address[] memory players, , ) = gameMatch.getMatch(matchId);
+        (, , , address[] memory players, , , ) = gameMatch.getMatch(matchId);
         assertEq(players.length, 2);
         assertEq(players[1], player2);
     }
@@ -159,7 +162,7 @@ contract GameMatchTest is Test {
         assertEq(player1.balance, balanceBefore + STAKE_AMOUNT);
         assertEq(gameMatch.getPlayerStake(matchId, player1), 0);
         
-        (, , , address[] memory players, , ) = gameMatch.getMatch(matchId);
+        (, , , address[] memory players, , , ) = gameMatch.getMatch(matchId);
         assertEq(players.length, 0);
     }
 
@@ -202,7 +205,7 @@ contract GameMatchTest is Test {
         emit MatchActivated(matchId, expectedPlayers);
         gameMatch.activateMatch(matchId);
 
-        (, , , , IGameMatch.MatchStatus status, ) = gameMatch.getMatch(matchId);
+        (, , , , IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
         assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Active));
     }
 
@@ -259,7 +262,7 @@ contract GameMatchTest is Test {
 
         assertEq(player1.balance, player1BalanceBefore + totalPrize);
         
-        (, , , , IGameMatch.MatchStatus status, address winner) = gameMatch.getMatch(matchId);
+        (, , , , IGameMatch.MatchStatus status, address winner, ) = gameMatch.getMatch(matchId);
         assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Finalized));
         assertEq(winner, player1);
     }
@@ -415,4 +418,164 @@ contract GameMatchTest is Test {
         
         assertEq(gameMatch.controller(), newController);
     }
+
+    function test_MatchIncludesTimestamp() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
+            address(0),
+            STAKE_AMOUNT,
+            MAX_PLAYERS
+        );
+
+        (,,,,, , uint256 createdAt) = gameMatch.getMatch(matchId);
+        assertEq(createdAt, block.timestamp);
+    }
+
+    function test_InitialMaxActiveMatches() public view {
+        assertEq(gameMatch.maxActiveMatches(), 100);
+    }
+
+    function test_SetMaxActiveMatches() public {
+        vm.prank(owner);
+        vm.expectEmit(false, false, false, true);
+        emit MaxActiveMatchesUpdated(10);
+        gameMatch.setMaxActiveMatches(10);
+        
+        assertEq(gameMatch.maxActiveMatches(), 10);
+    }
+
+    function test_OnlyOwnerCanSetMaxActiveMatches() public {
+        vm.prank(player1);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
+        gameMatch.setMaxActiveMatches(10);
+    }
+
+    function test_CannotCreateMatchWhenAtCapacity() public {
+        vm.prank(owner);
+        gameMatch.setMaxActiveMatches(2);
+        
+        // Create 2 matches (at capacity)
+        vm.prank(player1);
+        gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        vm.prank(player2);
+        gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        assertEq(gameMatch.getActiveMatchCount(), 2);
+        
+        // Try to create third match
+        vm.prank(player3);
+        vm.expectRevert(GameMatch.MaxActiveMatchesReached.selector);
+        gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+    }
+
+    function test_FinalizedMatchFreesUpCapacity() public {
+        vm.prank(owner);
+        gameMatch.setMaxActiveMatches(1);
+        
+        // Create and finalize first match
+        vm.prank(player1);
+        uint256 matchId1 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId1);
+        
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId1);
+        
+        vm.prank(controller);
+        gameMatch.finalizeMatch(matchId1, player1);
+        
+        assertEq(gameMatch.getActiveMatchCount(), 0);
+        
+        // Should be able to create new match now
+        vm.prank(player1);
+        uint256 matchId2 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        
+        assertEq(gameMatch.getActiveMatchCount(), 1);
+        assertGt(matchId2, 0);
+    }
+
+    function test_CleanupInactiveMatch() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        // Player withdraws, leaving match empty
+        vm.prank(player1);
+        gameMatch.withdrawStake(matchId);
+        
+        assertEq(gameMatch.getActiveMatchCount(), 1);
+        
+        // Owner can clean up
+        vm.prank(owner);
+        vm.expectEmit(true, false, false, false);
+        emit InactiveMatchCleaned(matchId, block.timestamp);
+        gameMatch.cleanupInactiveMatch(matchId);
+        
+        assertEq(gameMatch.getActiveMatchCount(), 0);
+    }
+
+    function test_CannotCleanupMatchWithPlayers() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        // Match has player1, cannot clean up
+        vm.prank(owner);
+        vm.expectRevert(GameMatch.MatchNotInactive.selector);
+        gameMatch.cleanupInactiveMatch(matchId);
+    }
+
+    function test_CannotCleanupActivatedMatch() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
+        
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId);
+        
+        // Match is activated, cannot clean up
+        vm.prank(owner);
+        vm.expectRevert(GameMatch.MatchNotInactive.selector);
+        gameMatch.cleanupInactiveMatch(matchId);
+    }
+
+    function test_GetActiveMatchIds() public {
+        vm.prank(player1);
+        uint256 matchId1 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        vm.prank(player2);
+        uint256 matchId2 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        uint256[] memory ids = gameMatch.getActiveMatchIds(0, 10);
+        assertEq(ids.length, 2);
+        assertEq(ids[0], matchId1);
+        assertEq(ids[1], matchId2);
+    }
+
+    function test_GetActiveMatchIdsPagination() public {
+        vm.prank(player1);
+        uint256 matchId1 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        vm.prank(player2);
+        uint256 matchId2 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        vm.prank(player3);
+        uint256 matchId3 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
+        
+        // Get first 2
+        uint256[] memory ids1 = gameMatch.getActiveMatchIds(0, 2);
+        assertEq(ids1.length, 2);
+        assertEq(ids1[0], matchId1);
+        assertEq(ids1[1], matchId2);
+        
+        // Get next 1
+        uint256[] memory ids2 = gameMatch.getActiveMatchIds(2, 2);
+        assertEq(ids2.length, 1);
+        assertEq(ids2[0], matchId3);
+    }
+
+    event MaxActiveMatchesUpdated(uint256 newLimit);
+    event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
 }
