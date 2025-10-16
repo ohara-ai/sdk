@@ -13,7 +13,7 @@ export default function Home() {
           <div className="text-center space-y-6">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-sm font-medium">
               <Zap className="w-4 h-4" />
-              <span>Production-ready SDK</span>
+              <span>AI-ready SDK</span>
             </div>
             <h1 className="text-6xl font-bold tracking-tight text-gray-900">
               Ohara SDK

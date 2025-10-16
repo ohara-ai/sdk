@@ -10,9 +10,10 @@ import { MatchDetails } from '@/components/features/game-match/MatchDetails'
 import { ContractInformation } from '@/components/features/ContractInformation'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
-import { useAccount } from 'wagmi'
+import { useAccount, useReadContract } from 'wagmi'
 import { useContractInfo } from '@/lib/hooks/useContractInfo'
 import { Button } from '@/components/ui/button'
+import { GAME_MATCH_ABI } from '@/lib/contracts/gameMatch'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
@@ -26,6 +27,23 @@ export default function GameMatchPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const { data: maxActiveMatches } = useReadContract({
+    address: contractAddress,
+    abi: GAME_MATCH_ABI,
+    functionName: 'maxActiveMatches',
+  })
+
+  const { data: currentActiveMatches } = useReadContract({
+    address: contractAddress,
+    abi: GAME_MATCH_ABI,
+    functionName: 'getActiveMatchCount',
+  })
+
+  const limits = contractAddress ? {
+    maxActiveMatches,
+    currentActiveMatches,
+  } : undefined
 
   return (
     <main className="min-h-screen bg-white">
@@ -75,6 +93,7 @@ export default function GameMatchPage() {
               <ContractInformation 
                 factoryAddress={factoryAddress}
                 contractAddress={contractAddress}
+                limits={limits}
               />
             </div>
           )}

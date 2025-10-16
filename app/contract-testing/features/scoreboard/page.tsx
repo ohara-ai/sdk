@@ -58,6 +58,32 @@ export default function ScoreBoardPage() {
     args: [BigInt(10)],
   })
 
+  const { data: maxLosersPerMatch } = useReadContract({
+    address: contractAddress,
+    abi: SCOREBOARD_ABI,
+    functionName: 'maxLosersPerMatch',
+  })
+
+  const { data: maxTotalPlayers } = useReadContract({
+    address: contractAddress,
+    abi: SCOREBOARD_ABI,
+    functionName: 'maxTotalPlayers',
+  })
+
+  const { data: maxTotalMatches } = useReadContract({
+    address: contractAddress,
+    abi: SCOREBOARD_ABI,
+    functionName: 'maxTotalMatches',
+  })
+
+  const limits = contractAddress ? {
+    maxLosersPerMatch,
+    maxTotalPlayers,
+    maxTotalMatches,
+    currentTotalPlayers: totalPlayers,
+    currentTotalMatches: totalMatches,
+  } : undefined
+
   return (
     <main className="min-h-screen bg-white">
       {/* Header Section */}
@@ -106,6 +132,7 @@ export default function ScoreBoardPage() {
               <ContractInformation 
                 factoryAddress={factoryAddress}
                 contractAddress={contractAddress}
+                limits={limits}
               />
             </div>
           )}

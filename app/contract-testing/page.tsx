@@ -110,7 +110,10 @@ export default function ContractTestingPage() {
               </Card>
             </Link>
             {mounted && !isValidatingGameMatch && (
-              <DeployGameMatch onDeployed={handleGameMatchDeployed} />
+              <DeployGameMatch 
+                onDeployed={handleGameMatchDeployed}
+                deployedScoreBoardAddress={scoreBoardAddress}
+              />
             )}
           </div>
 
