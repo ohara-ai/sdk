@@ -6,13 +6,11 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { ContractDependencyInfo } from '@/components/ContractDependencyInfo'
 
 export default function LeaderboardDemoPage() {
   const [sortBy, setSortBy] = useState<'wins' | 'prize'>('wins')
   const [limit, setLimit] = useState(10)
-
-  // Mock scoreboard address - in production, this would come from contract or env
-  const scoreBoardAddress = (process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS || '0x0000000000000000000000000000000000000000') as `0x${string}`
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -78,35 +76,15 @@ export default function LeaderboardDemoPage() {
           </Card>
         </div>
 
-        {scoreBoardAddress !== '0x0000000000000000000000000000000000000000' ? (
-          <LeaderBoard
-            scoreBoardAddress={scoreBoardAddress}
-            limit={limit}
-            sortBy={sortBy}
-            showStats={true}
-          />
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Leaderboard</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-12 text-gray-500">
-                <p className="mb-4">ScoreBoard contract not configured.</p>
-                <p className="text-sm">
-                  Set NEXT_PUBLIC_SCOREBOARD_ADDRESS in your environment to enable the leaderboard.
-                </p>
-                <p className="text-sm mt-4">
-                  Visit the{' '}
-                  <Link href="/contract-testing" className="text-blue-600 hover:underline">
-                    contract testing page
-                  </Link>{' '}
-                  to deploy and configure contracts.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Automatic contract dependency detection */}
+        <ContractDependencyInfo className="mb-6" />
+
+        {/* Address automatically resolved from OharaAiProvider */}
+        <LeaderBoard
+          limit={limit}
+          sortBy={sortBy}
+          showStats={true}
+        />
 
         <div className="mt-8">
           <Card>
@@ -117,7 +95,6 @@ export default function LeaderboardDemoPage() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <pre className="text-sm overflow-x-auto">
                   {`<LeaderBoard
-  scoreBoardAddress="${scoreBoardAddress}"
   limit={${limit}}
   sortBy="${sortBy}"
   showStats={true}
@@ -127,7 +104,8 @@ export default function LeaderboardDemoPage() {
               </div>
               <div className="mt-4 space-y-2 text-sm text-gray-600">
                 <p>
-                  <strong>scoreBoardAddress:</strong> The address of the ScoreBoard contract
+                  <strong>scoreBoardAddress:</strong> (Optional) The address of the ScoreBoard contract. 
+                  If not provided, automatically resolved from OharaAiProvider context.
                 </p>
                 <p>
                   <strong>limit:</strong> Maximum number of entries to display (default: 10)

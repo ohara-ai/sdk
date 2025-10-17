@@ -3,9 +3,13 @@ import { SCOREBOARD_ABI } from '../abis/scoreboard'
 import { formatAddress, formatTokenAmount } from '../utils/format'
 import { cn } from '../utils/cn'
 import { Trophy, TrendingUp, Coins } from 'lucide-react'
+import { LEADERBOARD_METADATA } from '../metadata/componentDependencies'
+import { useComponentRegistration, useOharaAi } from '../context/OnchainContext'
+import { ContractType } from '../types/contracts'
 
 export interface LeaderBoardProps {
-  scoreBoardAddress: `0x${string}`
+  /** Scoreboard contract address. If not provided, will be resolved from OharaAiProvider context */
+  scoreBoardAddress?: `0x${string}`
   limit?: number
   sortBy?: 'wins' | 'prize'
   className?: string
@@ -13,12 +17,34 @@ export interface LeaderBoardProps {
 }
 
 export function LeaderBoard({
-  scoreBoardAddress,
+  scoreBoardAddress: scoreBoardAddressProp,
   limit = 10,
   sortBy = 'wins',
   className,
   showStats = true,
 }: LeaderBoardProps) {
+  // Auto-register this component for dependency tracking
+  useComponentRegistration('LeaderBoard')
+  
+  // Get contract address from context if not provided
+  const { getContractAddress } = useOharaAi()
+  const scoreBoardAddress = scoreBoardAddressProp || getContractAddress(ContractType.SCOREBOARD)
+
+  // If no address provided or found, show error
+  if (!scoreBoardAddress) {
+    return (
+      <div className={cn('bg-white rounded-lg shadow-lg p-6', className)}>
+        <div className="flex items-center gap-2 mb-6">
+          <Trophy className="w-6 h-6 text-yellow-500" />
+          <h2 className="text-2xl font-bold">Leaderboard</h2>
+        </div>
+        <div className="text-red-500">
+          Scoreboard contract address not configured. Please set NEXT_PUBLIC_SCOREBOARD_ADDRESS or provide scoreBoardAddress prop.
+        </div>
+      </div>
+    )
+  }
+  
   const { data: leaderboardData, isLoading, error } = useReadContract({
     address: scoreBoardAddress,
     abi: SCOREBOARD_ABI,
@@ -149,3 +175,6 @@ export function LeaderBoard({
     </div>
   )
 }
+
+// Static metadata for contract dependencies
+LeaderBoard.metadata = LEADERBOARD_METADATA

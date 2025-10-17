@@ -1,9 +1,20 @@
 'use client'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { WagmiProvider } from 'wagmi'
+import { WagmiProvider, useChainId } from 'wagmi'
 import { config } from '@/lib/wagmi'
 import { useState } from 'react'
+import { OharaAiProvider } from '@/sdk/src'
+
+function OharaAiProviderWrapper({ children }: { children: React.ReactNode }) {
+  const chainId = useChainId()
+  
+  return (
+    <OharaAiProvider chainId={chainId}>
+      {children}
+    </OharaAiProvider>
+  )
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
@@ -11,7 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <OharaAiProviderWrapper>
+          {children}
+        </OharaAiProviderWrapper>
       </QueryClientProvider>
     </WagmiProvider>
   )

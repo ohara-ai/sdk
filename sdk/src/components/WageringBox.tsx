@@ -4,20 +4,31 @@ import { parseEther, zeroAddress } from 'viem'
 import { GAME_MATCH_ABI } from '../abis/gameMatch'
 import { cn } from '../utils/cn'
 import { Coins, Users, Plus, ArrowRight } from 'lucide-react'
+import { WAGERING_BOX_METADATA } from '../metadata/componentDependencies'
+import { useComponentRegistration, useOharaAi } from '../context/OnchainContext'
+import { ContractType } from '../types/contracts'
 
 export interface WageringBoxProps {
-  gameMatchAddress: `0x${string}`
+  /** GameMatch contract address. If not provided, will be resolved from OharaAiProvider context */
+  gameMatchAddress?: `0x${string}`
   onMatchCreated?: (matchId: bigint) => void
   onMatchJoined?: (matchId: bigint) => void
   className?: string
 }
 
 export function WageringBox({
-  gameMatchAddress,
+  gameMatchAddress: gameMatchAddressProp,
   onMatchCreated,
   onMatchJoined,
   className,
 }: WageringBoxProps) {
+  // Auto-register this component for dependency tracking
+  useComponentRegistration('WageringBox')
+  
+  // Get contract address from context if not provided
+  const { getContractAddress } = useOharaAi()
+  const gameMatchAddress = gameMatchAddressProp || getContractAddress(ContractType.GAME_MATCH)
+  
   const { address } = useAccount()
   const [mode, setMode] = useState<'create' | 'join'>('create')
   const [stakeAmount, setStakeAmount] = useState('')
@@ -44,7 +55,7 @@ export function WageringBox({
 
   const handleCreateMatch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stakeAmount || !maxPlayers) return
+    if (!stakeAmount || !maxPlayers || !gameMatchAddress) return
 
     try {
       createMatch({
@@ -61,7 +72,7 @@ export function WageringBox({
 
   const handleJoinMatch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!matchIdToJoin) return
+    if (!matchIdToJoin || !gameMatchAddress) return
 
     try {
       joinMatch({
@@ -102,6 +113,20 @@ export function WageringBox({
         </div>
         <div className="text-center py-12 text-gray-500">
           Please connect your wallet to create or join matches
+        </div>
+      </div>
+    )
+  }
+
+  if (!gameMatchAddress) {
+    return (
+      <div className={cn('bg-white rounded-lg shadow-lg p-6', className)}>
+        <div className="flex items-center gap-2 mb-6">
+          <Coins className="w-6 h-6 text-blue-500" />
+          <h2 className="text-2xl font-bold">Wagering</h2>
+        </div>
+        <div className="text-red-500">
+          GameMatch contract address not configured. Please set NEXT_PUBLIC_GAME_MATCH_INSTANCE or provide gameMatchAddress prop.
         </div>
       </div>
     )
@@ -258,3 +283,6 @@ export function WageringBox({
     </div>
   )
 }
+
+// Static metadata for contract dependencies
+WageringBox.metadata = WAGERING_BOX_METADATA

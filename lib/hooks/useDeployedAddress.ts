@@ -73,6 +73,13 @@ function useDeployedAddress(storageKeyPrefix: string, envVarName: string) {
     } else {
       localStorage.removeItem(getStorageKey())
     }
+    
+    // Dispatch custom event to notify OharaAiProvider of address change
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('contractDeployed', {
+        detail: { address: newAddress, storageKey: getStorageKey() }
+      }))
+    }
   }
 
   return {
