@@ -6,8 +6,8 @@ import { Providers } from '@/components/Providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Ohara AI - Game SDK Demo',
-  description: 'Interactive demos showcasing on-chain gaming components',
+  title: 'Ohara AI SDK - Gaming',
+  description: 'On-chain gaming SDK with production-ready components for wagered matches and leaderboards',
 }
 
 export default function RootLayout({
