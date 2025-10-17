@@ -32,24 +32,21 @@ export function WaitingForPlayersView({
   onRetryFetch,
 }: WaitingForPlayersViewProps) {
   const isMatchFull = matchInfo && matchInfo.players.length === Number(matchInfo.maxPlayers)
+  const wasFullNowNot = countdownSeconds !== null && !isMatchFull
+  
   return (
     <>
       <div className="space-y-4">
-        {/* Countdown Banner */}
-        {isMatchFull && countdownSeconds !== null && (
-          <div className="bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg p-4 shadow-lg animate-pulse">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/30 rounded-full flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-gray-900" />
+        {/* Player Left Warning */}
+        {wasFullNowNot && (
+          <div className="border-2 border-orange-500 bg-orange-50 rounded-lg p-3">
+            <div className="flex items-center gap-3">
+              <XCircle className="w-5 h-5 text-orange-600" />
+              <div>
+                <div className="text-sm font-semibold text-orange-900">Player Left</div>
+                <div className="text-xs text-orange-700">
+                  Waiting for another player to join...
                 </div>
-                <div>
-                  <div className="text-lg font-bold text-gray-900">Match Ready!</div>
-                  <div className="text-sm text-gray-800">Activating in {countdownSeconds} seconds...</div>
-                </div>
-              </div>
-              <div className="text-4xl font-bold tabular-nums text-gray-900">
-                {countdownSeconds}
               </div>
             </div>
           </div>
@@ -169,23 +166,25 @@ export function WaitingForPlayersView({
         <div className="border-t border-gray-200 pt-4">
           <button
             onClick={onWithdraw}
-            disabled={isWithdrawing || isWithdrawConfirming || isActivating || countdownSeconds !== null}
+            disabled={isWithdrawing || isWithdrawConfirming || isActivating}
             className={cn(
               "w-full py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 border",
-              (isWithdrawing || isWithdrawConfirming || isActivating || countdownSeconds !== null)
+              (isWithdrawing || isWithdrawConfirming || isActivating)
                 ? "!bg-gray-300 !text-gray-700 cursor-not-allowed !border-gray-400"
                 : "!bg-red-600 !text-white hover:!bg-red-700 !border-red-600"
             )}
           >
             <XCircle className="w-5 h-5" />
             {isWithdrawing || isWithdrawConfirming ? 'Withdrawing...' : 
-             isActivating || countdownSeconds !== null ? 'Match Starting...' : 
+             isActivating ? 'Match Activating...' : 
              'Leave Match & Recover Stake'}
           </button>
           <p className="text-xs text-gray-500 text-center mt-2">
-            {countdownSeconds !== null || isActivating 
-              ? 'Match is starting - withdrawal disabled' 
-              : 'You can leave before the match is activated'}
+            {isActivating 
+              ? 'Match is activating - withdrawal disabled' 
+              : isMatchFull
+                ? 'Match is full - you can still withdraw before activation'
+                : 'You can leave before the match is activated'}
           </p>
         </div>
       </div>

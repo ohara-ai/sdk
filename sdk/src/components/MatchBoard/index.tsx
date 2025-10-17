@@ -18,6 +18,7 @@ export function MatchBoard({
   onMatchActivated,
   onMatchFull,
   onMatchLeft,
+  onPlayerWithdrew,
   countdownSeconds: countdownSecondsProp,
   isActivating: isActivatingProp,
   className,
@@ -412,12 +413,23 @@ export function MatchBoard({
             data: log.data,
             topics: log.topics,
           })
+          const matchId = (decoded.args as any).matchId as bigint
           const player = (decoded.args as any).player as string
+          
+          // Notify parent component about the withdrawal
+          onPlayerWithdrew?.(matchId, player)
+          
           if (player.toLowerCase() === address?.toLowerCase()) {
             console.log('✅ User withdrew from match, clearing state')
             setUserJoinedMatchId(null)
             setCurrentMatchInfo(null)
             setMatchCreated(false)
+          } else if (userJoinedMatchId !== null && matchId === userJoinedMatchId) {
+            console.log('⚠️ Another player withdrew from the match')
+            // Refresh current match info to update player list
+            setTimeout(() => {
+              fetchCurrentMatchInfo()
+            }, 300)
           }
         } catch (error) {
           console.error('Error decoding PlayerWithdrew event:', error)

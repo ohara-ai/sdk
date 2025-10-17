@@ -8,6 +8,8 @@ export interface MatchBoardProps {
   onMatchActivated?: (matchId: bigint) => void
   onMatchFull?: (matchId: bigint) => void
   onMatchLeft?: () => void
+  /** Called when any player withdraws from the match (including other players) */
+  onPlayerWithdrew?: (matchId: bigint, player: string) => void
   countdownSeconds?: number | null
   isActivating?: boolean
   className?: string
