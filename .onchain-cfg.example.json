@@ -1,0 +1,18 @@
+{
+  "_comment": "This is an example .onchain-cfg.json file",
+  "_warning": "DO NOT PUBLISH THIS FILE - Contains private keys!",
+  "_security": "Add .onchain-cfg.json to your .gitignore",
+  "controllerPrivateKey": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "controllerAddress": "0x1234567890123456789012345678901234567890",
+  "chainId": 31337,
+  "rpcUrl": "http://127.0.0.1:8545",
+  "contracts": {
+    "scoreboard": "0xScoreboardContractAddress",
+    "gameMatch": "0xGameMatchContractAddress"
+  },
+  "factories": {
+    "scoreboard": "0xScoreboardFactoryAddress",
+    "gameMatch": "0xGameMatchFactoryAddress"
+  },
+  "lastUpdated": "2025-01-17T10:30:00.000Z"
+}

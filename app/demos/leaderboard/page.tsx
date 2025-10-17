@@ -85,7 +85,7 @@ export default function LeaderboardDemoPage() {
           sortBy={sortBy}
           showStats={true}
         />
-
+ 
         <div className="mt-8">
           <Card>
             <CardHeader>

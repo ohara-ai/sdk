@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    instrumentationHook: true,
+  },
   webpack: (config, { isServer }) => {
     // Ignore React Native and optional dependencies not needed in browser
     config.resolve.fallback = {

@@ -31,6 +31,9 @@ yarn-error.log*
 .env.development
 .env.production
 
+# Onchain configuration (contains private keys)
+.onchain-cfg.json
+
 # Vercel
 .vercel
 
