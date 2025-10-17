@@ -36,7 +36,7 @@ export default function YourDemo() {
     <div>
       {/* Components automatically register their dependencies */}
       <MatchBoard gameMatchAddress={address} />
-      <LeaderBoard scoreBoardAddress={address} />
+      <LeaderBoard gameScoreAddress={address} />
     </div>
   )
 }
@@ -54,7 +54,7 @@ export default function YourDemo() {
       <ContractDependencyInfo />
       
       <MatchBoard gameMatchAddress={address} />
-      <LeaderBoard scoreBoardAddress={address} />
+      <LeaderBoard gameScoreAddress={address} />
     </div>
   )
 }
@@ -67,7 +67,7 @@ export default function YourDemo() {
 Each SDK component automatically registers itself when mounted:
 
 ```typescript
-export function LeaderBoard({ scoreBoardAddress, ...props }) {
+export function LeaderBoard({ gameScoreAddress, ...props }) {
   // Auto-registers on mount, unregisters on unmount
   useComponentRegistration('LeaderBoard')
   
@@ -99,7 +99,7 @@ export default function Demo() {
       <MatchBoard gameMatchAddress={address} />
       {/* Scoreboard contract only required if this renders */}
       {showLeaderboard && (
-        <LeaderBoard scoreBoardAddress={address} />
+        <LeaderBoard gameScoreAddress={address} />
       )}
     </div>
   )
@@ -202,7 +202,7 @@ export default function Demo() {
     <>
       {/* Just use components - dependencies detected automatically */}
       <ContractDependencyInfo />
-      <LeaderBoard scoreBoardAddress={address} />
+      <LeaderBoard gameScoreAddress={address} />
       <MatchBoard gameMatchAddress={address} />
     </>
   )
@@ -227,14 +227,14 @@ import { LeaderBoard } from '@/sdk/src'
 import { ContractDependencyInfo } from '@/components/ContractDependencyInfo'
 
 export default function LeaderboardDemo() {
-  const address = process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS as `0x${string}`
+  const address = process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS as `0x${string}`
   
   return (
     <div>
       {/* Shows: Active Components: LeaderBoard | Required: Scoreboard */}
       <ContractDependencyInfo />
       
-      <LeaderBoard scoreBoardAddress={address} limit={10} />
+      <LeaderBoard gameScoreAddress={address} limit={10} />
     </div>
   )
 }
@@ -258,7 +258,7 @@ export default function ConditionalDemo() {
         <MatchBoard gameMatchAddress={address} />
       ) : (
         // Only Scoreboard contract required
-        <LeaderBoard scoreBoardAddress={address} />
+        <LeaderBoard gameScoreAddress={address} />
       )}
     </div>
   )

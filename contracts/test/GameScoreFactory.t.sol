@@ -2,41 +2,41 @@
 pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
-import {ScoreBoardFactory} from "../src/factories/ScoreBoardFactory.sol";
-import {ScoreBoard} from "../src/features/scoreboard/ScoreBoard.sol";
+import {GameScoreFactory} from "../src/factories/GameScoreFactory.sol";
+import {GameScore} from "../src/features/scoreboard/GameScore.sol";
 
-contract ScoreBoardFactoryTest is Test {
-    ScoreBoardFactory public factory;
+contract GameScoreFactoryTest is Test {
+    GameScoreFactory public factory;
 
     address public factoryOwner = address(this);
     address public instanceOwner = address(0x1);
 
-    event ScoreBoardDeployed(
+    event GameScoreDeployed(
         address indexed instance,
         address indexed owner
     );
 
     function setUp() public {
-        factory = new ScoreBoardFactory();
+        factory = new GameScoreFactory();
     }
 
-    function test_DeployScoreBoard() public {
+    function test_DeployGameScore() public {
         vm.expectEmit(false, true, false, false);
-        emit ScoreBoardDeployed(address(0), factoryOwner);
+        emit GameScoreDeployed(address(0), factoryOwner);
         
-        address instance = factory.deployScoreBoard();
+        address instance = factory.deployGameScore();
         
         assertTrue(instance != address(0));
         
-        ScoreBoard scoreBoard = ScoreBoard(instance);
-        assertEq(scoreBoard.owner(), factoryOwner); // Should use factory owner by default
-        assertEq(scoreBoard.getTotalMatches(), 0);
-        assertEq(scoreBoard.getTotalPlayers(), 0);
+        GameScore gameScore = GameScore(instance);
+        assertEq(gameScore.owner(), factoryOwner); // Should use factory owner by default
+        assertEq(gameScore.getTotalMatches(), 0);
+        assertEq(gameScore.getTotalPlayers(), 0);
     }
 
     function test_DeployMultipleInstances() public {
-        address instance1 = factory.deployScoreBoard();
-        address instance2 = factory.deployScoreBoard();
+        address instance1 = factory.deployGameScore();
+        address instance2 = factory.deployGameScore();
         
         assertTrue(instance1 != instance2);
     }
@@ -58,10 +58,10 @@ contract ScoreBoardFactoryTest is Test {
         factory.setInstanceOwner(instanceOwner);
         
         // Deploy instance
-        address instance = factory.deployScoreBoard();
+        address instance = factory.deployGameScore();
         
-        ScoreBoard scoreBoard = ScoreBoard(instance);
-        assertEq(scoreBoard.owner(), instanceOwner); // Should use custom instance owner
+        GameScore gameScore = GameScore(instance);
+        assertEq(gameScore.owner(), instanceOwner); // Should use custom instance owner
     }
 
     function test_ResetInstanceOwnerToFactoryOwner() public {
@@ -72,10 +72,10 @@ contract ScoreBoardFactoryTest is Test {
         factory.setInstanceOwner(address(0));
         
         // Deploy instance
-        address instance = factory.deployScoreBoard();
+        address instance = factory.deployGameScore();
         
-        ScoreBoard scoreBoard = ScoreBoard(instance);
-        assertEq(scoreBoard.owner(), factoryOwner); // Should use factory owner again
+        GameScore gameScore = GameScore(instance);
+        assertEq(gameScore.owner(), factoryOwner); // Should use factory owner again
     }
 
     function test_OnlyOwnerCanSetInstanceOwner() public {
@@ -96,26 +96,26 @@ contract ScoreBoardFactoryTest is Test {
     function test_EachDeployedInstanceIsIndependent() public {
         factory.setInstanceOwner(instanceOwner);
         
-        address instance1 = factory.deployScoreBoard();
-        address instance2 = factory.deployScoreBoard();
+        address instance1 = factory.deployGameScore();
+        address instance2 = factory.deployGameScore();
         
-        ScoreBoard scoreBoard1 = ScoreBoard(instance1);
-        ScoreBoard scoreBoard2 = ScoreBoard(instance2);
+        GameScore gameScore1 = GameScore(instance1);
+        GameScore gameScore2 = GameScore(instance2);
         
         // Both should have same owner
-        assertEq(scoreBoard1.owner(), instanceOwner);
-        assertEq(scoreBoard2.owner(), instanceOwner);
+        assertEq(gameScore1.owner(), instanceOwner);
+        assertEq(gameScore2.owner(), instanceOwner);
         
         // Authorize recorder on first instance only
         address recorder = address(0x999);
         vm.prank(instanceOwner);
-        scoreBoard1.setRecorderAuthorization(recorder, true);
+        gameScore1.setRecorderAuthorization(recorder, true);
         
         // First instance should have authorized recorder
-        assertTrue(scoreBoard1.authorizedRecorders(recorder));
+        assertTrue(gameScore1.authorizedRecorders(recorder));
         
         // Second instance should NOT have authorized recorder
-        assertFalse(scoreBoard2.authorizedRecorders(recorder));
+        assertFalse(gameScore2.authorizedRecorders(recorder));
     }
 
     function test_FactoryOwnerCanTransferFactoryOwnership() public {
@@ -128,22 +128,22 @@ contract ScoreBoardFactoryTest is Test {
 
     function test_DeployedInstancesRetainTheirOwner() public {
         // Deploy first instance with factory owner
-        address instance1 = factory.deployScoreBoard();
-        ScoreBoard scoreBoard1 = ScoreBoard(instance1);
-        assertEq(scoreBoard1.owner(), factoryOwner);
+        address instance1 = factory.deployGameScore();
+        GameScore gameScore1 = GameScore(instance1);
+        assertEq(gameScore1.owner(), factoryOwner);
         
         // Transfer factory ownership
         address newFactoryOwner = address(0x456);
         factory.transferOwnership(newFactoryOwner);
         
         // First instance should still have original owner
-        assertEq(scoreBoard1.owner(), factoryOwner);
+        assertEq(gameScore1.owner(), factoryOwner);
         
         // New deployment should use new factory owner
         vm.prank(newFactoryOwner);
-        address instance2 = factory.deployScoreBoard();
-        ScoreBoard scoreBoard2 = ScoreBoard(instance2);
-        assertEq(scoreBoard2.owner(), newFactoryOwner);
+        address instance2 = factory.deployGameScore();
+        GameScore gameScore2 = GameScore(instance2);
+        assertEq(gameScore2.owner(), newFactoryOwner);
     }
 
     function test_MultipleDeploymentsDifferentOwners() public {
@@ -152,27 +152,27 @@ contract ScoreBoardFactoryTest is Test {
         
         // Deploy with owner1
         factory.setInstanceOwner(owner1);
-        address instance1 = factory.deployScoreBoard();
+        address instance1 = factory.deployGameScore();
         
         // Change to owner2
         factory.setInstanceOwner(owner2);
-        address instance2 = factory.deployScoreBoard();
+        address instance2 = factory.deployGameScore();
         
-        ScoreBoard scoreBoard1 = ScoreBoard(instance1);
-        ScoreBoard scoreBoard2 = ScoreBoard(instance2);
+        GameScore gameScore1 = GameScore(instance1);
+        GameScore gameScore2 = GameScore(instance2);
         
-        assertEq(scoreBoard1.owner(), owner1);
-        assertEq(scoreBoard2.owner(), owner2);
+        assertEq(gameScore1.owner(), owner1);
+        assertEq(gameScore2.owner(), owner2);
     }
 
-    function test_DeployedScoreBoardFunctionality() public {
-        address instance = factory.deployScoreBoard();
-        ScoreBoard scoreBoard = ScoreBoard(instance);
+    function test_DeployedGameScoreFunctionality() public {
+        address instance = factory.deployGameScore();
+        GameScore gameScore = GameScore(instance);
         
         // Authorize a recorder
         address recorder = address(0x888);
         vm.prank(factoryOwner);
-        scoreBoard.setRecorderAuthorization(recorder, true);
+        gameScore.setRecorderAuthorization(recorder, true);
         
         // Record a match result
         address winner = address(0xAAA);
@@ -180,15 +180,15 @@ contract ScoreBoardFactoryTest is Test {
         losers[0] = address(0xBBB);
         
         vm.prank(recorder);
-        scoreBoard.recordMatchResult(1, winner, losers, 100 ether);
+        gameScore.recordMatchResult(1, winner, losers, 100 ether);
         
         // Verify the record
-        (uint256 totalWins, uint256 totalPrize, , ) = scoreBoard.getPlayerScore(winner);
+        (uint256 totalWins, uint256 totalPrize, , ) = gameScore.getPlayerScore(winner);
         assertEq(totalWins, 1);
         assertEq(totalPrize, 100 ether);
         
-        assertEq(scoreBoard.getTotalMatches(), 1);
-        assertEq(scoreBoard.getTotalPlayers(), 2);
+        assertEq(gameScore.getTotalMatches(), 1);
+        assertEq(gameScore.getTotalPlayers(), 2);
     }
 
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
@@ -199,13 +199,13 @@ contract ScoreBoardFactoryTest is Test {
         assertEq(factory.maxTotalMatches(), 100);
     }
 
-    function test_DeployedScoreBoardUsesFactoryLimits() public {
-        address instance = factory.deployScoreBoard();
-        ScoreBoard scoreBoard = ScoreBoard(instance);
+    function test_DeployedGameScoreUsesFactoryLimits() public {
+        address instance = factory.deployGameScore();
+        GameScore gameScore = GameScore(instance);
         
-        assertEq(scoreBoard.maxLosersPerMatch(), 50);
-        assertEq(scoreBoard.maxTotalPlayers(), 1000);
-        assertEq(scoreBoard.maxTotalMatches(), 100);
+        assertEq(gameScore.maxLosersPerMatch(), 50);
+        assertEq(gameScore.maxTotalPlayers(), 1000);
+        assertEq(gameScore.maxTotalMatches(), 100);
     }
 
     function test_SetDeploymentLimits() public {
@@ -226,23 +226,23 @@ contract ScoreBoardFactoryTest is Test {
 
     function test_NewDeploymentsUseUpdatedLimits() public {
         // Deploy with default limits
-        address instance1 = factory.deployScoreBoard();
-        ScoreBoard scoreBoard1 = ScoreBoard(instance1);
+        address instance1 = factory.deployGameScore();
+        GameScore gameScore1 = GameScore(instance1);
         
-        assertEq(scoreBoard1.maxLosersPerMatch(), 50);
+        assertEq(gameScore1.maxLosersPerMatch(), 50);
         
         // Update limits
         factory.setDeploymentLimits(100, 20000, 200000);
         
         // Deploy with new limits
-        address instance2 = factory.deployScoreBoard();
-        ScoreBoard scoreBoard2 = ScoreBoard(instance2);
+        address instance2 = factory.deployGameScore();
+        GameScore gameScore2 = GameScore(instance2);
         
-        assertEq(scoreBoard2.maxLosersPerMatch(), 100);
-        assertEq(scoreBoard2.maxTotalPlayers(), 20000);
-        assertEq(scoreBoard2.maxTotalMatches(), 200000);
+        assertEq(gameScore2.maxLosersPerMatch(), 100);
+        assertEq(gameScore2.maxTotalPlayers(), 20000);
+        assertEq(gameScore2.maxTotalMatches(), 200000);
         
         // First instance should still have old limits
-        assertEq(scoreBoard1.maxLosersPerMatch(), 50);
+        assertEq(gameScore1.maxLosersPerMatch(), 50);
     }
 }

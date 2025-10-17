@@ -71,7 +71,7 @@ const {
   validation,            // { valid, missing, configured }
   env,                   // Record<string, string | undefined>
   getContractAddress,    // (type: ContractType) => Address | undefined
-  addresses,             // { SCOREBOARD?: Address, GAME_MATCH?: Address }
+  addresses,             // { GAMESCORE?: Address, GAME_MATCH?: Address }
 } = useOharaAi()
 ```
 
@@ -98,7 +98,7 @@ const {
 **`addresses: ContractAddresses`**
 - Resolved contract addresses from environment variables and localStorage
 - Priority: localStorage > environment variables (allows runtime overrides)
-- Type: `{ SCOREBOARD?: Address, GAME_MATCH?: Address }`
+- Type: `{ GAMESCORE?: Address, GAME_MATCH?: Address }`
 
 **`getContractAddress(type: ContractType): Address | undefined`**
 - Helper function to get contract address by type
@@ -194,8 +194,8 @@ function GameDemo() {
 The provider checks for contract addresses in the following environment variables:
 
 **Scoreboard Contract:**
-- `NEXT_PUBLIC_SCOREBOARD_ADDRESS`
-- `NEXT_PUBLIC_SCOREBOARD_INSTANCE`
+- `NEXT_PUBLIC_GAMESCORE_ADDRESS`
+- `NEXT_PUBLIC_GAMESCORE_INSTANCE`
 
 **GameMatch Contract:**
 - `NEXT_PUBLIC_GAME_MATCH_INSTANCE`
@@ -212,7 +212,7 @@ SDK components automatically register themselves when mounted:
 import { LeaderBoard } from '@ohara-ai/game-sdk'
 
 // LeaderBoard auto-registers on mount, unregisters on unmount
-<LeaderBoard scoreBoardAddress="0x..." />
+<LeaderBoard gameScoreAddress="0x..." />
 ```
 
 **Conditional Rendering Support:**
@@ -221,7 +221,7 @@ Dependencies are only tracked when components are actually rendered:
 ```tsx
 const [showLeaderboard, setShowLeaderboard] = useState(false)
 
-{showLeaderboard && <LeaderBoard scoreBoardAddress="0x..." />}
+{showLeaderboard && <LeaderBoard gameScoreAddress="0x..." />}
 // Scoreboard contract only required when showLeaderboard is true
 ```
 
@@ -244,7 +244,7 @@ For more details, see [OHARA_AI_PROVIDER.md](./OHARA_AI_PROVIDER.md).
 
 ### LeaderBoard
 
-Display high scores and player rankings from ScoreBoard contracts.
+Display high scores and player rankings from GameScore contracts.
 
 ```tsx
 import { LeaderBoard } from '@ohara-ai/game-sdk'
@@ -252,7 +252,7 @@ import { LeaderBoard } from '@ohara-ai/game-sdk'
 function App() {
   return (
     <LeaderBoard 
-      scoreBoardAddress="0x..."
+      gameScoreAddress="0x..."
       limit={10}
       sortBy="wins"
     />
@@ -261,7 +261,7 @@ function App() {
 ```
 
 **Props:**
-- `scoreBoardAddress` (string): The address of the ScoreBoard contract
+- `gameScoreAddress` (string): The address of the GameScore contract
 - `limit` (number, optional): Maximum number of entries to display (default: 10)
 - `sortBy` ('wins' | 'score' | 'recent', optional): Sorting criteria (default: 'wins')
 - `className` (string, optional): Additional CSS classes

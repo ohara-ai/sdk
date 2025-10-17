@@ -127,7 +127,7 @@ export default function LeaderboardDemoPage() {
               </div>
               <div className="mt-4 space-y-2 text-sm text-gray-600">
                 <p>
-                  <strong>scoreBoardAddress:</strong> (Optional) The address of the ScoreBoard contract. 
+                  <strong>gameScoreAddress:</strong> (Optional) The address of the GameScore contract. 
                   If not provided, automatically resolved from OharaAiProvider context.
                 </p>
                 <p>

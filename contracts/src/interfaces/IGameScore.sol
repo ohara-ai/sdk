@@ -2,10 +2,10 @@
 pragma solidity ^0.8.23;
 
 /**
- * @title IScoreBoard
+ * @title IGameScore
  * @notice Interface for tracking match results
  */
-interface IScoreBoard {
+interface IGameScore {
     /**
      * @notice Record a match result
      * @param matchId The ID of the match

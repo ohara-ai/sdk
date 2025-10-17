@@ -64,7 +64,7 @@ Generated during build, contains:
   "chainId": 31337,
   "rpcUrl": "http://127.0.0.1:8545",
   "contracts": {
-    "scoreboard": "0x...",            // Deployed ScoreBoard contract
+    "scoreboard": "0x...",            // Deployed GameScore contract
     "gameMatch": "0x..."              // Deployed GameMatch contract
   },
   "factories": {
@@ -132,11 +132,11 @@ const controllerAccount = privateKeyToAccount(controllerPrivateKey)
 Contracts are deployed via factories (addresses from env vars):
 
 ```typescript
-// Example: ScoreBoard deployment
-const factory = process.env.NEXT_PUBLIC_SCOREBOARD_FACTORY
+// Example: GameScore deployment
+const factory = process.env.NEXT_PUBLIC_GAMESCORE_FACTORY
 const hash = await walletClient.writeContract({
   address: factory,
-  abi: SCOREBOARD_FACTORY_ABI,
+  abi: GAMESCORE_FACTORY_ABI,
   functionName: 'deployScoreboard',
   account: controllerAccount,
 })
@@ -159,7 +159,7 @@ export async function register() {
 
 ```typescript
 // Result: Standard env vars are populated
-process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS = config.contracts.scoreboard
+process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS = config.contracts.scoreboard
 process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE = config.contracts.gameMatch
 ```
 
@@ -190,7 +190,7 @@ NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545
 NEXT_PUBLIC_CHAIN_ID=31337
 
 # Factory contract addresses
-NEXT_PUBLIC_SCOREBOARD_FACTORY=0x...
+NEXT_PUBLIC_GAMESCORE_FACTORY=0x...
 NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 ```
 
@@ -198,7 +198,7 @@ NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
 ```bash
 # These are auto-populated from .onchain-cfg.json
-NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x...    # ← From config
+NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...    # ← From config
 NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x...   # ← From config
 ```
 
@@ -235,7 +235,7 @@ npm run provision:check
 # 1. Set production env vars
 export NEXT_PUBLIC_RPC_URL=https://your-rpc.com
 export NEXT_PUBLIC_CHAIN_ID=1
-export NEXT_PUBLIC_SCOREBOARD_FACTORY=0x...
+export NEXT_PUBLIC_GAMESCORE_FACTORY=0x...
 export NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
 # 2. Build (provisions on first build)
@@ -270,9 +270,9 @@ Output:
 🔍 Required contracts: scoreboard, gameMatch
 
 💰 Controller balance: 10000000000000000000 wei
-📝 Deploying ScoreBoard via factory 0x...
+📝 Deploying GameScore via factory 0x...
    Transaction: 0x...
-✅ ScoreBoard deployed at 0x...
+✅ GameScore deployed at 0x...
 
 📝 Deploying GameMatch via factory 0x...
    Transaction: 0x...
@@ -328,7 +328,7 @@ const walletClient = createWalletClient({
 // Now you can call contract functions as the controller
 await walletClient.writeContract({
   address: config.contracts.scoreboard,
-  abi: SCOREBOARD_ABI,
+  abi: GAMESCORE_ABI,
   functionName: 'adminFunction',
   args: [...]
 })
@@ -407,7 +407,7 @@ Each chain gets its own `.onchain-cfg.json` (you may want separate files per cha
   env:
     NEXT_PUBLIC_RPC_URL: ${{ secrets.RPC_URL }}
     NEXT_PUBLIC_CHAIN_ID: ${{ secrets.CHAIN_ID }}
-    NEXT_PUBLIC_SCOREBOARD_FACTORY: ${{ secrets.SCOREBOARD_FACTORY }}
+    NEXT_PUBLIC_GAMESCORE_FACTORY: ${{ secrets.GAMESCORE_FACTORY }}
     NEXT_PUBLIC_GAME_MATCH_FACTORY: ${{ secrets.GAME_MATCH_FACTORY }}
 
 - name: Store config securely
@@ -421,7 +421,7 @@ Each chain gets its own `.onchain-cfg.json` (you may want separate files per cha
 ### "Factory address not provided"
 
 **Problem**: Missing factory env var  
-**Solution**: Set `NEXT_PUBLIC_SCOREBOARD_FACTORY` and `NEXT_PUBLIC_GAME_MATCH_FACTORY`
+**Solution**: Set `NEXT_PUBLIC_GAMESCORE_FACTORY` and `NEXT_PUBLIC_GAME_MATCH_FACTORY`
 
 ### "Controller has no balance"
 
@@ -465,7 +465,7 @@ If you have existing deployed contracts:
 **Option 1: Keep using them**
 ```bash
 # Set env vars to point to existing contracts
-export NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x...  # Your existing
+export NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...  # Your existing
 export NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x... # Your existing
 
 # Build will skip deployment

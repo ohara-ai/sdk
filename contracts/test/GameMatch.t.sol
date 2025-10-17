@@ -5,13 +5,13 @@ import "forge-std/Test.sol";
 import {GameMatch} from "../src/features/game-match/GameMatch.sol";
 import {IGameMatch} from "../src/interfaces/IGameMatch.sol";
 import {MockERC20} from "./mocks/MockERC20.sol";
-import {MockScoreBoard} from "./mocks/MockScoreBoard.sol";
+import {MockGameScore} from "./mocks/MockGameScore.sol";
 import {Owned} from "../src/base/Owned.sol";
 
 contract GameMatchTest is Test {
     GameMatch public gameMatch;
     MockERC20 public token;
-    MockScoreBoard public scoreBoard;
+    MockGameScore public gameScore;
 
     address public owner = address(0x1);
     address public controller = address(0x2);
@@ -47,7 +47,7 @@ contract GameMatchTest is Test {
         uint256[] memory feeShares = new uint256[](0);
         gameMatch = new GameMatch(owner, controller, address(0), defaultMaxActiveMatches, feeRecipients, feeShares);
         token = new MockERC20(1000000 ether);
-        scoreBoard = new MockScoreBoard();
+        gameScore = new MockGameScore();
         vm.stopPrank();
 
         // Fund players with ETH and tokens
@@ -377,9 +377,9 @@ contract GameMatchTest is Test {
         gameMatch.finalizeMatch(matchId, player3); // player3 not in match
     }
 
-    function test_FinalizeWithScoreBoard() public {
+    function test_FinalizeWithGameScore() public {
         vm.prank(owner);
-        gameMatch.setScoreBoard(address(scoreBoard));
+        gameMatch.setGameScore(address(gameScore));
 
         vm.prank(player1);
         uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
@@ -397,8 +397,8 @@ contract GameMatchTest is Test {
         vm.prank(controller);
         gameMatch.finalizeMatch(matchId, player1);
 
-        assertEq(scoreBoard.getResultCount(), 1);
-        MockScoreBoard.MatchResult memory result = scoreBoard.getResult(0);
+        assertEq(gameScore.getResultCount(), 1);
+        MockGameScore.MatchResult memory result = gameScore.getResult(0);
         assertEq(result.matchId, matchId);
         assertEq(result.winner, player1);
         assertEq(result.losers.length, 1);

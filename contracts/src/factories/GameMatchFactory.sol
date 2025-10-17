@@ -20,7 +20,7 @@ contract GameMatchFactory is OwnedFactory {
         address indexed instance,
         address indexed owner,
         address indexed controller,
-        address scoreBoard
+        address gameScore
     );
     event DefaultMaxActiveMatchesUpdated(uint256 newDefault);
     event DefaultFeesUpdated(address[] recipients, uint256[] shares);
@@ -75,13 +75,13 @@ contract GameMatchFactory is OwnedFactory {
     /**
      * @notice Deploy a new GameMatch contract
      * @param _controller Controller of the new contract
-     * @param _scoreBoard Scoreboard contract address (address(0) if not used)
+     * @param _gameScore GameScore contract address (address(0) if not used)
      * @return instance Address of the deployed contract
      * @dev Fees can be configured after deployment using the configureFees function
      */
     function deployGameMatch(
         address _controller,
-        address _scoreBoard
+        address _gameScore
     ) external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
         
@@ -89,12 +89,12 @@ contract GameMatchFactory is OwnedFactory {
             new GameMatch(
                 instanceOwnerAddress,
                 _controller,
-                _scoreBoard,
+                _gameScore,
                 defaultMaxActiveMatches,
                 defaultFeeRecipients,
                 defaultFeeShares
             )
         );
-        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _scoreBoard);
+        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _gameScore);
     }
 }

@@ -7,7 +7,7 @@ import { ArrowRight, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import { useOharaAi } from '@/sdk/src/context/OnchainContext'
 import { ContractType } from '@/sdk/src/types/contracts'
 import { DeployContract as DeployGameMatch } from '@/components/features/game-match/DeployContract'
-import { DeployContract as DeployScoreBoard } from '@/components/features/scoreboard/DeployContract'
+import { DeployContract as DeployGameScore } from '@/components/features/gamescore/DeployContract'
 import { FactoryInformation } from '@/components/features/FactoryInformation'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 export default function ContractTestingPage() {
   const { getContractAddress, addresses } = useOharaAi()
   const gameMatchAddress = getContractAddress(ContractType.GAME_MATCH)
-  const scoreBoardAddress = getContractAddress(ContractType.SCOREBOARD)
+  const gameScoreAddress = getContractAddress(ContractType.GAMESCORE)
   
   const [mounted, setMounted] = useState(false)
   const [showFactoryDetails, setShowFactoryDetails] = useState(false)
@@ -29,9 +29,9 @@ export default function ContractTestingPage() {
     console.log('GameMatch deployed:', newAddress)
   }
 
-  const handleScoreBoardDeployed = (newAddress: `0x${string}`) => {
+  const handleGameScoreDeployed = (newAddress: `0x${string}`) => {
     // Address will be automatically picked up by OharaAiProvider polling
-    console.log('ScoreBoard deployed:', newAddress)
+    console.log('GameScore deployed:', newAddress)
   }
 
   const formatAddress = (addr: string) => {
@@ -123,32 +123,32 @@ export default function ContractTestingPage() {
             {mounted && (
               <DeployGameMatch 
                 onDeployed={handleGameMatchDeployed}
-                deployedScoreBoardAddress={scoreBoardAddress}
+                deployedGameScoreAddress={gameScoreAddress}
               />
             )}
           </div>
 
-          {/* ScoreBoard Card */}
+          {/* GameScore Card */}
           <div className="flex flex-col gap-4">
             <Link 
-              href="/contract-testing/features/scoreboard" 
-              className={!scoreBoardAddress ? 'pointer-events-none opacity-50' : 'group'}
+              href="/contract-testing/features/gamescore" 
+              className={!gameScoreAddress ? 'pointer-events-none opacity-50' : 'group'}
             >
               <Card className="h-full border-2 border-gray-200 hover:border-purple-500 transition-all duration-200 hover:shadow-lg">
                 <CardHeader className="p-6">
                   <div className="flex items-start justify-between mb-3">
-                    <CardTitle className="text-lg font-semibold text-gray-900">ScoreBoard</CardTitle>
+                    <CardTitle className="text-lg font-semibold text-gray-900">GameScore</CardTitle>
                     <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors group-hover:translate-x-1 duration-200" />
                   </div>
                   <CardDescription className="text-sm text-gray-600 leading-relaxed mb-4">
                     Track player scores, wins, and match history across all games
                   </CardDescription>
                   <div className="pt-3 border-t border-gray-100">
-                    {mounted && scoreBoardAddress ? (
+                    {mounted && gameScoreAddress ? (
                       <div className="space-y-2">
                         <div className="text-xs font-medium text-gray-700">Contract Address</div>
                         <code className="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-mono bg-purple-50 text-purple-700 border border-purple-200">
-                          {formatAddress(scoreBoardAddress)}
+                          {formatAddress(gameScoreAddress)}
                         </code>
                       </div>
                     ) : (
@@ -161,7 +161,7 @@ export default function ContractTestingPage() {
               </Card>
             </Link>
             {mounted && (
-              <DeployScoreBoard onDeployed={handleScoreBoardDeployed} />
+              <DeployGameScore onDeployed={handleGameScoreDeployed} />
             )}
           </div>
         </div>

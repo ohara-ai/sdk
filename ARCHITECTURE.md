@@ -10,7 +10,7 @@ The repository is organized into three main layers:
 
 **Purpose**: Core smart contract implementations for on-chain gaming features.
 
-- **Features** (`src/features/`): Individual gaming features like GameMatch and ScoreBoard
+- **Features** (`src/features/`): Individual gaming features like GameMatch and GameScore
 - **Base Contracts** (`src/base/`): Shared contracts like Owned, interfaces
 - **Factories** (`src/factories/`): Contract factories for efficient deployment
 - **Tests** (`test/`): Comprehensive Solidity tests
@@ -211,7 +211,7 @@ UI Update (LeaderBoard)
 
 ### Contracts
 
-1. Deploy base contracts (DevWorldToken, ScoreBoard)
+1. Deploy base contracts (DevWorldToken, GameScore)
 2. Deploy factories
 3. Deploy feature instances via factories
 4. Configure authorizations and permissions

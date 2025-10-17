@@ -18,14 +18,14 @@ const CONFIG_PATH = path.join(process.cwd(), '.onchain-cfg.json')
 
 // Factory ABIs
 const GAME_MATCH_FACTORY_ABI = parseAbi([
-  'function deployGameMatch(address controller, address scoreBoardAddress) external returns (address)',
+  'function deployGameMatch(address controller, address gameScoreAddress) external returns (address)',
   'function deployedContracts(uint256) external view returns (address)',
   'function setDefaultFees(address[] calldata recipients, uint256[] calldata shares) external',
   'function getDefaultFees() external view returns (address[] memory recipients, uint256[] memory shares)'
 ])
 
-const SCOREBOARD_FACTORY_ABI = parseAbi([
-  'function deployScoreboard() external returns (address)',
+const GAMESCORE_FACTORY_ABI = parseAbi([
+  'function deployGameScore() external returns (address)',
   'function deployedContracts(uint256) external view returns (address)'
 ])
 
@@ -40,12 +40,12 @@ interface OnchainConfig {
   rpcUrl: string
   /** Deployed contract addresses */
   contracts: {
-    scoreboard?: string
+    gamescore?: string
     gameMatch?: string
   }
   /** Factory addresses used for deployment */
   factories: {
-    scoreboard?: string
+    gamescore?: string
     gameMatch?: string
   }
   /** Timestamp of last update */
@@ -58,10 +58,10 @@ interface ProvisioningContext {
   walletClient: any
   controllerAccount: any
   factoryAddresses: {
-    scoreboard?: string
+    gamescore?: string
     gameMatch?: string
   }
-  requiredContracts: Set<'scoreboard' | 'gameMatch'>
+  requiredContracts: Set<'gamescore' | 'gameMatch'>
 }
 
 /**
@@ -121,8 +121,8 @@ function saveConfig(config: OnchainConfig) {
 /**
  * Detect which contracts are needed by scanning the app code
  */
-async function detectRequiredContracts(): Promise<Set<'scoreboard' | 'gameMatch'>> {
-  const required = new Set<'scoreboard' | 'gameMatch'>()
+async function detectRequiredContracts(): Promise<Set<'gamescore' | 'gameMatch'>> {
+  const required = new Set<'gamescore' | 'gameMatch'>()
   
   // Scan app directory for SDK component usage
   const appDir = path.join(process.cwd(), 'app')
@@ -145,13 +145,13 @@ async function detectRequiredContracts(): Promise<Set<'scoreboard' | 'gameMatch'
         
         // Check for LeaderBoard usage
         if (content.includes('LeaderBoard') || content.includes('from \'@/sdk/src/components/LeaderBoard\'')) {
-          required.add('scoreboard')
+          required.add('gamescore')
         }
         
         // Check for MatchBoard usage
         if (content.includes('MatchBoard') || content.includes('from \'@/sdk/src/components/MatchBoard\'')) {
           required.add('gameMatch')
-          required.add('scoreboard') // GameMatch depends on ScoreBoard
+          required.add('gamescore') // GameMatch depends on GameScore
         }
       }
     }
@@ -163,21 +163,21 @@ async function detectRequiredContracts(): Promise<Set<'scoreboard' | 'gameMatch'
 }
 
 /**
- * Deploy ScoreBoard contract via factory
+ * Deploy GameScore contract via factory
  */
-async function deployScoreboard(ctx: ProvisioningContext): Promise<string> {
-  const factoryAddress = ctx.factoryAddresses.scoreboard
+async function deployGameScore(ctx: ProvisioningContext): Promise<string> {
+  const factoryAddress = ctx.factoryAddresses.gamescore
   
   if (!factoryAddress) {
-    throw new Error('ScoreBoard factory address not provided. Set NEXT_PUBLIC_SCOREBOARD_FACTORY in env.')
+    throw new Error('GameScore factory address not provided. Set NEXT_PUBLIC_GAMESCORE_FACTORY in env.')
   }
   
-  console.log(`📝 Deploying ScoreBoard via factory ${factoryAddress}...`)
+  console.log(`📝 Deploying GameScore via factory ${factoryAddress}...`)
   
   const hash = await ctx.walletClient.writeContract({
     address: factoryAddress as `0x${string}`,
-    abi: SCOREBOARD_FACTORY_ABI,
-    functionName: 'deployScoreboard',
+    abi: GAMESCORE_FACTORY_ABI,
+    functionName: 'deployGameScore',
     account: ctx.controllerAccount,
   })
   
@@ -188,12 +188,12 @@ async function deployScoreboard(ctx: ProvisioningContext): Promise<string> {
   // Get deployed address from factory
   const deployedAddress = await ctx.publicClient.readContract({
     address: factoryAddress as `0x${string}`,
-    abi: SCOREBOARD_FACTORY_ABI,
+    abi: GAMESCORE_FACTORY_ABI,
     functionName: 'deployedContracts',
     args: [0n], // Assuming first deployment, or we can parse logs
   })
   
-  console.log(`✅ ScoreBoard deployed at ${deployedAddress}`)
+  console.log(`✅ GameScore deployed at ${deployedAddress}`)
   
   return deployedAddress as string
 }
@@ -201,7 +201,7 @@ async function deployScoreboard(ctx: ProvisioningContext): Promise<string> {
 /**
  * Deploy GameMatch contract via factory
  */
-async function deployGameMatch(ctx: ProvisioningContext, scoreboardAddress: string): Promise<string> {
+async function deployGameMatch(ctx: ProvisioningContext, gamescoreAddress: string): Promise<string> {
   const factoryAddress = ctx.factoryAddresses.gameMatch
   
   if (!factoryAddress) {
@@ -214,7 +214,7 @@ async function deployGameMatch(ctx: ProvisioningContext, scoreboardAddress: stri
     address: factoryAddress as `0x${string}`,
     abi: GAME_MATCH_FACTORY_ABI,
     functionName: 'deployGameMatch',
-    args: [ctx.controllerAccount.address, scoreboardAddress as `0x${string}`],
+    args: [ctx.controllerAccount.address, gamescoreAddress as `0x${string}`],
     account: ctx.controllerAccount,
   })
   
@@ -310,7 +310,7 @@ async function provision() {
   
   // Get factory addresses from env
   const factoryAddresses = {
-    scoreboard: process.env.NEXT_PUBLIC_SCOREBOARD_FACTORY,
+    gamescore: process.env.NEXT_PUBLIC_GAMESCORE_FACTORY,
     gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY,
   }
   
@@ -331,21 +331,21 @@ async function provision() {
   // Deploy missing contracts
   let needsSave = false
   
-  // ScoreBoard (required by both LeaderBoard and MatchBoard)
-  if (requiredContracts.has('scoreboard') && !config.contracts.scoreboard) {
-    const address = await deployScoreboard(ctx)
-    config.contracts.scoreboard = address
+  // GameScore (required by both LeaderBoard and MatchBoard)
+  if (requiredContracts.has('gamescore') && !config.contracts.gamescore) {
+    const address = await deployGameScore(ctx)
+    config.contracts.gamescore = address
     needsSave = true
-  } else if (config.contracts.scoreboard) {
-    console.log(`✓ ScoreBoard already deployed at ${config.contracts.scoreboard}`)
+  } else if (config.contracts.gamescore) {
+    console.log(`✓ GameScore already deployed at ${config.contracts.gamescore}`)
   }
   
   // GameMatch (required by MatchBoard)
   if (requiredContracts.has('gameMatch') && !config.contracts.gameMatch) {
-    if (!config.contracts.scoreboard) {
-      throw new Error('Cannot deploy GameMatch without ScoreBoard address')
+    if (!config.contracts.gamescore) {
+      throw new Error('Cannot deploy GameMatch without GameScore address')
     }
-    const address = await deployGameMatch(ctx, config.contracts.scoreboard)
+    const address = await deployGameMatch(ctx, config.contracts.gamescore)
     config.contracts.gameMatch = address
     needsSave = true
   } else if (config.contracts.gameMatch) {
@@ -361,8 +361,8 @@ async function provision() {
   console.log('\n✨ Contract provisioning complete!\n')
   console.log('📄 Configuration:')
   console.log(`   Controller: ${config.controllerAddress}`)
-  if (config.contracts.scoreboard) {
-    console.log(`   ScoreBoard: ${config.contracts.scoreboard}`)
+  if (config.contracts.gamescore) {
+    console.log(`   GameScore: ${config.contracts.gamescore}`)
   }
   if (config.contracts.gameMatch) {
     console.log(`   GameMatch: ${config.contracts.gameMatch}`)

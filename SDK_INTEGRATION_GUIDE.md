@@ -88,7 +88,7 @@ module.exports = {
 
 ### LeaderBoard
 
-Display player rankings and scores from a ScoreBoard contract.
+Display player rankings and scores from a GameScore contract.
 
 ```tsx
 import { LeaderBoard } from '@ohara-ai/game-sdk'
@@ -96,7 +96,7 @@ import { LeaderBoard } from '@ohara-ai/game-sdk'
 function MyApp() {
   return (
     <LeaderBoard 
-      scoreBoardAddress="0x..." 
+      gameScoreAddress="0x..." 
       limit={10}
       sortBy="wins"
       showStats={true}
@@ -110,7 +110,7 @@ function MyApp() {
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| `scoreBoardAddress` | `0x${string}` | Required | The address of the ScoreBoard contract |
+| `gameScoreAddress` | `0x${string}` | Required | The address of the GameScore contract |
 | `limit` | `number` | `10` | Maximum number of entries to display |
 | `sortBy` | `'wins' \| 'prize'` | `'wins'` | Sort by total wins or total prize |
 | `showStats` | `boolean` | `true` | Show total players and matches statistics |
@@ -159,7 +159,7 @@ function MyApp() {
 The SDK exports contract ABIs for direct interaction:
 
 ```tsx
-import { GAME_MATCH_ABI, SCOREBOARD_ABI } from '@ohara-ai/game-sdk'
+import { GAME_MATCH_ABI, GAMESCORE_ABI } from '@ohara-ai/game-sdk'
 
 // Use with wagmi hooks
 import { useReadContract } from 'wagmi'
@@ -201,7 +201,7 @@ export default function MyGame() {
   const [currentMatchId, setCurrentMatchId] = useState<bigint | null>(null)
 
   const gameMatchAddress = '0x...' as `0x${string}`
-  const scoreBoardAddress = '0x...' as `0x${string}`
+  const gameScoreAddress = '0x...' as `0x${string}`
 
   return (
     <div className="container mx-auto p-8">
@@ -233,7 +233,7 @@ export default function MyGame() {
       {/* Leaderboard */}
       <div className="mt-8">
         <LeaderBoard
-          scoreBoardAddress={scoreBoardAddress}
+          gameScoreAddress={gameScoreAddress}
           limit={10}
           sortBy="wins"
         />

@@ -7,7 +7,7 @@ const GAME_MATCH_FACTORY_ABI = [
   {
     inputs: [
       { internalType: 'address', name: '_controller', type: 'address' },
-      { internalType: 'address', name: '_scoreBoard', type: 'address' },
+      { internalType: 'address', name: '_gameScore', type: 'address' },
     ],
     name: 'deployGameMatch',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
@@ -20,7 +20,7 @@ const GAME_MATCH_FACTORY_ABI = [
       { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
       { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
       { indexed: true, internalType: 'address', name: 'controller', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'scoreBoard', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'gameScore', type: 'address' },
     ],
     name: 'GameMatchDeployed',
     type: 'event',
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { 
       factoryAddress, 
-      scoreBoardAddress: requestScoreBoardAddress,
+      gameScoreAddress: requestGameScoreAddress,
       feeRecipients: requestFeeRecipients,
       feeShares: requestFeeShares
     } = body
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
 
     // Use request parameters or fall back to environment defaults
-    const scoreBoardAddress = requestScoreBoardAddress || 
+    const gameScoreAddress = requestGameScoreAddress || 
       process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS || 
       '0x0000000000000000000000000000000000000000'
 
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
       functionName: 'deployGameMatch',
       args: [
         controllerAddress as `0x${string}`,
-        scoreBoardAddress as `0x${string}`,
+        gameScoreAddress as `0x${string}`,
       ],
       chain: null,
     })
@@ -187,10 +187,10 @@ export async function POST(request: NextRequest) {
     }
 
     // If scoreboard is configured (not zero address), authorize the GameMatch to record results
-    if (scoreBoardAddress !== '0x0000000000000000000000000000000000000000') {
+    if (gameScoreAddress !== '0x0000000000000000000000000000000000000000') {
       try {
         const authHash = await walletClient.writeContract({
-          address: scoreBoardAddress as `0x${string}`,
+          address: gameScoreAddress as `0x${string}`,
           abi: SCOREBOARD_ABI,
           functionName: 'setRecorderAuthorization',
           args: [deployedAddress, true],
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
           success: true,
           address: deployedAddress,
           transactionHash: hash,
-          authorizationWarning: 'GameMatch deployed but ScoreBoard authorization failed. You may need to manually authorize the contract.',
+          authorizationWarning: 'GameMatch deployed but GameScore authorization failed. You may need to manually authorize the contract.',
           authorizationError: authError instanceof Error ? authError.message : 'Unknown error'
         })
       }

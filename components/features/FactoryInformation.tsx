@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Factory, Shield, User, BarChart3, Settings, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi'
 import { GAME_MATCH_FACTORY_ABI, getGameMatchFactoryAddress } from '@/lib/contracts/gameMatch'
-import { SCOREBOARD_FACTORY_ABI, getScoreBoardFactoryAddress } from '@/lib/contracts/scoreBoard'
+import { GAMESCORE_FACTORY_ABI, getGameScoreFactoryAddress } from '@/lib/contracts/gameScore'
 
 /**
  * Reusable factory information component that displays factory addresses,
@@ -19,38 +19,38 @@ export function FactoryInformation() {
   
   // Collapse states
   const [isGameMatchCollapsed, setIsGameMatchCollapsed] = useState(true)
-  const [isScoreBoardCollapsed, setIsScoreBoardCollapsed] = useState(true)
+  const [isGameScoreCollapsed, setIsGameScoreCollapsed] = useState(true)
   
   // Edit mode states
   const [editingGameMatchInstance, setEditingGameMatchInstance] = useState(false)
   const [editingGameMatchLimits, setEditingGameMatchLimits] = useState(false)
-  const [editingScoreBoardInstance, setEditingScoreBoardInstance] = useState(false)
-  const [editingScoreBoardLimits, setEditingScoreBoardLimits] = useState(false)
+  const [editingGameScoreInstance, setEditingGameScoreInstance] = useState(false)
+  const [editingGameScoreLimits, setEditingGameScoreLimits] = useState(false)
   
   // Form values
   const [newGameMatchInstanceOwner, setNewGameMatchInstanceOwner] = useState('')
   const [newGameMatchMaxActive, setNewGameMatchMaxActive] = useState('')
-  const [newScoreBoardInstanceOwner, setNewScoreBoardInstanceOwner] = useState('')
+  const [newGameScoreInstanceOwner, setNewGameScoreInstanceOwner] = useState('')
   const [newMaxLosers, setNewMaxLosers] = useState('')
   const [newMaxPlayers, setNewMaxPlayers] = useState('')
   const [newMaxMatches, setNewMaxMatches] = useState('')
   
   const gameMatchFactoryAddress = getGameMatchFactoryAddress()
-  const scoreBoardFactoryAddress = getScoreBoardFactoryAddress()
+  const gameScoreFactoryAddress = getGameScoreFactoryAddress()
 
   useEffect(() => {
     setMounted(true)
   }, [])
   
   const { writeContract: writeGameMatchContract, data: gameMatchTxHash, isPending: isGameMatchPending } = useWriteContract()
-  const { writeContract: writeScoreBoardContract, data: scoreBoardTxHash, isPending: isScoreBoardPending } = useWriteContract()
+  const { writeContract: writeGameScoreContract, data: gameScoreTxHash, isPending: isGameScorePending } = useWriteContract()
   
   const { isLoading: isGameMatchConfirming, isSuccess: isGameMatchSuccess } = useWaitForTransactionReceipt({
     hash: gameMatchTxHash,
   })
   
-  const { isLoading: isScoreBoardConfirming, isSuccess: isScoreBoardSuccess } = useWaitForTransactionReceipt({
-    hash: scoreBoardTxHash,
+  const { isLoading: isGameScoreConfirming, isSuccess: isGameScoreSuccess } = useWaitForTransactionReceipt({
+    hash: gameScoreTxHash,
   })
 
   // GameMatch Factory data
@@ -72,34 +72,34 @@ export function FactoryInformation() {
     functionName: 'defaultMaxActiveMatches',
   })
 
-  // ScoreBoard Factory data
-  const { data: scoreBoardFactoryOwner } = useReadContract({
-    address: scoreBoardFactoryAddress,
-    abi: SCOREBOARD_FACTORY_ABI,
+  // GameScore Factory data
+  const { data: gameScoreFactoryOwner } = useReadContract({
+    address: gameScoreFactoryAddress,
+    abi: GAMESCORE_FACTORY_ABI,
     functionName: 'owner',
   })
 
-  const { data: scoreBoardInstanceOwner } = useReadContract({
-    address: scoreBoardFactoryAddress,
-    abi: SCOREBOARD_FACTORY_ABI,
+  const { data: gameScoreInstanceOwner } = useReadContract({
+    address: gameScoreFactoryAddress,
+    abi: GAMESCORE_FACTORY_ABI,
     functionName: 'getInstanceOwner',
   })
 
   const { data: maxLosersPerMatch } = useReadContract({
-    address: scoreBoardFactoryAddress,
-    abi: SCOREBOARD_FACTORY_ABI,
+    address: gameScoreFactoryAddress,
+    abi: GAMESCORE_FACTORY_ABI,
     functionName: 'maxLosersPerMatch',
   })
 
   const { data: maxTotalPlayers } = useReadContract({
-    address: scoreBoardFactoryAddress,
-    abi: SCOREBOARD_FACTORY_ABI,
+    address: gameScoreFactoryAddress,
+    abi: GAMESCORE_FACTORY_ABI,
     functionName: 'maxTotalPlayers',
   })
 
   const { data: maxTotalMatches } = useReadContract({
-    address: scoreBoardFactoryAddress,
-    abi: SCOREBOARD_FACTORY_ABI,
+    address: gameScoreFactoryAddress,
+    abi: GAMESCORE_FACTORY_ABI,
     functionName: 'maxTotalMatches',
   })
   
@@ -114,15 +114,15 @@ export function FactoryInformation() {
   }, [isGameMatchSuccess])
   
   useEffect(() => {
-    if (isScoreBoardSuccess) {
-      setEditingScoreBoardInstance(false)
-      setEditingScoreBoardLimits(false)
-      setNewScoreBoardInstanceOwner('')
+    if (isGameScoreSuccess) {
+      setEditingGameScoreInstance(false)
+      setEditingGameScoreLimits(false)
+      setNewGameScoreInstanceOwner('')
       setNewMaxLosers('')
       setNewMaxPlayers('')
       setNewMaxMatches('')
     }
-  }, [isScoreBoardSuccess])
+  }, [isGameScoreSuccess])
   
   // Handler functions
   const handleUpdateGameMatchInstanceOwner = () => {
@@ -145,21 +145,21 @@ export function FactoryInformation() {
     })
   }
   
-  const handleUpdateScoreBoardInstanceOwner = () => {
-    if (!newScoreBoardInstanceOwner || !scoreBoardFactoryAddress) return
-    writeScoreBoardContract({
-      address: scoreBoardFactoryAddress,
-      abi: SCOREBOARD_FACTORY_ABI,
+  const handleUpdateGameScoreInstanceOwner = () => {
+    if (!newGameScoreInstanceOwner || !gameScoreFactoryAddress) return
+    writeGameScoreContract({
+      address: gameScoreFactoryAddress,
+      abi: GAMESCORE_FACTORY_ABI,
       functionName: 'setInstanceOwner',
-      args: [newScoreBoardInstanceOwner as `0x${string}`],
+      args: [newGameScoreInstanceOwner as `0x${string}`],
     })
   }
   
-  const handleUpdateScoreBoardLimits = () => {
-    if (!newMaxLosers || !newMaxPlayers || !newMaxMatches || !scoreBoardFactoryAddress) return
-    writeScoreBoardContract({
-      address: scoreBoardFactoryAddress,
-      abi: SCOREBOARD_FACTORY_ABI,
+  const handleUpdateGameScoreLimits = () => {
+    if (!newMaxLosers || !newMaxPlayers || !newMaxMatches || !gameScoreFactoryAddress) return
+    writeGameScoreContract({
+      address: gameScoreFactoryAddress,
+      abi: GAMESCORE_FACTORY_ABI,
       functionName: 'setDeploymentLimits',
       args: [BigInt(newMaxLosers), BigInt(newMaxPlayers), BigInt(newMaxMatches)],
     })
@@ -167,8 +167,8 @@ export function FactoryInformation() {
   
   const canModifyGameMatch = connectedAddress && gameMatchFactoryOwner && 
     connectedAddress.toLowerCase() === gameMatchFactoryOwner.toLowerCase()
-  const canModifyScoreBoard = connectedAddress && scoreBoardFactoryOwner && 
-    connectedAddress.toLowerCase() === scoreBoardFactoryOwner.toLowerCase()
+  const canModifyGameScore = connectedAddress && gameScoreFactoryOwner && 
+    connectedAddress.toLowerCase() === gameScoreFactoryOwner.toLowerCase()
 
   return (
     <Card className="border-2 border-gray-200">
@@ -358,21 +358,21 @@ export function FactoryInformation() {
             )}
           </div>
 
-          {/* ScoreBoard Factory Section */}
+          {/* GameScore Factory Section */}
           <div>
             <button
-              onClick={() => setIsScoreBoardCollapsed(!isScoreBoardCollapsed)}
-              className={`w-full text-sm font-semibold text-gray-900 flex items-center justify-between hover:text-purple-600 transition-colors ${isScoreBoardCollapsed ? 'mb-0' : 'mb-4'}`}
+              onClick={() => setIsGameScoreCollapsed(!isGameScoreCollapsed)}
+              className={`w-full text-sm font-semibold text-gray-900 flex items-center justify-between hover:text-purple-600 transition-colors ${isGameScoreCollapsed ? 'mb-0' : 'mb-4'}`}
             >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-md bg-purple-50 flex items-center justify-center">
                   <Factory className="w-3.5 h-3.5 text-purple-600" />
                 </div>
-                ScoreBoard Factory
+                GameScore Factory
               </div>
-              {isScoreBoardCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+              {isGameScoreCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
             </button>
-            {!isScoreBoardCollapsed && (
+            {!isGameScoreCollapsed && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-top duration-200">
               <div className="flex items-start gap-3">
                 <div className="p-2 bg-purple-50 rounded-lg flex-shrink-0">
@@ -381,7 +381,7 @@ export function FactoryInformation() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 mb-1.5">Factory Address</p>
                   <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                    {!mounted ? 'Loading...' : scoreBoardFactoryAddress || 'Not configured'}
+                    {!mounted ? 'Loading...' : gameScoreFactoryAddress || 'Not configured'}
                   </p>
                 </div>
               </div>
@@ -392,7 +392,7 @@ export function FactoryInformation() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 mb-1.5">Factory Owner</p>
                   <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                    {!mounted ? 'Loading...' : scoreBoardFactoryOwner || 'Not available'}
+                    {!mounted ? 'Loading...' : gameScoreFactoryOwner || 'Not available'}
                   </p>
                 </div>
               </div>
@@ -403,11 +403,11 @@ export function FactoryInformation() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-medium text-gray-900">Instance Owner</p>
-                    {canModifyScoreBoard && !editingScoreBoardInstance && (
+                    {canModifyGameScore && !editingGameScoreInstance && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setEditingScoreBoardInstance(true)}
+                        onClick={() => setEditingGameScoreInstance(true)}
                         className="h-6 px-2 text-xs"
                       >
                         <Settings className="w-3 h-3 mr-1" />
@@ -416,23 +416,23 @@ export function FactoryInformation() {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mb-1">Used for deployed instances</p>
-                  {editingScoreBoardInstance ? (
+                  {editingGameScoreInstance ? (
                     <div className="space-y-2">
                       <Input
                         type="text"
                         placeholder="0x... (or 0x0 for factory owner)"
-                        value={newScoreBoardInstanceOwner}
-                        onChange={(e) => setNewScoreBoardInstanceOwner(e.target.value)}
+                        value={newGameScoreInstanceOwner}
+                        onChange={(e) => setNewGameScoreInstanceOwner(e.target.value)}
                         className="h-8 text-xs font-mono"
                       />
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={handleUpdateScoreBoardInstanceOwner}
-                          disabled={!newScoreBoardInstanceOwner || isScoreBoardPending || isScoreBoardConfirming}
+                          onClick={handleUpdateGameScoreInstanceOwner}
+                          disabled={!newGameScoreInstanceOwner || isGameScorePending || isGameScoreConfirming}
                           className="h-7 px-3 text-xs"
                         >
-                          {isScoreBoardPending || isScoreBoardConfirming ? (
+                          {isGameScorePending || isGameScoreConfirming ? (
                             <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing</>
                           ) : (
                             <><Check className="w-3 h-3 mr-1" /> Update</>
@@ -442,10 +442,10 @@ export function FactoryInformation() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            setEditingScoreBoardInstance(false)
-                            setNewScoreBoardInstanceOwner('')
+                            setEditingGameScoreInstance(false)
+                            setNewGameScoreInstanceOwner('')
                           }}
-                          disabled={isScoreBoardPending || isScoreBoardConfirming}
+                          disabled={isGameScorePending || isGameScoreConfirming}
                           className="h-7 px-3 text-xs"
                         >
                           <X className="w-3 h-3 mr-1" /> Cancel
@@ -454,7 +454,7 @@ export function FactoryInformation() {
                     </div>
                   ) : (
                     <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                      {!mounted ? 'Loading...' : scoreBoardInstanceOwner || 'Factory owner'}
+                      {!mounted ? 'Loading...' : gameScoreInstanceOwner || 'Factory owner'}
                     </p>
                   )}
                 </div>
@@ -466,12 +466,12 @@ export function FactoryInformation() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1.5">
                     <p className="text-sm font-medium text-gray-900">Default Limits</p>
-                    {canModifyScoreBoard && !editingScoreBoardLimits && (
+                    {canModifyGameScore && !editingGameScoreLimits && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setEditingScoreBoardLimits(true)
+                          setEditingGameScoreLimits(true)
                           setNewMaxLosers(maxLosersPerMatch ? maxLosersPerMatch.toString() : '')
                           setNewMaxPlayers(maxTotalPlayers ? maxTotalPlayers.toString() : '')
                           setNewMaxMatches(maxTotalMatches ? maxTotalMatches.toString() : '')
@@ -483,7 +483,7 @@ export function FactoryInformation() {
                       </Button>
                     )}
                   </div>
-                  {editingScoreBoardLimits ? (
+                  {editingGameScoreLimits ? (
                     <div className="space-y-2">
                       <div className="space-y-1.5">
                         <label className="text-xs text-gray-600">Max Losers/Match:</label>
@@ -518,11 +518,11 @@ export function FactoryInformation() {
                       <div className="flex gap-2">
                         <Button
                           size="sm"
-                          onClick={handleUpdateScoreBoardLimits}
-                          disabled={!newMaxLosers || !newMaxPlayers || !newMaxMatches || isScoreBoardPending || isScoreBoardConfirming}
+                          onClick={handleUpdateGameScoreLimits}
+                          disabled={!newMaxLosers || !newMaxPlayers || !newMaxMatches || isGameScorePending || isGameScoreConfirming}
                           className="h-7 px-3 text-xs"
                         >
-                          {isScoreBoardPending || isScoreBoardConfirming ? (
+                          {isGameScorePending || isGameScoreConfirming ? (
                             <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Processing</>
                           ) : (
                             <><Check className="w-3 h-3 mr-1" /> Update</>
@@ -532,12 +532,12 @@ export function FactoryInformation() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
-                            setEditingScoreBoardLimits(false)
+                            setEditingGameScoreLimits(false)
                             setNewMaxLosers('')
                             setNewMaxPlayers('')
                             setNewMaxMatches('')
                           }}
-                          disabled={isScoreBoardPending || isScoreBoardConfirming}
+                          disabled={isGameScorePending || isGameScoreConfirming}
                           className="h-7 px-3 text-xs"
                         >
                           <X className="w-3 h-3 mr-1" /> Cancel

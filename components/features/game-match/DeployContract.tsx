@@ -12,7 +12,7 @@ import { ContractType } from '@/sdk/src/types/contracts'
 
 interface DeployContractProps {
   onDeployed: (address: `0x${string}`) => void
-  deployedScoreBoardAddress?: `0x${string}` | null
+  deployedGameScoreAddress?: `0x${string}` | null
 }
 
 interface FeeRecipient {
@@ -20,24 +20,24 @@ interface FeeRecipient {
   share: string
 }
 
-export function DeployContract({ onDeployed, deployedScoreBoardAddress: propScoreBoardAddress }: DeployContractProps) {
+export function DeployContract({ onDeployed, deployedGameScoreAddress: propGameScoreAddress }: DeployContractProps) {
   // Configuration state
-  const [useDeployedScoreBoard, setUseDeployedScoreBoard] = useState(false)
+  const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
   const factoryAddress = getGameMatchFactoryAddress()
   const { getContractAddress } = useOharaAi()
-  const hookScoreBoardAddress = getContractAddress(ContractType.SCOREBOARD)
+  const hookGameScoreAddress = getContractAddress(ContractType.GAMESCORE)
   
   // Use prop if provided, otherwise fall back to hook (prop takes precedence for reactivity)
-  const deployedScoreBoardAddress = propScoreBoardAddress ?? hookScoreBoardAddress
+  const deployedGameScoreAddress = propGameScoreAddress ?? hookGameScoreAddress
 
   // Reset toggle when scoreboard address changes (e.g., new deployment)
   useEffect(() => {
-    if (!deployedScoreBoardAddress) {
-      setUseDeployedScoreBoard(false)
+    if (!deployedGameScoreAddress) {
+      setUseDeployedGameScore(false)
     }
-  }, [deployedScoreBoardAddress])
+  }, [deployedGameScoreAddress])
 
   const addFeeRecipient = () => {
     setFeeRecipients([...feeRecipients, { address: '', share: '' }])
@@ -58,19 +58,19 @@ export function DeployContract({ onDeployed, deployedScoreBoardAddress: propScor
     const validFeeRecipients = feeRecipients.filter(r => r.address && r.share)
     
     // Use deployed scoreboard if toggle is enabled and address exists
-    const finalScoreBoardAddress = useDeployedScoreBoard && deployedScoreBoardAddress 
-      ? deployedScoreBoardAddress 
+    const finalGameScoreAddress = useDeployedGameScore && deployedGameScoreAddress 
+      ? deployedGameScoreAddress 
       : '0x0000000000000000000000000000000000000000'
     
     return {
-      scoreBoardAddress: finalScoreBoardAddress,
+      gameScoreAddress: finalGameScoreAddress,
       feeRecipients: validFeeRecipients.map(r => r.address),
       feeShares: validFeeRecipients.map(r => r.share),
     }
   }
 
   const handleDeployed = (address: `0x${string}`) => {
-    setUseDeployedScoreBoard(false)
+    setUseDeployedGameScore(false)
     setFeeRecipients([])
     onDeployed(address)
   }
@@ -78,34 +78,34 @@ export function DeployContract({ onDeployed, deployedScoreBoardAddress: propScor
   const configSection = (
     <>
       <div>
-        <Label htmlFor="scoreboard" className="text-sm font-medium text-gray-900">ScoreBoard Integration</Label>
+        <Label htmlFor="scoreboard" className="text-sm font-medium text-gray-900">GameScore Integration</Label>
         <div className="mt-1.5 space-y-2">
           <Button
             type="button"
-            variant={useDeployedScoreBoard ? "default" : "outline"}
+            variant={useDeployedGameScore ? "default" : "outline"}
             size="sm"
-            onClick={() => setUseDeployedScoreBoard(!useDeployedScoreBoard)}
-            disabled={!deployedScoreBoardAddress}
+            onClick={() => setUseDeployedGameScore(!useDeployedGameScore)}
+            disabled={!deployedGameScoreAddress}
             className="w-full gap-2 h-9"
           >
             <Link2 className="w-4 h-4" />
-            {useDeployedScoreBoard 
-              ? "ScoreBoard Enabled (Auto-Authorized)" 
-              : deployedScoreBoardAddress
-                ? "Enable ScoreBoard Integration"
-                : "No ScoreBoard Deployed"}
+            {useDeployedGameScore 
+              ? "GameScore Enabled (Auto-Authorized)" 
+              : deployedGameScoreAddress
+                ? "Enable GameScore Integration"
+                : "No GameScore Deployed"}
           </Button>
-          {!deployedScoreBoardAddress && (
+          {!deployedGameScoreAddress && (
             <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
               <p className="text-xs text-gray-600">
-                Deploy a ScoreBoard contract first to enable integration
+                Deploy a GameScore contract first to enable integration
               </p>
             </div>
           )}
-          {useDeployedScoreBoard && deployedScoreBoardAddress && (
+          {useDeployedGameScore && deployedGameScoreAddress && (
             <div className="p-2.5 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-xs font-medium text-green-900 mb-1">ScoreBoard Address</p>
-              <code className="text-xs font-mono text-green-700 break-all">{deployedScoreBoardAddress}</code>
+              <p className="text-xs font-medium text-green-900 mb-1">GameScore Address</p>
+              <code className="text-xs font-mono text-green-700 break-all">{deployedGameScoreAddress}</code>
               <p className="text-xs text-green-700 mt-2">
                 ✓ GameMatch will be automatically authorized to record results
               </p>

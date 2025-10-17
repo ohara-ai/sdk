@@ -14,13 +14,13 @@ The `OharaAiProvider` now centrally manages contract addresses, eliminating the 
 - `addresses` object containing all resolved contract addresses
 
 **Environment Variables Supported:**
-- `NEXT_PUBLIC_SCOREBOARD_ADDRESS` or `NEXT_PUBLIC_SCOREBOARD_INSTANCE` → Scoreboard contract
+- `NEXT_PUBLIC_GAMESCORE_ADDRESS` or `NEXT_PUBLIC_GAMESCORE_INSTANCE` → Scoreboard contract
 - `NEXT_PUBLIC_GAME_MATCH_INSTANCE` or `NEXT_PUBLIC_GAME_MATCH_ADDRESS` → GameMatch contract
 
 ### 2. **Updated SDK Components**
 
 **LeaderBoard Component:**
-- `scoreBoardAddress` prop is now **optional**
+- `gameScoreAddress` prop is now **optional**
 - Automatically resolves from `OharaAiProvider` if not provided
 - Shows helpful error if address cannot be resolved
 
@@ -48,14 +48,14 @@ The `OharaAiProvider` now centrally manages contract addresses, eliminating the 
 ```typescript
 // Demo app had to manage addresses
 export default function Demo() {
-  const scoreBoardAddress = process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS as `0x${string}`
+  const gameScoreAddress = process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS as `0x${string}`
   const { address: gameMatchAddress } = useDeployedGameMatchAddress()
   
   return (
     <>
       {/* Had to check addresses and pass them */}
-      {scoreBoardAddress !== '0x0000...' && (
-        <LeaderBoard scoreBoardAddress={scoreBoardAddress} />
+      {gameScoreAddress !== '0x0000...' && (
+        <LeaderBoard gameScoreAddress={gameScoreAddress} />
       )}
       
       {gameMatchAddress && (
@@ -95,8 +95,8 @@ export default function Demo() {
 Provider resolution logic:
 ```typescript
 const addresses = {
-  [ContractType.SCOREBOARD]: 
-    env.NEXT_PUBLIC_SCOREBOARD_ADDRESS || env.NEXT_PUBLIC_SCOREBOARD_INSTANCE,
+  [ContractType.GAMESCORE]: 
+    env.NEXT_PUBLIC_GAMESCORE_ADDRESS || env.NEXT_PUBLIC_GAMESCORE_INSTANCE,
   [ContractType.GAME_MATCH]: 
     env.NEXT_PUBLIC_GAME_MATCH_INSTANCE || env.NEXT_PUBLIC_GAME_MATCH_ADDRESS,
 }
@@ -105,13 +105,13 @@ const addresses = {
 ### 2. Components Use Context
 
 ```typescript
-export function LeaderBoard({ scoreBoardAddress: addressProp, ...props }) {
+export function LeaderBoard({ gameScoreAddress: addressProp, ...props }) {
   const { getContractAddress } = useOharaAi()
   
   // Use prop if provided, otherwise get from context
-  const scoreBoardAddress = addressProp || getContractAddress(ContractType.SCOREBOARD)
+  const gameScoreAddress = addressProp || getContractAddress(ContractType.GAMESCORE)
   
-  if (!scoreBoardAddress) {
+  if (!gameScoreAddress) {
     return <div>Contract address not configured</div>
   }
   
@@ -125,7 +125,7 @@ If an address cannot be resolved, components show a helpful error:
 
 ```
 Scoreboard contract address not configured. 
-Please set NEXT_PUBLIC_SCOREBOARD_ADDRESS or provide scoreBoardAddress prop.
+Please set NEXT_PUBLIC_GAMESCORE_ADDRESS or provide gameScoreAddress prop.
 ```
 
 ## Benefits
@@ -151,7 +151,7 @@ interface OnchainContextValue {
   
   /** All resolved contract addresses */
   addresses: {
-    [ContractType.SCOREBOARD]?: `0x${string}`
+    [ContractType.GAMESCORE]?: `0x${string}`
     [ContractType.GAME_MATCH]?: `0x${string}`
   }
 }
@@ -162,7 +162,7 @@ interface OnchainContextValue {
 const { getContractAddress, addresses } = useOharaAi()
 
 // Get specific address
-const scoreboardAddr = getContractAddress(ContractType.SCOREBOARD)
+const scoreboardAddr = getContractAddress(ContractType.GAMESCORE)
 
 // Access all addresses
 console.log(addresses)
@@ -173,7 +173,7 @@ console.log(addresses)
 ```typescript
 interface LeaderBoardProps {
   /** Optional: If not provided, resolved from OharaAiProvider */
-  scoreBoardAddress?: `0x${string}`
+  gameScoreAddress?: `0x${string}`
   limit?: number
   sortBy?: 'wins' | 'prize'
   className?: string
@@ -221,7 +221,7 @@ export default function MyApp() {
   return (
     <>
       {/* Use custom address instead of context */}
-      <LeaderBoard scoreBoardAddress={customAddress} limit={10} />
+      <LeaderBoard gameScoreAddress={customAddress} limit={10} />
     </>
   )
 }
@@ -235,7 +235,7 @@ import { useOharaAi, ContractType } from '@ohara-ai/game-sdk'
 export default function MyApp() {
   const { getContractAddress, addresses } = useOharaAi()
   
-  const scoreboardAddr = getContractAddress(ContractType.SCOREBOARD)
+  const scoreboardAddr = getContractAddress(ContractType.GAMESCORE)
   
   return (
     <div>
@@ -254,7 +254,7 @@ import { useOharaAi, ContractType } from '@ohara-ai/game-sdk'
 export default function MyApp() {
   const { getContractAddress } = useOharaAi()
   
-  const hasScoreboard = !!getContractAddress(ContractType.SCOREBOARD)
+  const hasScoreboard = !!getContractAddress(ContractType.GAMESCORE)
   const hasGameMatch = !!getContractAddress(ContractType.GAME_MATCH)
   
   return (
@@ -273,15 +273,15 @@ export default function MyApp() {
 1. **Remove address management code**
 ```typescript
 // DELETE THIS
-const scoreBoardAddress = process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS
+const gameScoreAddress = process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS
 const { address: gameMatchAddress } = useDeployedGameMatchAddress()
 ```
 
 2. **Remove conditional rendering based on addresses**
 ```typescript
 // DELETE THIS
-{scoreBoardAddress !== '0x0000...' && (
-  <LeaderBoard scoreBoardAddress={scoreBoardAddress} />
+{gameScoreAddress !== '0x0000...' && (
+  <LeaderBoard gameScoreAddress={gameScoreAddress} />
 )}
 
 // REPLACE WITH
@@ -291,7 +291,7 @@ const { address: gameMatchAddress } = useDeployedGameMatchAddress()
 3. **Remove address props**
 ```typescript
 // BEFORE
-<LeaderBoard scoreBoardAddress={address} limit={10} />
+<LeaderBoard gameScoreAddress={address} limit={10} />
 <MatchBoard gameMatchAddress={address} />
 
 // AFTER
@@ -314,9 +314,9 @@ Ensure these environment variables are set:
 
 ```bash
 # Scoreboard contract (one of these)
-NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x...
+NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...
 # OR
-NEXT_PUBLIC_SCOREBOARD_INSTANCE=0x...
+NEXT_PUBLIC_GAMESCORE_INSTANCE=0x...
 
 # GameMatch contract (one of these)
 NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x...
@@ -331,7 +331,7 @@ If addresses are not configured, components show clear errors:
 **LeaderBoard:**
 ```
 Scoreboard contract address not configured. 
-Please set NEXT_PUBLIC_SCOREBOARD_ADDRESS or provide scoreBoardAddress prop.
+Please set NEXT_PUBLIC_GAMESCORE_ADDRESS or provide gameScoreAddress prop.
 ```
 
 **MatchBoard:**

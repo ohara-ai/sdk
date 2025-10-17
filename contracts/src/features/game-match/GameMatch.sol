@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IGameMatch} from "../../interfaces/IGameMatch.sol";
-import {IScoreBoard} from "../../interfaces/IScoreBoard.sol";
+import {IGameScore} from "../../interfaces/IGameScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 
 /**
@@ -23,7 +23,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     uint256 public maxActiveMatches;
 
     // Optional integrations
-    IScoreBoard public scoreBoard;
+    IGameScore public gameScore;
 
     event MaxActiveMatchesUpdated(uint256 newLimit);
     event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
@@ -43,14 +43,14 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     constructor(
         address _owner,
         address _controller,
-        address _scoreBoard,
+        address _gameScore,
         uint256 _maxActiveMatches,
         address[] memory _feeRecipients,
         uint256[] memory _feeShares
     ) FeatureController(_owner, _controller) {
-        // Initialize scoreboard if provided
-        if (_scoreBoard != address(0)) {
-            scoreBoard = IScoreBoard(_scoreBoard);
+        // Initialize gamescore if provided
+        if (_gameScore != address(0)) {
+            gameScore = IGameScore(_gameScore);
         }
         
         // Set capacity limit
@@ -63,11 +63,11 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     }
 
     /**
-     * @notice Set the scoreboard contract
-     * @param _scoreBoard Address of the scoreboard contract
+     * @notice Set the gamescore contract
+     * @param _gameScore Address of the gamescore contract
      */
-    function setScoreBoard(address _scoreBoard) external onlyOwner {
-        scoreBoard = IScoreBoard(_scoreBoard);
+    function setGameScore(address _gameScore) external onlyOwner {
+        gameScore = IGameScore(_gameScore);
     }
 
     /**
@@ -301,8 +301,8 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         // Transfer winnings to winner
         _transfer(m.token, winner, winnerAmount);
 
-        // Record result in scoreboard if configured
-        if (address(scoreBoard) != address(0)) {
+        // Record result in gamescore if configured
+        if (address(gameScore) != address(0)) {
             address[] memory losers = new address[](m.players.length - 1);
             uint256 loserIndex = 0;
             for (uint256 i = 0; i < m.players.length; i++) {
@@ -310,7 +310,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
                     losers[loserIndex++] = m.players[i];
                 }
             }
-            scoreBoard.recordMatchResult(matchId, winner, losers, totalPrize);
+            gameScore.recordMatchResult(matchId, winner, losers, totalPrize);
         }
 
         emit MatchFinalized(matchId, winner, totalPrize, winnerAmount);

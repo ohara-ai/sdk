@@ -1,5 +1,5 @@
-// Contract ABI and configuration for ScoreBoard
-export const SCOREBOARD_ABI = [
+// Contract ABI and configuration for GameScore
+export const GAMESCORE_ABI = [
   // Read functions
   {
     inputs: [{ internalType: 'address', name: 'player', type: 'address' }],
@@ -157,16 +157,16 @@ export interface MatchRecord {
 }
 
 // Contract addresses (to be filled after deployment)
-export function getScoreBoardAddress(chainId?: number): `0x${string}` | undefined {
+export function getGameScoreAddress(chainId?: number): `0x${string}` | undefined {
   // First check ENV variable
-  const address = process.env.NEXT_PUBLIC_SCOREBOARD_INSTANCE
+  const address = process.env.NEXT_PUBLIC_GAMESCORE_INSTANCE
   if (address && address !== '...' && address !== '0x0000000000000000000000000000000000000000') {
     return address as `0x${string}`
   }
   
   // Then check localStorage if we're in browser and have chainId
   if (typeof window !== 'undefined' && chainId) {
-    const stored = localStorage.getItem(`deployed_scoreboard_${chainId}`)
+    const stored = localStorage.getItem(`deployed_gamescore_${chainId}`)
     if (stored) {
       return stored as `0x${string}`
     }
@@ -175,14 +175,14 @@ export function getScoreBoardAddress(chainId?: number): `0x${string}` | undefine
   return undefined
 }
 
-export function getScoreBoardFactoryAddress(): `0x${string}` | undefined {
-  const address = process.env.NEXT_PUBLIC_SCOREBOARD_FACTORY
+export function getGameScoreFactoryAddress(): `0x${string}` | undefined {
+  const address = process.env.NEXT_PUBLIC_GAMESCORE_FACTORY
   if (!address || address === '...') return undefined
   return address as `0x${string}`
 }
 
-// ScoreBoardFactory ABI
-export const SCOREBOARD_FACTORY_ABI = [
+// GameScoreFactory ABI
+export const GAMESCORE_FACTORY_ABI = [
   // Read functions
   {
     inputs: [],
@@ -247,7 +247,7 @@ export const SCOREBOARD_FACTORY_ABI = [
   },
   {
     inputs: [],
-    name: 'deployScoreBoard',
+    name: 'deployGameScore',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -259,7 +259,7 @@ export const SCOREBOARD_FACTORY_ABI = [
       { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
       { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
     ],
-    name: 'ScoreBoardDeployed',
+    name: 'GameScoreDeployed',
     type: 'event',
   },
 ] as const

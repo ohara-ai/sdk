@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {IScoreBoard} from "../../src/interfaces/IScoreBoard.sol";
+import {IGameScore} from "../../src/interfaces/IGameScore.sol";
 
-contract MockScoreBoard is IScoreBoard {
+contract MockGameScore is IGameScore {
     struct MatchResult {
         uint256 matchId;
         address winner;

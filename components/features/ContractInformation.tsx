@@ -26,7 +26,7 @@ interface ContractInformationProps {
  */
 export function ContractInformation({ factoryAddress, contractAddress, limits }: ContractInformationProps) {
   const { ownerAddress, controllerAddress, devWorldTokenAddress } = useContractInfo()
-  const { totalFeePercentage, scoreBoard, isLoading: isFeeLoading } = useFeeConfig(contractAddress || undefined)
+  const { totalFeePercentage, gameScore, isLoading: isFeeLoading } = useFeeConfig(contractAddress || undefined)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -107,15 +107,15 @@ export function ContractInformation({ factoryAddress, contractAddress, limits }:
               </p>
             </div>
           </div>
-          {mounted && scoreBoard && scoreBoard !== '0x0000000000000000000000000000000000000000' && (
+          {mounted && gameScore && gameScore !== '0x0000000000000000000000000000000000000000' && (
             <div className="flex items-start gap-3">
               <div className="p-2 bg-teal-50 rounded-lg flex-shrink-0">
                 <Database className="w-4 h-4 text-teal-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 mb-1.5">ScoreBoard Integration</p>
+                <p className="text-sm font-medium text-gray-900 mb-1.5">GameScore Integration</p>
                 <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                  {scoreBoard.slice(0, 10)}...{scoreBoard.slice(-8)}
+                  {gameScore.slice(0, 10)}...{gameScore.slice(-8)}
                 </p>
               </div>
             </div>

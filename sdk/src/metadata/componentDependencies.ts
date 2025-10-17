@@ -8,9 +8,9 @@ export const LEADERBOARD_METADATA: ComponentMetadata = {
   description: 'Displays ranked players based on wins or prize money',
   dependencies: [
     {
-      contract: ContractType.SCOREBOARD,
+      contract: ContractType.GAMESCORE,
       required: true,
-      envVar: 'NEXT_PUBLIC_SCOREBOARD_ADDRESS',
+      envVar: 'NEXT_PUBLIC_GAMESCORE_ADDRESS',
       description: 'Required to fetch player rankings and statistics',
     },
   ],

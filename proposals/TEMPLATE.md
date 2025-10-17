@@ -144,7 +144,7 @@ uint256 private _counter;
 ```
 [Diagram or description of contract interactions]
 YourFeature --> OtherFeature: calls someFunction()
-YourFeature <-- ScoreBoard: receives results
+YourFeature <-- GameScore: receives results
 ```
 
 ### External Dependencies

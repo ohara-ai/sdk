@@ -20,7 +20,7 @@ Made the `OharaAiProvider` **reactive** to contract deployments by:
 ```typescript
 // Priority order (highest to lowest):
 1. localStorage (deployed_game_match_{chainId}, deployed_scoreboard_{chainId})
-2. Environment variables (NEXT_PUBLIC_SCOREBOARD_ADDRESS, etc.)
+2. Environment variables (NEXT_PUBLIC_GAMESCORE_ADDRESS, etc.)
 ```
 
 ### 2. Reactive Updates
@@ -178,7 +178,7 @@ deployed_scoreboard_31337        (Local Anvil)
 ### Test Scenario 1: Deploy Contract
 
 1. Visit `/contract-testing`
-2. Deploy a contract (e.g., ScoreBoard)
+2. Deploy a contract (e.g., GameScore)
 3. Navigate to `/demos/leaderboard`
 4. ✅ LeaderBoard component should automatically use the new address
 

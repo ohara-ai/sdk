@@ -103,8 +103,8 @@ export function OharaAiProvider({ children, env = process.env, chainId: chainIdP
           addresses[ContractType.GAME_MATCH] = data.addresses.gameMatch as `0x${string}`
         }
         
-        if (data.addresses?.scoreboard && data.addresses.scoreboard !== '0x0000000000000000000000000000000000000000') {
-          addresses[ContractType.SCOREBOARD] = data.addresses.scoreboard as `0x${string}`
+        if (data.addresses?.gamescore && data.addresses.gamescore !== '0x0000000000000000000000000000000000000000') {
+          addresses[ContractType.GAMESCORE] = data.addresses.gamescore as `0x${string}`
         }
         
         setStorageAddresses(addresses)
@@ -153,9 +153,9 @@ export function OharaAiProvider({ children, env = process.env, chainId: chainIdP
   
   // Merge addresses: backend storage overrides env vars (more dynamic)
   const addresses: ContractAddresses = useMemo(() => ({
-    [ContractType.SCOREBOARD]: 
-      storageAddresses[ContractType.SCOREBOARD] ||
-      (env.NEXT_PUBLIC_SCOREBOARD_ADDRESS || env.NEXT_PUBLIC_SCOREBOARD_INSTANCE) as `0x${string}` | undefined,
+    [ContractType.GAMESCORE]: 
+      storageAddresses[ContractType.GAMESCORE] ||
+      (env.NEXT_PUBLIC_GAMESCORE_ADDRESS || env.NEXT_PUBLIC_GAMESCORE_INSTANCE) as `0x${string}` | undefined,
     [ContractType.GAME_MATCH]: 
       storageAddresses[ContractType.GAME_MATCH] ||
       (env.NEXT_PUBLIC_GAME_MATCH_INSTANCE || env.NEXT_PUBLIC_GAME_MATCH_ADDRESS) as `0x${string}` | undefined,
@@ -166,7 +166,7 @@ export function OharaAiProvider({ children, env = process.env, chainId: chainIdP
     // Create a temporary env object with merged addresses for validation
     const mergedEnv = {
       ...env,
-      NEXT_PUBLIC_SCOREBOARD_ADDRESS: addresses[ContractType.SCOREBOARD],
+      NEXT_PUBLIC_GAMESCORE_ADDRESS: addresses[ContractType.GAMESCORE],
       NEXT_PUBLIC_GAME_MATCH_INSTANCE: addresses[ContractType.GAME_MATCH],
     }
     return validateContractConfiguration(Array.from(activeComponents), mergedEnv)

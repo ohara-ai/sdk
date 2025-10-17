@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { usePublicClient, useChainId } from 'wagmi'
 
 const STORAGE_KEY_PREFIX_GAME_MATCH = 'deployed_game_match_'
-const STORAGE_KEY_PREFIX_SCOREBOARD = 'deployed_scoreboard_'
+const STORAGE_KEY_PREFIX_GAMESCORE = 'deployed_scoreboard_'
 
 /**
  * Generic hook to manage deployed contract addresses with localStorage persistence
@@ -113,8 +113,8 @@ export function useDeployedGameMatchAddress() {
 }
 
 /**
- * Hook to manage deployed ScoreBoard contract addresses
+ * Hook to manage deployed GameScore contract addresses
  */
-export function useDeployedScoreBoardAddress() {
-  return useDeployedAddress(STORAGE_KEY_PREFIX_SCOREBOARD, 'NEXT_PUBLIC_SCOREBOARD_INSTANCE')
+export function useDeployedGameScoreAddress() {
+  return useDeployedAddress(STORAGE_KEY_PREFIX_GAMESCORE, 'NEXT_PUBLIC_GAMESCORE_INSTANCE')
 }

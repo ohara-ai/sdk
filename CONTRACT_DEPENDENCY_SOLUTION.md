@@ -101,8 +101,8 @@ A comprehensive contract dependency metadata system that allows explicit declara
 ### In SDK Components
 ```typescript
 // Component automatically declares its dependencies
-export function LeaderBoard({ scoreBoardAddress, ...props }) {
-  // Uses SCOREBOARD_ABI internally
+export function LeaderBoard({ gameScoreAddress, ...props }) {
+  // Uses GAMESCORE_ABI internally
 }
 LeaderBoard.metadata = LEADERBOARD_METADATA // Contains contract deps
 ```

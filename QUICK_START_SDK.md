@@ -43,7 +43,7 @@ forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactor
   --rpc-url http://localhost:8545 \
   --broadcast
 
-forge script contracts/script/DeployScoreBoardFactory.s.sol:DeployScoreBoardFactory \
+forge script contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
   --rpc-url http://localhost:8545 \
   --broadcast
 ```
@@ -56,7 +56,7 @@ cp .env.example .env.local
 
 # Edit .env.local and add your deployed contract addresses:
 # NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
-# NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x...
+# NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...
 ```
 
 ### 5. Run the Demo App
@@ -75,7 +75,7 @@ Visit http://localhost:3000 to see:
 
 ### LeaderBoard
 
-Displays player rankings from a ScoreBoard contract.
+Displays player rankings from a GameScore contract.
 
 **Features**:
 - Sortable by wins or total prize
@@ -88,7 +88,7 @@ Displays player rankings from a ScoreBoard contract.
 import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
 
 <LeaderBoard 
-  scoreBoardAddress="0x..."
+  gameScoreAddress="0x..."
   limit={10}
   sortBy="wins"
   showStats={true}

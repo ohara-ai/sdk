@@ -57,7 +57,7 @@ Created an `OharaAiProvider` that automatically detects which SDK components are
 
 Components now self-register:
 ```typescript
-export function LeaderBoard({ scoreBoardAddress, ...props }) {
+export function LeaderBoard({ gameScoreAddress, ...props }) {
   // Auto-register on mount, unregister on unmount
   useComponentRegistration('LeaderBoard')
   
@@ -117,7 +117,7 @@ export default function Demo() {
   return (
     <>
       <ContractDependencyInfo components={DEMO_CONFIG.components} />
-      <LeaderBoard scoreBoardAddress={address} />
+      <LeaderBoard gameScoreAddress={address} />
     </>
   )
 }
@@ -141,7 +141,7 @@ export default function Demo() {
     <>
       {/* Automatically detects LeaderBoard is mounted */}
       <ContractDependencyInfo />
-      <LeaderBoard scoreBoardAddress={address} />
+      <LeaderBoard gameScoreAddress={address} />
     </>
   )
 }
@@ -165,7 +165,7 @@ export default function Demo() {
     <>
       <ContractDependencyInfo />
       {/* Provider automatically detects: Scoreboard contract needed */}
-      <LeaderBoard scoreBoardAddress={address} />
+      <LeaderBoard gameScoreAddress={address} />
     </>
   )
 }
@@ -186,7 +186,7 @@ export default function Demo() {
       
       {/* Scoreboard contract only required when this renders */}
       {showLeaderboard && (
-        <LeaderBoard scoreBoardAddress={address} />
+        <LeaderBoard gameScoreAddress={address} />
       )}
     </>
   )

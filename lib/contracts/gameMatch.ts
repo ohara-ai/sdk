@@ -63,7 +63,7 @@ export const GAME_MATCH_ABI = [
   },
   {
     inputs: [],
-    name: 'scoreBoard',
+    name: 'gameScore',
     outputs: [{ internalType: 'address', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
@@ -269,7 +269,7 @@ export const GAME_MATCH_FACTORY_ABI = [
   {
     inputs: [
       { internalType: 'address', name: '_controller', type: 'address' },
-      { internalType: 'address', name: '_scoreBoard', type: 'address' },
+      { internalType: 'address', name: '_gameScore', type: 'address' },
     ],
     name: 'deployGameMatch',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
@@ -303,7 +303,7 @@ export const GAME_MATCH_FACTORY_ABI = [
       { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
       { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
       { indexed: true, internalType: 'address', name: 'controller', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'scoreBoard', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'gameScore', type: 'address' },
     ],
     name: 'GameMatchDeployed',
     type: 'event',

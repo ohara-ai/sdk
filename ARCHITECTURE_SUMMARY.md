@@ -119,7 +119,7 @@ npm run build  # Automatically runs provisioning
 
 **Result**:
 ```typescript
-process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS = config.contracts.scoreboard
+process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS = config.contracts.scoreboard
 process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE = config.contracts.gameMatch
 ```
 
@@ -218,13 +218,13 @@ Server starts
 ```
 LeaderBoard
     └─→ Requires: Scoreboard contract
-        └─→ Env: NEXT_PUBLIC_SCOREBOARD_ADDRESS
+        └─→ Env: NEXT_PUBLIC_GAMESCORE_ADDRESS
 
 MatchBoard
     ├─→ Requires: GameMatch contract
     │   └─→ Env: NEXT_PUBLIC_GAME_MATCH_INSTANCE
     └─→ Requires: Scoreboard contract (via GameMatch)
-        └─→ Env: NEXT_PUBLIC_SCOREBOARD_ADDRESS
+        └─→ Env: NEXT_PUBLIC_GAMESCORE_ADDRESS
 ```
 
 ## File Tree
@@ -275,7 +275,7 @@ NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545
 NEXT_PUBLIC_CHAIN_ID=31337
 
 # Factory addresses
-NEXT_PUBLIC_SCOREBOARD_FACTORY=0x...
+NEXT_PUBLIC_GAMESCORE_FACTORY=0x...
 NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 ```
 
@@ -283,7 +283,7 @@ NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
 ```bash
 # Auto-injected from .onchain-cfg.json
-NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x...
+NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...
 NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x...
 ```
 
@@ -299,7 +299,7 @@ anvil
 forge script scripts/DeployFactories.s.sol --rpc-url $RPC_URL --broadcast
 
 # 3. Set factory env vars
-export NEXT_PUBLIC_SCOREBOARD_FACTORY=0x...
+export NEXT_PUBLIC_GAMESCORE_FACTORY=0x...
 export NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
 # 4. Build (provisions contracts)
@@ -317,7 +317,7 @@ npm start
 # 1. Set production env vars
 export NEXT_PUBLIC_RPC_URL=https://mainnet-rpc.com
 export NEXT_PUBLIC_CHAIN_ID=1
-export NEXT_PUBLIC_SCOREBOARD_FACTORY=0x...
+export NEXT_PUBLIC_GAMESCORE_FACTORY=0x...
 export NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
 # 2. Build (provisions contracts)
@@ -428,7 +428,7 @@ export async function POST(req: Request) {
   // Use controller to execute admin operations
   await walletClient.writeContract({
     address: config!.contracts.scoreboard,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'adminFunction',
     account,
   })

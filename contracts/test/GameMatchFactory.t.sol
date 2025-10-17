@@ -16,7 +16,7 @@ contract GameMatchFactoryTest is Test {
         address indexed instance,
         address indexed owner,
         address indexed controller,
-        address scoreBoard
+        address gameScore
     );
 
     function setUp() public {
@@ -54,10 +54,10 @@ contract GameMatchFactoryTest is Test {
         feeShares[0] = 1000; // 10%
         
         // Setup scoreboard
-        address scoreBoardAddress = address(0x888);
+        address gameScoreAddress = address(0x888);
         
         // Deploy with scoreboard
-        address instance = factory.deployGameMatch(controller, scoreBoardAddress);
+        address instance = factory.deployGameMatch(controller, gameScoreAddress);
         
         assertTrue(instance != address(0));
         
@@ -68,7 +68,7 @@ contract GameMatchFactoryTest is Test {
         assertEq(gameMatch.controller(), controller);
         
         // Verify scoreboard is set
-        assertEq(address(gameMatch.scoreBoard()), scoreBoardAddress);
+        assertEq(address(gameMatch.gameScore()), gameScoreAddress);
         
         // Configure fees after deployment
         gameMatch.configureFees(feeRecipients, feeShares);

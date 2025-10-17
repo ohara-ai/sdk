@@ -9,15 +9,15 @@ This document shows how to implement the contract dependency system in your demo
 // app/demos/leaderboard/page.tsx
 export default function LeaderboardDemoPage() {
   // Hardcoded address check
-  const scoreBoardAddress = (process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS || 
+  const gameScoreAddress = (process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS || 
     '0x0000000000000000000000000000000000000000') as `0x${string}`
 
   // Manual validation
-  if (scoreBoardAddress === '0x0000000000000000000000000000000000000000') {
-    return <div>ScoreBoard contract not configured.</div>
+  if (gameScoreAddress === '0x0000000000000000000000000000000000000000') {
+    return <div>GameScore contract not configured.</div>
   }
 
-  return <LeaderBoard scoreBoardAddress={scoreBoardAddress} />
+  return <LeaderBoard gameScoreAddress={gameScoreAddress} />
 }
 ```
 
@@ -31,7 +31,7 @@ import { DEMO_CONFIG } from './config'
 export default function LeaderboardDemoPage() {
   const { isValid } = useContractDependencies(DEMO_CONFIG.components)
   
-  const scoreBoardAddress = process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS as `0x${string}`
+  const gameScoreAddress = process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS as `0x${string}`
 
   return (
     <div>
@@ -39,8 +39,8 @@ export default function LeaderboardDemoPage() {
       <ContractDependencyInfo components={DEMO_CONFIG.components} />
       
       {/* Only render if valid */}
-      {isValid && scoreBoardAddress && (
-        <LeaderBoard scoreBoardAddress={scoreBoardAddress} />
+      {isValid && gameScoreAddress && (
+        <LeaderBoard gameScoreAddress={gameScoreAddress} />
       )}
     </div>
   )
@@ -54,7 +54,7 @@ export default function LeaderboardDemoPage() {
 // app/demos/tic-tac-toe/page.tsx
 export default function TicTacToePage() {
   const { address: gameMatchAddress } = useDeployedGameMatchAddress()
-  const scoreBoardAddress = process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS as `0x${string}`
+  const gameScoreAddress = process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS as `0x${string}`
 
   return (
     <div>
@@ -64,10 +64,10 @@ export default function TicTacToePage() {
         <div>GameMatch contract not deployed.</div>
       )}
       
-      {scoreBoardAddress !== '0x0000000000000000000000000000000000000000' ? (
-        <LeaderBoard scoreBoardAddress={scoreBoardAddress} />
+      {gameScoreAddress !== '0x0000000000000000000000000000000000000000' ? (
+        <LeaderBoard gameScoreAddress={gameScoreAddress} />
       ) : (
-        <div>ScoreBoard contract not configured.</div>
+        <div>GameScore contract not configured.</div>
       )}
     </div>
   )
@@ -84,7 +84,7 @@ import { DEMO_CONFIG } from './config'
 export default function TicTacToePage() {
   const { validation } = useContractDependencies(DEMO_CONFIG.components)
   const { address: gameMatchAddress } = useDeployedGameMatchAddress()
-  const scoreBoardAddress = process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS as `0x${string}`
+  const gameScoreAddress = process.env.NEXT_PUBLIC_GAMESCORE_ADDRESS as `0x${string}`
 
   // Check if GameMatch is configured (required)
   const hasGameMatch = validation.configured.some(
@@ -92,8 +92,8 @@ export default function TicTacToePage() {
   )
   
   // Check if Scoreboard is configured (optional for this demo)
-  const hasScoreboard = scoreBoardAddress && 
-    scoreBoardAddress !== '0x0000000000000000000000000000000000000000'
+  const hasScoreboard = gameScoreAddress && 
+    gameScoreAddress !== '0x0000000000000000000000000000000000000000'
 
   return (
     <div>
@@ -107,7 +107,7 @@ export default function TicTacToePage() {
       
       {/* LeaderBoard - optional */}
       {hasScoreboard && (
-        <LeaderBoard scoreBoardAddress={scoreBoardAddress} />
+        <LeaderBoard gameScoreAddress={gameScoreAddress} />
       )}
     </div>
   )
@@ -130,7 +130,7 @@ const deps = getContractDependencies(components)
 console.log('All dependencies:', deps)
 // Output:
 // [
-//   { contract: 'Scoreboard', required: true, envVar: 'NEXT_PUBLIC_SCOREBOARD_ADDRESS' },
+//   { contract: 'Scoreboard', required: true, envVar: 'NEXT_PUBLIC_GAMESCORE_ADDRESS' },
 //   { contract: 'GameMatch', required: true, envVar: 'NEXT_PUBLIC_GAME_MATCH_INSTANCE' }
 // ]
 
@@ -139,7 +139,7 @@ const required = getRequiredContracts(components)
 
 // Find which components use a contract
 import { getComponentsByContract } from '@/sdk/src'
-const scoreboardUsers = getComponentsByContract(ContractType.SCOREBOARD)
+const scoreboardUsers = getComponentsByContract(ContractType.GAMESCORE)
 // Output: ['LeaderBoard']
 ```
 
@@ -209,13 +209,13 @@ Output:
 leaderboard demo:
   Uses: LeaderBoard
   Requires:
-    - Scoreboard (NEXT_PUBLIC_SCOREBOARD_ADDRESS)
+    - Scoreboard (NEXT_PUBLIC_GAMESCORE_ADDRESS)
 
 tic-tac-toe demo:
   Uses: MatchBoard, LeaderBoard
   Requires:
     - GameMatch (NEXT_PUBLIC_GAME_MATCH_INSTANCE)
-    - Scoreboard (NEXT_PUBLIC_SCOREBOARD_ADDRESS)
+    - Scoreboard (NEXT_PUBLIC_GAMESCORE_ADDRESS)
 ```
 
 ## Best Practices

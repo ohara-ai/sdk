@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {IScoreBoard} from "../../interfaces/IScoreBoard.sol";
+import {IGameScore} from "../../interfaces/IGameScore.sol";
 import {Owned} from "../../base/Owned.sol";
 
 /**
- * @title ScoreBoard
+ * @title GameScore
  * @notice Tracks and stores player scores from completed matches
- * @dev Implements IScoreBoard for recording results and provides query functions
+ * @dev Implements IGameScore for recording results and provides query functions
  */
-contract ScoreBoard is IScoreBoard, Owned {
+contract GameScore is IGameScore, Owned {
     struct PlayerScore {
         address player;
         uint256 totalWins;
@@ -194,7 +194,7 @@ contract ScoreBoard is IScoreBoard, Owned {
         _scores[player].player = player;
     }
 
-    /// @inheritdoc IScoreBoard
+    /// @inheritdoc IGameScore
     function recordMatchResult(
         uint256 matchId,
         address winner,

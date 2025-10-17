@@ -1,6 +1,6 @@
 'use client'
 
-import { getScoreBoardFactoryAddress } from '@/lib/contracts/scoreBoard'
+import { getGameScoreFactoryAddress } from '@/lib/contracts/gameScore'
 import { DeployFactoryContract } from '../DeployFactoryContract'
 
 interface DeployContractProps {
@@ -8,14 +8,14 @@ interface DeployContractProps {
 }
 
 export function DeployContract({ onDeployed }: DeployContractProps) {
-  const factoryAddress = getScoreBoardFactoryAddress()
+  const factoryAddress = getGameScoreFactoryAddress()
 
   return (
     <DeployFactoryContract
       factoryAddress={factoryAddress}
-      factoryEnvVar="NEXT_PUBLIC_SCOREBOARD_FACTORY"
-      contractName="ScoreBoard"
-      apiRoute="/api/deploy-scoreboard"
+      factoryEnvVar="NEXT_PUBLIC_GAMESCORE_FACTORY"
+      contractName="GameScore"
+      apiRoute="/api/deploy-game-score"
       onDeployed={onDeployed}
     />
   )

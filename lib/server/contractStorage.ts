@@ -5,7 +5,7 @@ const STORAGE_PATH = path.join(process.cwd(), 'data', 'contracts.json')
 
 export interface ContractAddresses {
   gameMatch?: string
-  scoreboard?: string
+  gameScore?: string
 }
 
 interface StorageData {
@@ -74,7 +74,7 @@ export async function getContractAddresses(chainId: number): Promise<ContractAdd
  */
 export async function setContractAddress(
   chainId: number,
-  contractType: 'gameMatch' | 'scoreboard',
+  contractType: 'gameMatch' | 'gameScore',
   address: string
 ): Promise<void> {
   const storage = await readStorage()

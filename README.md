@@ -74,7 +74,7 @@ npm run sdk:dev
 
 ### Components
 
-- **LeaderBoard**: Display high scores and player rankings from ScoreBoard contracts with customizable sorting
+- **LeaderBoard**: Display high scores and player rankings from GameScore contracts with customizable sorting
 - **MatchBoard**: Create and join wagered game matches with built-in escrow management
 
 ### Example Usage
@@ -91,7 +91,7 @@ function App() {
         onMatchJoined={(id) => console.log('Joined match:', id)}
       />
       <LeaderBoard 
-        scoreBoardAddress="0x..."
+        gameScoreAddress="0x..."
         limit={10}
         sortBy="wins"
         showStats={true}
@@ -164,8 +164,8 @@ The demo application showcases SDK components in action. It includes:
      --rpc-url http://localhost:8545 \
      --broadcast
    
-   # Deploy the ScoreBoardFactory (optional, for leaderboard features)
-   forge script contracts/script/DeployScoreBoardFactory.s.sol:DeployScoreBoardFactory \
+   # Deploy the GameScoreFactory (optional, for leaderboard features)
+   forge script contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
      --rpc-url http://localhost:8545 \
      --broadcast
    ```
@@ -178,7 +178,7 @@ The demo application showcases SDK components in action. It includes:
    # Edit .env.local and set the addresses from deployment output
    # Example:
    # NEXT_PUBLIC_GAME_MATCH_FACTORY=0x5FbDB2315678afecb367f032d93F642f64180aa3
-   # NEXT_PUBLIC_SCOREBOARD_ADDRESS=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+   # NEXT_PUBLIC_GAMESCORE_ADDRESS=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
    ```
 
 4. **Run the app**:

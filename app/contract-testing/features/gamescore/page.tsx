@@ -10,13 +10,13 @@ import { useAccount, useReadContract } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { useOharaAi } from '@/sdk/src/context/OnchainContext'
 import { ContractType } from '@/sdk/src/types/contracts'
-import { getScoreBoardFactoryAddress, SCOREBOARD_ABI } from '@/lib/contracts/scoreBoard'
+import { getGameScoreFactoryAddress, GAMESCORE_ABI } from '@/lib/contracts/gameScore'
 
-export default function ScoreBoardPage() {
+export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()
   const { getContractAddress } = useOharaAi()
-  const contractAddress = getContractAddress(ContractType.SCOREBOARD)
-  const factoryAddress = getScoreBoardFactoryAddress()
+  const contractAddress = getContractAddress(ContractType.GAMESCORE)
+  const factoryAddress = getGameScoreFactoryAddress()
   
   const [mounted, setMounted] = useState(false)
   const [showContractInfo, setShowContractInfo] = useState(false)
@@ -29,51 +29,51 @@ export default function ScoreBoardPage() {
   // Read contract data
   const { data: totalMatches } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'getTotalMatches',
   })
 
   const { data: totalPlayers } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'getTotalPlayers',
   })
 
   const { data: owner } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'owner',
   })
 
   const { data: playerScore } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'getPlayerScore',
     args: userAddress ? [userAddress] : undefined,
   })
 
   const { data: topPlayersByWins } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'getTopPlayersByWins',
     args: [BigInt(10)],
   })
 
   const { data: maxLosersPerMatch } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'maxLosersPerMatch',
   })
 
   const { data: maxTotalPlayers } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'maxTotalPlayers',
   })
 
   const { data: maxTotalMatches } = useReadContract({
     address: contractAddress,
-    abi: SCOREBOARD_ABI,
+    abi: GAMESCORE_ABI,
     functionName: 'maxTotalMatches',
   })
 
@@ -99,7 +99,7 @@ export default function ScoreBoardPage() {
           
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">ScoreBoard</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">GameScore</h1>
               <p className="text-base text-gray-600">
                 Track player scores, wins, and match history
               </p>
@@ -151,7 +151,7 @@ export default function ScoreBoardPage() {
                   </div>
                   <div className="flex gap-3">
                     <span className="font-semibold text-gray-900 min-w-[20px]">2.</span>
-                    <p>ScoreBoard tracks total wins, prizes, and participation for each player</p>
+                    <p>GameScore tracks total wins, prizes, and participation for each player</p>
                   </div>
                   <div className="flex gap-3">
                     <span className="font-semibold text-gray-900 min-w-[20px]">3.</span>
@@ -212,7 +212,7 @@ export default function ScoreBoardPage() {
             <CardHeader>
               <CardTitle className="text-gray-900">Connect Wallet</CardTitle>
               <CardDescription className="text-gray-600">
-                Please connect your wallet to view ScoreBoard data
+                Please connect your wallet to view GameScore data
               </CardDescription>
             </CardHeader>
           </Card>
@@ -223,7 +223,7 @@ export default function ScoreBoardPage() {
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-gray-900">Contract Statistics</CardTitle>
                 <CardDescription className="text-gray-600">
-                  Overall ScoreBoard metrics
+                  Overall GameScore metrics
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

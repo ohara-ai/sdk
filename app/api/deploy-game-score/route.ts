@@ -3,10 +3,10 @@ import { createWalletClient, http, createPublicClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { setContractAddress } from '@/lib/server/contractStorage'
 
-const SCOREBOARD_FACTORY_ABI = [
+const GAMESCORE_FACTORY_ABI = [
   {
     inputs: [],
-    name: 'deployScoreBoard',
+    name: 'deployGameScore',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -17,7 +17,7 @@ const SCOREBOARD_FACTORY_ABI = [
       { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
       { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
     ],
-    name: 'ScoreBoardDeployed',
+    name: 'GameScoreDeployed',
     type: 'event',
   },
 ] as const
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest) {
     // Deploy the contract
     const hash = await walletClient.writeContract({
       address: factoryAddress as `0x${string}`,
-      abi: SCOREBOARD_FACTORY_ABI,
-      functionName: 'deployScoreBoard',
+      abi: GAMESCORE_FACTORY_ABI,
+      functionName: 'deployGameScore',
       args: [],
       chain: null,
     })
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
     const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
     // Extract deployed address from logs
-    // The ScoreBoardDeployed event has the instance as the first indexed parameter (topic[1])
+    // The GameScoreDeployed event has the instance as the first indexed parameter (topic[1])
     let deployedAddress: `0x${string}` | null = null
     
     for (const log of receipt.logs) {
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     // Save the deployed address to backend storage
     try {
-      await setContractAddress(chainId, 'scoreboard', deployedAddress)
+      await setContractAddress(chainId, 'gamescore', deployedAddress)
     } catch (storageError) {
       console.error('Failed to save address to backend storage:', storageError)
       // Continue - deployment was successful even if storage failed

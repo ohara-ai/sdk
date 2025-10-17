@@ -16,10 +16,10 @@ export function useFeeConfig(contractAddress?: `0x${string}`) {
     },
   })
 
-  const { data: scoreBoard } = useReadContract({
+  const { data: gameScore } = useReadContract({
     address: contractAddress,
     abi: GAME_MATCH_ABI,
-    functionName: 'scoreBoard',
+    functionName: 'gameScore',
     query: {
       enabled: !!contractAddress,
     },
@@ -33,7 +33,7 @@ export function useFeeConfig(contractAddress?: `0x${string}`) {
   return {
     totalFeeShare: totalFeeShare || 0n,
     totalFeePercentage,
-    scoreBoard: scoreBoard as `0x${string}` | undefined,
+    gameScore: gameScore as `0x${string}` | undefined,
     isLoading: isLoadingTotal,
     hasContract: !!contractAddress,
   }

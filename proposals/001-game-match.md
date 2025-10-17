@@ -265,7 +265,7 @@ contract GameMatch {
     mapping(uint256 => Match) private _matches;
     
     // Optional integrations
-    IScoreBoard public scoreBoard;
+    IGameScore public gameScore;
     address[] public feeRecipients;
     uint256[] public feeShares; // Basis points (100 = 1%)
     uint256 public totalFeeShare;
@@ -282,7 +282,7 @@ contract GameMatch {
   - `getPlayerStake()` - Anyone can view player stakes
 
 - **Owner-Only Functions**:
-  - `setScoreBoard()` - Configure scoreboard integration
+  - `setGameScore()` - Configure scoreboard integration
   - `configureFees()` - Set fee recipients and shares
 
 - **Controller-Only Functions**:
@@ -301,7 +301,7 @@ contract GameMatch {
 
 #### Optional Integrations
 
-- `IScoreBoard` - Records match results (wins/losses) for players
+- `IGameScore` - Records match results (wins/losses) for players
   - Called in `finalizeMatch()` if configured
   - Receives: matchId, winner, losers array, prize amount
   - No return value expected
@@ -309,7 +309,7 @@ contract GameMatch {
 ### Inter-Contract Communication
 
 ```
-GameMatch --> IScoreBoard: recordMatchResult()
+GameMatch --> IGameScore: recordMatchResult()
   Called when: Match is finalized
   Data sent: matchId, winner, losers, totalPrize
   
@@ -465,7 +465,7 @@ contract GameMatchFactory is OwnedFactory {
         address indexed instance, 
         address indexed owner, 
         address indexed controller,
-        address scoreBoard
+        address gameScore
     );
     
     function setDefaultFees(
@@ -479,7 +479,7 @@ contract GameMatchFactory is OwnedFactory {
     
     function deployGameMatch(
         address _controller,
-        address _scoreBoard
+        address _gameScore
     ) 
         external 
         returns (address instance) 
@@ -489,13 +489,13 @@ contract GameMatchFactory is OwnedFactory {
             new GameMatch(
                 instanceOwnerAddress,
                 _controller,
-                _scoreBoard,
+                _gameScore,
                 defaultMaxActiveMatches,
                 defaultFeeRecipients,  // Default fees from factory
                 defaultFeeShares       // Applied at deployment
             )
         );
-        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _scoreBoard);
+        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _gameScore);
     }
 }
 ```
@@ -518,7 +518,7 @@ factory.setDefaultFees(feeRecipients, feeShares);
 // 3. Deploy GameMatch instances (will use default fees)
 address gameMatch = factory.deployGameMatch(
     controllerAddress,  // Can activate and finalize matches
-    scoreBoardAddress   // Scoreboard integration (use address(0) if not used)
+    gameScoreAddress   // Scoreboard integration (use address(0) if not used)
 );
 
 // Note: Fees are automatically configured at deployment from factory defaults

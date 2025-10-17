@@ -10,14 +10,14 @@ import { ContractType } from '../types/contracts'
 
 export interface LeaderBoardProps {
   /** Scoreboard contract address. If not provided, will be resolved from OharaAiProvider context */
-  scoreBoardAddress?: `0x${string}`
+  gameScoreAddress?: `0x${string}`
   limit?: number
   sortBy?: 'wins' | 'prize'
   className?: string
 }
 
 export function LeaderBoard({
-  scoreBoardAddress: scoreBoardAddressProp,
+  gameScoreAddress: gameScoreAddressProp,
   limit = 10,
   sortBy: initialSortBy = 'wins',
   className,
@@ -27,24 +27,24 @@ export function LeaderBoard({
   
   // Get contract address from context if not provided
   const { getContractAddress } = useOharaAi()
-  const scoreBoardAddress = scoreBoardAddressProp || getContractAddress(ContractType.SCOREBOARD)
+  const gameScoreAddress = gameScoreAddressProp || getContractAddress(ContractType.GAMESCORE)
 
   // Local state for sorting type
   const [sortBy, setSortBy] = useState<'wins' | 'prize'>(initialSortBy)
 
   // Call all hooks unconditionally, use enabled to control execution
   const { data: leaderboardData, isLoading, error } = useReadContract({
-    address: scoreBoardAddress,
+    address: gameScoreAddress,
     abi: SCOREBOARD_ABI,
     functionName: sortBy === 'wins' ? 'getTopPlayersByWins' : 'getTopPlayersByPrize',
     args: [BigInt(limit)],
     query: {
-      enabled: !!scoreBoardAddress,
+      enabled: !!gameScoreAddress,
     },
   })
 
   // If no address provided or found, show error
-  if (!scoreBoardAddress) {
+  if (!gameScoreAddress) {
     return (
       <div className={className}>
         <div className="text-red-500 text-sm">

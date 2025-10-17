@@ -2,7 +2,7 @@
  * Contract types used by SDK components
  */
 export enum ContractType {
-  SCOREBOARD = 'Scoreboard',
+  GAMESCORE = 'GameScore',
   GAME_MATCH = 'GameMatch',
 }
 
