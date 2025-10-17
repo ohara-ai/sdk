@@ -80,7 +80,7 @@ const {
 **`activeComponents: Set<ComponentName>`**
 - Currently mounted SDK components in your React tree
 - Updates automatically when components mount/unmount
-- Possible values: `'LeaderBoard'`, `'WageringBox'`
+- Possible values: `'LeaderBoard'`, `'MatchBoard'`
 
 **`dependencies: ContractDependency[]`**
 - Array of contract dependencies based on active components
@@ -266,16 +266,16 @@ function App() {
 - `sortBy` ('wins' | 'score' | 'recent', optional): Sorting criteria (default: 'wins')
 - `className` (string, optional): Additional CSS classes
 
-### WageringBox
+### MatchBoard
 
 Create and join wagered game matches with escrow management.
 
 ```tsx
-import { WageringBox } from '@ohara-ai/game-sdk'
+import { MatchBoard } from '@ohara-ai/game-sdk'
 
 function App() {
   return (
-    <WageringBox 
+    <MatchBoard 
       gameMatchAddress="0x..."
       onMatchCreated={(id) => console.log('Match created:', id)}
       onMatchJoined={(id) => console.log('Joined match:', id)}

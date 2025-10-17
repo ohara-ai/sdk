@@ -17,10 +17,10 @@ export const LEADERBOARD_METADATA: ComponentMetadata = {
 }
 
 /**
- * Contract dependencies for WageringBox component
+ * Contract dependencies for MatchBoard component
  */
-export const WAGERING_BOX_METADATA: ComponentMetadata = {
-  name: 'WageringBox',
+export const MATCH_BOARD_METADATA: ComponentMetadata = {
+  name: 'MatchBoard',
   description: 'Allows players to create or join wagered matches',
   dependencies: [
     {
@@ -37,7 +37,7 @@ export const WAGERING_BOX_METADATA: ComponentMetadata = {
  */
 export const COMPONENT_REGISTRY = {
   LeaderBoard: LEADERBOARD_METADATA,
-  WageringBox: WAGERING_BOX_METADATA,
+  MatchBoard: MATCH_BOARD_METADATA,
 } as const
 
 export type ComponentName = keyof typeof COMPONENT_REGISTRY

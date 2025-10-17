@@ -14,7 +14,7 @@ Created an `OharaAiProvider` that automatically detects which SDK components are
 │  │            React Component Tree                       │  │
 │  │                                                        │  │
 │  │    ┌─────────────┐       ┌─────────────┐            │  │
-│  │    │ LeaderBoard │       │ WageringBox │            │  │
+│  │    │ LeaderBoard │       │ MatchBoard │            │  │
 │  │    │ (mounted)   │       │ (mounted)   │            │  │
 │  │    └─────┬───────┘       └─────┬───────┘            │  │
 │  │          │                      │                     │  │
@@ -27,7 +27,7 @@ Created an `OharaAiProvider` that automatically detects which SDK components are
 │  │          ┌─────────────────────┐                     │  │
 │  │          │  Provider tracks:   │                     │  │
 │  │          │  - LeaderBoard      │                     │  │
-│  │          │  - WageringBox      │                     │  │
+│  │          │  - MatchBoard      │                     │  │
 │  │          └─────────────────────┘                     │  │
 │  │                     │                                 │  │
 │  │                     ▼                                 │  │
@@ -53,7 +53,7 @@ Created an `OharaAiProvider` that automatically detects which SDK components are
 ### 2. Updated SDK Components
 **Files**: 
 - `sdk/src/components/LeaderBoard.tsx`
-- `sdk/src/components/WageringBox.tsx`
+- `sdk/src/components/MatchBoard.tsx`
 
 Components now self-register:
 ```typescript
@@ -104,7 +104,7 @@ Added automatic dependency display:
 // ❌ Required config file
 // app/demos/your-demo/config.ts
 export const DEMO_CONFIG = {
-  components: ['LeaderBoard', 'WageringBox']
+  components: ['LeaderBoard', 'MatchBoard']
 }
 
 // app/demos/your-demo/page.tsx
@@ -174,7 +174,7 @@ export default function Demo() {
 ### Example 2: Conditional Rendering
 
 ```typescript
-import { LeaderBoard, WageringBox } from '@/sdk/src'
+import { LeaderBoard, MatchBoard } from '@/sdk/src'
 
 export default function Demo() {
   const [showLeaderboard, setShowLeaderboard] = useState(false)
@@ -182,7 +182,7 @@ export default function Demo() {
   return (
     <>
       {/* Only GameMatch required initially */}
-      <WageringBox gameMatchAddress={address} />
+      <MatchBoard gameMatchAddress={address} />
       
       {/* Scoreboard contract only required when this renders */}
       {showLeaderboard && (
@@ -218,7 +218,7 @@ sdk/src/
 │   └── OnchainContext.tsx          ✅ NEW - Provider & hooks
 ├── components/
 │   ├── LeaderBoard.tsx              ✏️  MODIFIED - Added registration
-│   └── WageringBox.tsx              ✏️  MODIFIED - Added registration
+│   └── MatchBoard.tsx              ✏️  MODIFIED - Added registration
 ├── index.ts                         ✏️  MODIFIED - Export provider
 └── OHARA_AI_PROVIDER.md              ✅ NEW - Documentation
 ```
@@ -330,7 +330,7 @@ export function YourComponent() {
 - ✅ No config file needed
 
 ### Tic-Tac-Toe Demo
-- ✅ Auto-detects WageringBox + LeaderBoard
+- ✅ Auto-detects MatchBoard + LeaderBoard
 - ✅ Shows GameMatch + Scoreboard requirements
 - ✅ Adapts when LeaderBoard is conditionally rendered
 - ✅ No config file needed

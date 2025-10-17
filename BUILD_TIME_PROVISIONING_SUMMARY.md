@@ -265,7 +265,7 @@ The provider automatically reads injected addresses:
 <OharaAiProvider chainId={chainId}>
   {/* Addresses from .onchain-cfg.json via env injection */}
   <LeaderBoard />  {/* Gets Scoreboard address automatically */}
-  <WageringBox />  {/* Gets GameMatch address automatically */}
+  <MatchBoard />  {/* Gets GameMatch address automatically */}
 </OharaAiProvider>
 ```
 
@@ -287,7 +287,7 @@ if (fileContent.includes('LeaderBoard')) {
   required.add('scoreboard')
 }
 
-if (fileContent.includes('WageringBox')) {
+if (fileContent.includes('MatchBoard')) {
   required.add('gameMatch')
   required.add('scoreboard')  // GameMatch depends on Scoreboard
 }

@@ -22,7 +22,7 @@ import {
 // Demo configurations
 const DEMOS = {
   leaderboard: ['LeaderBoard'] as ComponentName[],
-  'tic-tac-toe': ['WageringBox', 'LeaderBoard'] as ComponentName[],
+  'tic-tac-toe': ['MatchBoard', 'LeaderBoard'] as ComponentName[],
 } as const
 
 function printComponentInfo(componentName: ComponentName) {

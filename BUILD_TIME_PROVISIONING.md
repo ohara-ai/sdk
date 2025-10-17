@@ -100,10 +100,10 @@ import { LeaderBoard } from '@ohara-ai/game-sdk'
 
 ```typescript
 // If your app uses:
-import { WageringBox } from '@ohara-ai/game-sdk'
+import { MatchBoard } from '@ohara-ai/game-sdk'
 
 // The script detects:
-// - WageringBox requires GameMatch contract
+// - MatchBoard requires GameMatch contract
 // - GameMatch requires Scoreboard contract
 // → Both contracts will be deployed if missing
 ```
@@ -175,7 +175,7 @@ The `OharaAiProvider` automatically reads these injected env vars:
 
 // Components automatically get addresses
 <LeaderBoard />  // Uses injected Scoreboard address
-<WageringBox />  // Uses injected GameMatch address
+<MatchBoard />  // Uses injected GameMatch address
 ```
 
 ## Environment Variables

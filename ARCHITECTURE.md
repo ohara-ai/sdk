@@ -32,7 +32,7 @@ sdk/
 ├── src/
 │   ├── components/      # React UI components
 │   │   ├── LeaderBoard.tsx
-│   │   └── WageringBox.tsx
+│   │   └── MatchBoard.tsx
 │   ├── abis/            # Contract ABIs
 │   ├── utils/           # Utility functions
 │   └── index.ts         # Public exports
@@ -81,7 +81,7 @@ app/
 ```
 User Action
     ↓
-SDK Component (WageringBox)
+SDK Component (MatchBoard)
     ↓
 Wagmi Hook (useWriteContract)
     ↓

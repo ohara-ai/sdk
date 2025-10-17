@@ -2,8 +2,8 @@
 export { LeaderBoard } from './components/LeaderBoard'
 export type { LeaderBoardProps } from './components/LeaderBoard'
 
-export { WageringBox } from './components/WageringBox'
-export type { WageringBoxProps } from './components/WageringBox'
+export { MatchBoard } from './components/MatchBoard'
+export type { MatchBoardProps } from './components/MatchBoard'
 
 // Provider & Context
 export { 
@@ -22,7 +22,7 @@ export type { ContractDependency, ComponentMetadata } from './types/contracts'
 export { 
   COMPONENT_REGISTRY,
   LEADERBOARD_METADATA,
-  WAGERING_BOX_METADATA,
+  MATCH_BOARD_METADATA,
   type ComponentName,
 } from './metadata/componentDependencies'
 export {

@@ -32,11 +32,15 @@ interface IGameMatch {
         uint256 winnerAmount
     );
 
+    /// @notice Emitted when a match is cancelled (e.g., tied match)
+    event MatchCancelled(uint256 indexed matchId, address[] players, uint256 refundAmount);
+
     /// @notice Match status
     enum MatchStatus {
         Open,
         Active,
-        Finalized
+        Finalized,
+        Cancelled
     }
 
     /// @notice Match data structure
@@ -85,9 +89,15 @@ interface IGameMatch {
     /**
      * @notice Finalize a match and distribute prizes
      * @param matchId The ID of the match
-     * @param winner The address of the winning player
+     * @param winner The address of the winning player (address(0) for tied match)
      */
     function finalizeMatch(uint256 matchId, address winner) external;
+
+    /**
+     * @notice Cancel an active match and refund all stakes (e.g., for tied matches)
+     * @param matchId The ID of the match
+     */
+    function cancelMatch(uint256 matchId) external;
 
     /**
      * @notice Get match details

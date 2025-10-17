@@ -37,7 +37,7 @@ See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the 
 │   └── script/         # Deployment scripts
 ├── sdk/                # UI component SDK for developers
 │   ├── src/            # SDK source code
-│   │   ├── components/ # React UI components (LeaderBoard, WageringBox)
+│   │   ├── components/ # React UI components (LeaderBoard, MatchBoard)
 │   │   ├── abis/       # Contract ABIs
 │   │   └── utils/      # Utility functions
 │   ├── package.json    # SDK package configuration
@@ -75,17 +75,17 @@ npm run sdk:dev
 ### Components
 
 - **LeaderBoard**: Display high scores and player rankings from ScoreBoard contracts with customizable sorting
-- **WageringBox**: Create and join wagered game matches with built-in escrow management
+- **MatchBoard**: Create and join wagered game matches with built-in escrow management
 
 ### Example Usage
 
 ```tsx
-import { LeaderBoard, WageringBox } from '@ohara-ai/game-sdk'
+import { LeaderBoard, MatchBoard } from '@ohara-ai/game-sdk'
 
 function App() {
   return (
     <>
-      <WageringBox 
+      <MatchBoard 
         gameMatchAddress="0x..."
         onMatchCreated={(id) => console.log('Match created:', id)}
         onMatchJoined={(id) => console.log('Joined match:', id)}

@@ -29,13 +29,13 @@ export function Providers({ children }) {
 
 ```typescript
 // app/demos/your-demo/page.tsx
-import { LeaderBoard, WageringBox } from '@ohara-ai/game-sdk'
+import { LeaderBoard, MatchBoard } from '@ohara-ai/game-sdk'
 
 export default function YourDemo() {
   return (
     <div>
       {/* Components automatically register their dependencies */}
-      <WageringBox gameMatchAddress={address} />
+      <MatchBoard gameMatchAddress={address} />
       <LeaderBoard scoreBoardAddress={address} />
     </div>
   )
@@ -53,7 +53,7 @@ export default function YourDemo() {
       {/* Shows which components are active and their contract needs */}
       <ContractDependencyInfo />
       
-      <WageringBox gameMatchAddress={address} />
+      <MatchBoard gameMatchAddress={address} />
       <LeaderBoard scoreBoardAddress={address} />
     </div>
   )
@@ -81,7 +81,7 @@ The provider tracks active components and calculates dependencies:
 
 ```typescript
 // Internally, the provider does:
-const activeComponents = ['LeaderBoard', 'WageringBox']
+const activeComponents = ['LeaderBoard', 'MatchBoard']
 const dependencies = getContractDependencies(activeComponents)
 // Returns: [Scoreboard, GameMatch] contracts
 ```
@@ -96,7 +96,7 @@ export default function Demo() {
   
   return (
     <div>
-      <WageringBox gameMatchAddress={address} />
+      <MatchBoard gameMatchAddress={address} />
       {/* Scoreboard contract only required if this renders */}
       {showLeaderboard && (
         <LeaderBoard scoreBoardAddress={address} />
@@ -181,7 +181,7 @@ export function MyComponent() {
 // ❌ Must manually maintain config file
 // app/demos/your-demo/config.ts
 export const DEMO_CONFIG = {
-  components: ['LeaderBoard', 'WageringBox']
+  components: ['LeaderBoard', 'MatchBoard']
 }
 
 // app/demos/your-demo/page.tsx
@@ -203,7 +203,7 @@ export default function Demo() {
       {/* Just use components - dependencies detected automatically */}
       <ContractDependencyInfo />
       <LeaderBoard scoreBoardAddress={address} />
-      <WageringBox gameMatchAddress={address} />
+      <MatchBoard gameMatchAddress={address} />
     </>
   )
 }
@@ -243,7 +243,7 @@ export default function LeaderboardDemo() {
 ### Example 2: Conditional Components
 
 ```typescript
-import { LeaderBoard, WageringBox, useOharaAi } from '@/sdk/src'
+import { LeaderBoard, MatchBoard, useOharaAi } from '@/sdk/src'
 
 export default function ConditionalDemo() {
   const [mode, setMode] = useState<'game' | 'leaderboard'>('game')
@@ -255,7 +255,7 @@ export default function ConditionalDemo() {
       
       {mode === 'game' ? (
         // Only GameMatch contract required
-        <WageringBox gameMatchAddress={address} />
+        <MatchBoard gameMatchAddress={address} />
       ) : (
         // Only Scoreboard contract required
         <LeaderBoard scoreBoardAddress={address} />

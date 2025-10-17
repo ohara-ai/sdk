@@ -148,8 +148,8 @@ async function detectRequiredContracts(): Promise<Set<'scoreboard' | 'gameMatch'
           required.add('scoreboard')
         }
         
-        // Check for WageringBox usage
-        if (content.includes('WageringBox') || content.includes('from \'@/sdk/src/components/WageringBox\'')) {
+        // Check for MatchBoard usage
+        if (content.includes('MatchBoard') || content.includes('from \'@/sdk/src/components/MatchBoard\'')) {
           required.add('gameMatch')
           required.add('scoreboard') // GameMatch depends on ScoreBoard
         }
@@ -331,7 +331,7 @@ async function provision() {
   // Deploy missing contracts
   let needsSave = false
   
-  // ScoreBoard (required by both LeaderBoard and WageringBox)
+  // ScoreBoard (required by both LeaderBoard and MatchBoard)
   if (requiredContracts.has('scoreboard') && !config.contracts.scoreboard) {
     const address = await deployScoreboard(ctx)
     config.contracts.scoreboard = address
@@ -340,7 +340,7 @@ async function provision() {
     console.log(`✓ ScoreBoard already deployed at ${config.contracts.scoreboard}`)
   }
   
-  // GameMatch (required by WageringBox)
+  // GameMatch (required by MatchBoard)
   if (requiredContracts.has('gameMatch') && !config.contracts.gameMatch) {
     if (!config.contracts.scoreboard) {
       throw new Error('Cannot deploy GameMatch without ScoreBoard address')

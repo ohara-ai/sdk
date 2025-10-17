@@ -126,7 +126,7 @@ const setAddress = (newAddress) => {
 ┌─────────────────────────────────────────────────────────────────┐
 │                    SDK Components                               │
 │                                                                 │
-│  LeaderBoard, WageringBox automatically get new addresses      │
+│  LeaderBoard, MatchBoard automatically get new addresses      │
 │  Components re-render with valid addresses                     │
 └─────────────────────────────────────────────────────────────────┘
 ```

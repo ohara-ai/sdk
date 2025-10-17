@@ -58,7 +58,7 @@ The Ohara AI Gaming SDK provides a **fully automatic, zero-configuration** exper
 │                                                                 │
 │  Components Render                                              │
 │     ↓                                                           │
-│  <LeaderBoard /> <WageringBox />                               │
+│  <LeaderBoard /> <MatchBoard />                               │
 │     ├─→ useComponentRegistration() (auto)                      │
 │     ├─→ useOharaAi() → getContractAddress()                    │
 │     └─→ Address automatically resolved                         │
@@ -147,7 +147,7 @@ process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE = config.contracts.gameMatch
 
 **Files**: 
 - `sdk/src/components/LeaderBoard.tsx`
-- `sdk/src/components/WageringBox.tsx`
+- `sdk/src/components/MatchBoard.tsx`
 
 **Features**:
 - Auto-registration with provider
@@ -159,7 +159,7 @@ process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE = config.contracts.gameMatch
 ```typescript
 // No props needed - addresses auto-resolved
 <LeaderBoard limit={10} sortBy="wins" />
-<WageringBox onMatchCreated={handleCreate} />
+<MatchBoard onMatchCreated={handleCreate} />
 ```
 
 ## Address Resolution Priority
@@ -220,7 +220,7 @@ LeaderBoard
     └─→ Requires: Scoreboard contract
         └─→ Env: NEXT_PUBLIC_SCOREBOARD_ADDRESS
 
-WageringBox
+MatchBoard
     ├─→ Requires: GameMatch contract
     │   └─→ Env: NEXT_PUBLIC_GAME_MATCH_INSTANCE
     └─→ Requires: Scoreboard contract (via GameMatch)
@@ -250,7 +250,7 @@ ohara-ai/on-chain-features/
 │   │   └── OnchainContext.tsx              # OharaAiProvider
 │   ├── components/
 │   │   ├── LeaderBoard.tsx                 # Auto-registering component
-│   │   └── WageringBox.tsx                 # Auto-registering component
+│   │   └── MatchBoard.tsx                 # Auto-registering component
 │   ├── metadata/
 │   │   └── componentDependencies.ts        # Component metadata
 │   └── index.ts                            # SDK exports

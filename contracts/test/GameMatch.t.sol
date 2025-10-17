@@ -38,6 +38,7 @@ contract GameMatchTest is Test {
         uint256 totalPrize,
         uint256 winnerAmount
     );
+    event MatchCancelled(uint256 indexed matchId, address[] players, uint256 refundAmount);
 
     function setUp() public {
         vm.startPrank(owner);
@@ -574,6 +575,164 @@ contract GameMatchTest is Test {
         uint256[] memory ids2 = gameMatch.getActiveMatchIds(2, 2);
         assertEq(ids2.length, 1);
         assertEq(ids2[0], matchId3);
+    }
+
+    function test_CancelMatchExplicitly() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
+            address(0),
+            STAKE_AMOUNT,
+            MAX_PLAYERS
+        );
+
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
+
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId);
+
+        uint256 player1BalanceBefore = player1.balance;
+        uint256 player2BalanceBefore = player2.balance;
+
+        address[] memory expectedPlayers = new address[](2);
+        expectedPlayers[0] = player1;
+        expectedPlayers[1] = player2;
+
+        vm.prank(controller);
+        vm.expectEmit(true, false, false, true);
+        emit MatchCancelled(matchId, expectedPlayers, STAKE_AMOUNT);
+        gameMatch.cancelMatch(matchId);
+
+        // Verify refunds
+        assertEq(player1.balance, player1BalanceBefore + STAKE_AMOUNT);
+        assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
+
+        // Verify match status
+        (, , , , IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Cancelled));
+
+        // Verify capacity freed
+        assertEq(gameMatch.getActiveMatchCount(), 0);
+    }
+
+    function test_CancelMatchWithERC20() public {
+        vm.startPrank(player1);
+        token.approve(address(gameMatch), STAKE_AMOUNT);
+        uint256 matchId = gameMatch.createMatch(address(token), STAKE_AMOUNT, MAX_PLAYERS);
+        vm.stopPrank();
+
+        vm.startPrank(player2);
+        token.approve(address(gameMatch), STAKE_AMOUNT);
+        gameMatch.joinMatch(matchId);
+        vm.stopPrank();
+
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId);
+
+        uint256 player1BalanceBefore = token.balanceOf(player1);
+        uint256 player2BalanceBefore = token.balanceOf(player2);
+
+        vm.prank(controller);
+        gameMatch.cancelMatch(matchId);
+
+        // Verify refunds
+        assertEq(token.balanceOf(player1), player1BalanceBefore + STAKE_AMOUNT);
+        assertEq(token.balanceOf(player2), player2BalanceBefore + STAKE_AMOUNT);
+    }
+
+    function test_FinalizeMatchWithTiedResult() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
+            address(0),
+            STAKE_AMOUNT,
+            MAX_PLAYERS
+        );
+
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
+
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId);
+
+        uint256 player1BalanceBefore = player1.balance;
+        uint256 player2BalanceBefore = player2.balance;
+
+        address[] memory expectedPlayers = new address[](2);
+        expectedPlayers[0] = player1;
+        expectedPlayers[1] = player2;
+
+        // Pass address(0) as winner to indicate tied match
+        vm.prank(controller);
+        vm.expectEmit(true, false, false, true);
+        emit MatchCancelled(matchId, expectedPlayers, STAKE_AMOUNT);
+        gameMatch.finalizeMatch(matchId, address(0));
+
+        // Verify refunds
+        assertEq(player1.balance, player1BalanceBefore + STAKE_AMOUNT);
+        assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
+
+        // Verify match status
+        (, , , , IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Cancelled));
+    }
+
+    function test_OnlyControllerCanCancelMatch() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
+            address(0),
+            STAKE_AMOUNT,
+            MAX_PLAYERS
+        );
+
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
+
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId);
+
+        vm.prank(player1);
+        vm.expectRevert(Owned.Unauthorized.selector);
+        gameMatch.cancelMatch(matchId);
+    }
+
+    function test_CannotCancelNonActiveMatch() public {
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
+            address(0),
+            STAKE_AMOUNT,
+            MAX_PLAYERS
+        );
+
+        vm.prank(controller);
+        vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
+        gameMatch.cancelMatch(matchId);
+    }
+
+    function test_CancelledMatchFreesUpCapacity() public {
+        vm.prank(owner);
+        gameMatch.setMaxActiveMatches(1);
+
+        // Create and cancel match
+        vm.prank(player1);
+        uint256 matchId1 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId1);
+
+        vm.prank(controller);
+        gameMatch.activateMatch(matchId1);
+
+        vm.prank(controller);
+        gameMatch.cancelMatch(matchId1);
+
+        assertEq(gameMatch.getActiveMatchCount(), 0);
+
+        // Should be able to create new match now
+        vm.prank(player1);
+        uint256 matchId2 = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+
+        assertEq(gameMatch.getActiveMatchCount(), 1);
+        assertGt(matchId2, 0);
     }
 
     event MaxActiveMatchesUpdated(uint256 newLimit);

@@ -6,7 +6,7 @@ This guide will help you get started with the newly restructured project.
 
 The project has been reorganized into three main areas:
 
-1. **`/sdk`** - The npm package with reusable UI components (LeaderBoard, WageringBox)
+1. **`/sdk`** - The npm package with reusable UI components (LeaderBoard, MatchBoard)
 2. **`/app`** - The demo application showcasing SDK components
 3. **`/contract-testing`** - Internal testing environment for contracts (formerly the main app)
 
@@ -95,7 +95,7 @@ import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
 />
 ```
 
-### WageringBox
+### MatchBoard
 
 Enables creating and joining wagered matches.
 
@@ -107,9 +107,9 @@ Enables creating and joining wagered matches.
 
 **Usage**:
 ```tsx
-import { WageringBox } from '@/sdk/src/components/WageringBox'
+import { MatchBoard } from '@/sdk/src/components/MatchBoard'
 
-<WageringBox 
+<MatchBoard 
   gameMatchAddress="0x..."
   onMatchCreated={(id) => console.log('Created:', id)}
   onMatchJoined={(id) => console.log('Joined:', id)}

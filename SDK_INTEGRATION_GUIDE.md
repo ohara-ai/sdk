@@ -116,12 +116,12 @@ function MyApp() {
 | `showStats` | `boolean` | `true` | Show total players and matches statistics |
 | `className` | `string` | - | Additional CSS classes |
 
-### WageringBox
+### MatchBoard
 
 Allow users to create and join wagered matches.
 
 ```tsx
-import { WageringBox } from '@ohara-ai/game-sdk'
+import { MatchBoard } from '@ohara-ai/game-sdk'
 
 function MyApp() {
   const handleMatchCreated = (matchId: bigint) => {
@@ -135,7 +135,7 @@ function MyApp() {
   }
 
   return (
-    <WageringBox 
+    <MatchBoard 
       gameMatchAddress="0x..."
       onMatchCreated={handleMatchCreated}
       onMatchJoined={handleMatchJoined}
@@ -195,7 +195,7 @@ cn('base-class', 'conditional-class', { 'dynamic-class': true })
 'use client'
 
 import { useState } from 'react'
-import { LeaderBoard, WageringBox } from '@ohara-ai/game-sdk'
+import { LeaderBoard, MatchBoard } from '@ohara-ai/game-sdk'
 
 export default function MyGame() {
   const [currentMatchId, setCurrentMatchId] = useState<bigint | null>(null)
@@ -223,7 +223,7 @@ export default function MyGame() {
         </div>
 
         {/* Wagering */}
-        <WageringBox
+        <MatchBoard
           gameMatchAddress={gameMatchAddress}
           onMatchCreated={setCurrentMatchId}
           onMatchJoined={setCurrentMatchId}

@@ -59,7 +59,7 @@ export default function TicTacToePage() {
   return (
     <div>
       {gameMatchAddress ? (
-        <WageringBox gameMatchAddress={gameMatchAddress} />
+        <MatchBoard gameMatchAddress={gameMatchAddress} />
       ) : (
         <div>GameMatch contract not deployed.</div>
       )}
@@ -100,9 +100,9 @@ export default function TicTacToePage() {
       {/* Automatic dependency info */}
       <ContractDependencyInfo components={DEMO_CONFIG.components} />
       
-      {/* WageringBox - required */}
+      {/* MatchBoard - required */}
       {hasGameMatch && gameMatchAddress && (
-        <WageringBox gameMatchAddress={gameMatchAddress} />
+        <MatchBoard gameMatchAddress={gameMatchAddress} />
       )}
       
       {/* LeaderBoard - optional */}
@@ -124,7 +124,7 @@ import {
 } from '@/sdk/src'
 
 // Get all dependencies for your components
-const components = ['LeaderBoard', 'WageringBox']
+const components = ['LeaderBoard', 'MatchBoard']
 const deps = getContractDependencies(components)
 
 console.log('All dependencies:', deps)
@@ -187,7 +187,7 @@ import { getRequiredContracts } from './sdk/src'
 
 const demos = {
   leaderboard: ['LeaderBoard'],
-  'tic-tac-toe': ['WageringBox', 'LeaderBoard'],
+  'tic-tac-toe': ['MatchBoard', 'LeaderBoard'],
 }
 
 for (const [demoName, components] of Object.entries(demos)) {
@@ -212,7 +212,7 @@ leaderboard demo:
     - Scoreboard (NEXT_PUBLIC_SCOREBOARD_ADDRESS)
 
 tic-tac-toe demo:
-  Uses: WageringBox, LeaderBoard
+  Uses: MatchBoard, LeaderBoard
   Requires:
     - GameMatch (NEXT_PUBLIC_GAME_MATCH_INSTANCE)
     - Scoreboard (NEXT_PUBLIC_SCOREBOARD_ADDRESS)

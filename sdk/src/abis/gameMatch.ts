@@ -61,6 +61,13 @@ export const GAME_MATCH_ABI = [
     stateMutability: 'payable',
     type: 'function',
   },
+  {
+    inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
+    name: 'withdrawStake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
   // Events
   {
     anonymous: false,
@@ -82,6 +89,15 @@ export const GAME_MATCH_ABI = [
       { indexed: false, internalType: 'uint256', name: 'stakeAmount', type: 'uint256' },
     ],
     name: 'PlayerJoined',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
+      { indexed: false, internalType: 'address[]', name: 'players', type: 'address[]' },
+    ],
+    name: 'MatchActivated',
     type: 'event',
   },
 ] as const

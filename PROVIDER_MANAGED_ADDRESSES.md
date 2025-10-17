@@ -24,7 +24,7 @@ The `OharaAiProvider` now centrally manages contract addresses, eliminating the 
 - Automatically resolves from `OharaAiProvider` if not provided
 - Shows helpful error if address cannot be resolved
 
-**WageringBox Component:**
+**MatchBoard Component:**
 - `gameMatchAddress` prop is now **optional**
 - Automatically resolves from `OharaAiProvider` if not provided
 - Shows helpful error if address cannot be resolved
@@ -59,7 +59,7 @@ export default function Demo() {
       )}
       
       {gameMatchAddress && (
-        <WageringBox gameMatchAddress={gameMatchAddress} />
+        <MatchBoard gameMatchAddress={gameMatchAddress} />
       )}
     </>
   )
@@ -75,7 +75,7 @@ export default function Demo() {
     <>
       {/* Addresses automatically resolved from OharaAiProvider */}
       <LeaderBoard limit={10} sortBy="wins" />
-      <WageringBox onMatchCreated={handleCreate} />
+      <MatchBoard onMatchCreated={handleCreate} />
     </>
   )
 }
@@ -181,10 +181,10 @@ interface LeaderBoardProps {
 }
 ```
 
-### WageringBox Component
+### MatchBoard Component
 
 ```typescript
-interface WageringBoxProps {
+interface MatchBoardProps {
   /** Optional: If not provided, resolved from OharaAiProvider */
   gameMatchAddress?: `0x${string}`
   onMatchCreated?: (matchId: bigint) => void
@@ -259,7 +259,7 @@ export default function MyApp() {
   
   return (
     <div>
-      {hasGameMatch && <WageringBox />}
+      {hasGameMatch && <MatchBoard />}
       {hasScoreboard && <LeaderBoard />}
     </div>
   )
@@ -292,11 +292,11 @@ const { address: gameMatchAddress } = useDeployedGameMatchAddress()
 ```typescript
 // BEFORE
 <LeaderBoard scoreBoardAddress={address} limit={10} />
-<WageringBox gameMatchAddress={address} />
+<MatchBoard gameMatchAddress={address} />
 
 // AFTER
 <LeaderBoard limit={10} />
-<WageringBox />
+<MatchBoard />
 ```
 
 ### For Custom Integrations
@@ -334,7 +334,7 @@ Scoreboard contract address not configured.
 Please set NEXT_PUBLIC_SCOREBOARD_ADDRESS or provide scoreBoardAddress prop.
 ```
 
-**WageringBox:**
+**MatchBoard:**
 ```
 GameMatch contract address not configured. 
 Please set NEXT_PUBLIC_GAME_MATCH_INSTANCE or provide gameMatchAddress prop.
@@ -345,7 +345,7 @@ Please set NEXT_PUBLIC_GAME_MATCH_INSTANCE or provide gameMatchAddress prop.
 ### SDK Files (3)
 - `sdk/src/context/OnchainContext.tsx` - Added address resolution
 - `sdk/src/components/LeaderBoard.tsx` - Made address optional
-- `sdk/src/components/WageringBox.tsx` - Made address optional
+- `sdk/src/components/MatchBoard.tsx` - Made address optional
 
 ### Demo Apps (2)
 - `app/demos/leaderboard/page.tsx` - Removed address management

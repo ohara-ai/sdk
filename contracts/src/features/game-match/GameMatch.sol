@@ -267,6 +267,13 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
         if (m.status != MatchStatus.Active) revert InvalidMatchStatus();
+
+        // Handle tied match case (winner = address(0))
+        if (winner == address(0)) {
+            _cancelMatchInternal(matchId);
+            return;
+        }
+
         if (m.stakes[winner] == 0) revert InvalidWinner();
 
         m.status = MatchStatus.Finalized;
@@ -298,6 +305,41 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         // Remove from active matches tracking
         _removeFromActiveMatches(matchId);
 
+        // Clean up match data to save gas
+        _cleanupMatch(matchId);
+    }
+
+    /// @inheritdoc IGameMatch
+    function cancelMatch(uint256 matchId) external onlyController {
+        Match storage m = _matches[matchId];
+        if (m.stakeAmount == 0) revert InvalidMatchId();
+        if (m.status != MatchStatus.Active) revert InvalidMatchStatus();
+
+        _cancelMatchInternal(matchId);
+    }
+
+    function _cancelMatchInternal(uint256 matchId) internal {
+        Match storage m = _matches[matchId];
+        
+        m.status = MatchStatus.Cancelled;
+        
+        uint256 refundAmount = m.stakeAmount;
+        address[] memory players = m.players;
+        
+        // Refund all players their stakes
+        for (uint256 i = 0; i < players.length; i++) {
+            address player = players[i];
+            uint256 stake = m.stakes[player];
+            if (stake > 0) {
+                _transfer(m.token, player, stake);
+            }
+        }
+        
+        emit MatchCancelled(matchId, players, refundAmount);
+        
+        // Remove from active matches tracking
+        _removeFromActiveMatches(matchId);
+        
         // Clean up match data to save gas
         _cleanupMatch(matchId);
     }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
-import { WageringBox } from '@/sdk/src/components/WageringBox'
+import { MatchBoard } from '@/sdk/src/components/MatchBoard'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { X, Circle, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
@@ -31,6 +31,7 @@ export default function TicTacToePage() {
   const [winner, setWinner] = useState<'X' | 'O' | 'draw' | null>(null)
   const [matchId, setMatchId] = useState<bigint | null>(null)
   const [showDeveloperInfo, setShowDeveloperInfo] = useState(false)
+  const [isMatchCreated, setIsMatchCreated] = useState(false)
 
   const checkWinner = (newBoard: Board): 'X' | 'O' | 'draw' | null => {
     for (const combo of WINNING_COMBINATIONS) {
@@ -69,12 +70,14 @@ export default function TicTacToePage() {
   const handleMatchCreated = (id: bigint) => {
     console.log('Match created with ID:', id.toString())
     setMatchId(id)
+    setIsMatchCreated(true)
     resetGame()
   }
 
   const handleMatchJoined = (id: bigint) => {
     console.log('Joined match with ID:', id.toString())
     setMatchId(id)
+    setIsMatchCreated(false)
     resetGame()
   }
 
@@ -125,9 +128,16 @@ export default function TicTacToePage() {
                 <CardTitle className="flex items-center justify-between">
                   <span>Game Board</span>
                   {matchId !== null && (
-                    <span className="text-sm font-normal text-gray-500">
-                      Match #{matchId.toString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-normal text-gray-500">
+                        Match #{matchId.toString()}
+                      </span>
+                      {isMatchCreated && (
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                          Created
+                        </span>
+                      )}
+                    </div>
                   )}
                 </CardTitle>
               </CardHeader>
@@ -169,7 +179,7 @@ export default function TicTacToePage() {
                   <div className="mt-6 p-4 bg-blue-50 rounded-lg">
                     <h3 className="font-semibold mb-2">How to Play:</h3>
                     <ol className="text-sm text-gray-700 space-y-1">
-                      <li>1. Create or join a wagered match using the WageringBox</li>
+                      <li>1. Create or join a wagered match using the MatchBoard</li>
                       <li>2. Players take turns placing X and O</li>
                       <li>3. First to get 3 in a row wins the match</li>
                       <li>4. Winner takes the prize pool!</li>
@@ -180,9 +190,10 @@ export default function TicTacToePage() {
             </Card>
           </div>
 
-          {/* Wagering Box - Address automatically resolved from OharaAiProvider */}
+          {/* Match Board - Address automatically resolved from OharaAiProvider */}
           <div className="space-y-6">
-            <WageringBox
+            <MatchBoard
+              presetMaxPlayers={2}
               onMatchCreated={handleMatchCreated}
               onMatchJoined={handleMatchJoined}
             />

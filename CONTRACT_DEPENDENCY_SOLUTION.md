@@ -4,7 +4,7 @@
 
 Need automatic detection of which contracts are required by SDK components used in demo apps:
 - **Leaderboard demo**: Uses `LeaderBoard` → needs `Scoreboard` contract
-- **Tic-Tac-Toe demo**: Uses `WageringBox` + `LeaderBoard` → needs `GameMatch` + `Scoreboard` contracts
+- **Tic-Tac-Toe demo**: Uses `MatchBoard` + `LeaderBoard` → needs `GameMatch` + `Scoreboard` contracts
 
 ## Implemented Solution: Component Metadata System
 
@@ -18,7 +18,7 @@ A comprehensive contract dependency metadata system that allows explicit declara
 ┌─────────────────────────────────────────────────────────────┐
 │                     SDK Components                          │
 │  ┌──────────────┐              ┌──────────────┐            │
-│  │ LeaderBoard  │              │ WageringBox  │            │
+│  │ LeaderBoard  │              │ MatchBoard  │            │
 │  │  .metadata   │              │  .metadata   │            │
 │  └──────┬───────┘              └──────┬───────┘            │
 │         │                              │                    │
@@ -44,7 +44,7 @@ A comprehensive contract dependency metadata system that allows explicit declara
 │  │ Leaderboard Demo │         │ Tic-Tac-Toe Demo │         │
 │  │   config.ts      │         │   config.ts      │         │
 │  │ components: [    │         │ components: [    │         │
-│  │  'LeaderBoard'   │         │  'WageringBox',  │         │
+│  │  'LeaderBoard'   │         │  'MatchBoard',  │         │
 │  │ ]                │         │  'LeaderBoard'   │         │
 │  │                  │         │ ]                │         │
 │  └──────────────────┘         └──────────────────┘         │
@@ -69,7 +69,7 @@ A comprehensive contract dependency metadata system that allows explicit declara
 
 #### 2. **Metadata Registry** (`sdk/src/metadata/componentDependencies.ts`)
 - `LEADERBOARD_METADATA`
-- `WAGERING_BOX_METADATA`
+- `MATCH_BOARD_METADATA`
 - `COMPONENT_REGISTRY`
 
 #### 3. **Dependency Utilities** (`sdk/src/utils/dependencies.ts`)
@@ -125,7 +125,7 @@ const { isValid, missing } = useContractDependencies(DEMO_CONFIG.components)
 ```typescript
 import { getRequiredContracts } from '@/sdk/src'
 
-const required = getRequiredContracts(['WageringBox'])
+const required = getRequiredContracts(['MatchBoard'])
 // Returns: [{ contract: 'GameMatch', required: true, envVar: '...' }]
 ```
 
@@ -153,7 +153,7 @@ sdk/
 │   │   └── dependencies.ts           # Utility functions
 │   ├── components/
 │   │   ├── LeaderBoard.tsx           # Updated with metadata
-│   │   └── WageringBox.tsx           # Updated with metadata
+│   │   └── MatchBoard.tsx           # Updated with metadata
 │   ├── index.ts                      # Exports all deps utilities
 │   └── CONTRACT_DEPENDENCIES.md      # Full documentation
 
@@ -230,7 +230,7 @@ npx ts-node scripts/check-dependencies.ts
 npx ts-node scripts/check-dependencies.ts --demo=leaderboard
 
 # Check specific component
-npx ts-node scripts/check-dependencies.ts --component=WageringBox
+npx ts-node scripts/check-dependencies.ts --component=MatchBoard
 
 # Check contract usage
 npx ts-node scripts/check-dependencies.ts --contract=Scoreboard
