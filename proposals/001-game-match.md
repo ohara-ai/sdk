@@ -5,7 +5,6 @@
 - **ID**: OCI-001
 - **Title**: Game Match - Escrow-Based Match System
 - **Status**: implemented
-- **Author**: Ohara AI Team
 - **Created**: 2025-10-13
 - **Updated**: 2025-10-13
 - **Category**: gaming
@@ -457,16 +456,46 @@ This provides gas refunds and prevents storage bloat.
 Uses `GameMatchFactory` for efficient deployment:
 
 ```solidity
-contract GameMatchFactory is Owned {
-    event GameMatchDeployed(address indexed instance, address indexed owner);
+contract GameMatchFactory is OwnedFactory {
+    uint256 public defaultMaxActiveMatches;
+    address[] public defaultFeeRecipients;
+    uint256[] public defaultFeeShares;
     
-    function deployGameMatch(address _owner, address _controller) 
+    event GameMatchDeployed(
+        address indexed instance, 
+        address indexed owner, 
+        address indexed controller,
+        address scoreBoard
+    );
+    
+    function setDefaultFees(
+        address[] calldata _recipients,
+        uint256[] calldata _shares
+    ) external onlyOwner {
+        // Configure default fees for all new deployments
+        defaultFeeRecipients = _recipients;
+        defaultFeeShares = _shares;
+    }
+    
+    function deployGameMatch(
+        address _controller,
+        address _scoreBoard
+    ) 
         external 
-        returns (address) 
+        returns (address instance) 
     {
-        address instance = address(new GameMatch(_owner, _controller));
-        emit GameMatchDeployed(instance, _owner);
-        return instance;
+        address instanceOwnerAddress = getInstanceOwner();
+        instance = address(
+            new GameMatch(
+                instanceOwnerAddress,
+                _controller,
+                _scoreBoard,
+                defaultMaxActiveMatches,
+                defaultFeeRecipients,  // Default fees from factory
+                defaultFeeShares       // Applied at deployment
+            )
+        );
+        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _scoreBoard);
     }
 }
 ```
@@ -474,21 +503,27 @@ contract GameMatchFactory is Owned {
 ### Initial Configuration
 
 ```solidity
-// Deploy via factory
+// 1. Deploy factory
 GameMatchFactory factory = new GameMatchFactory();
+
+// 2. Configure default fees (optional, but recommended)
+address[] memory feeRecipients = new address[](2);
+feeRecipients[0] = feeRecipient1;
+feeRecipients[1] = feeRecipient2;
+uint256[] memory feeShares = new uint256[](2);
+feeShares[0] = 250;  // 2.5%
+feeShares[1] = 250;  // 2.5%
+factory.setDefaultFees(feeRecipients, feeShares);
+
+// 3. Deploy GameMatch instances (will use default fees)
 address gameMatch = factory.deployGameMatch(
-    ownerAddress,      // Can configure fees and scoreboard
-    controllerAddress  // Can activate and finalize matches
+    controllerAddress,  // Can activate and finalize matches
+    scoreBoardAddress   // Scoreboard integration (use address(0) if not used)
 );
 
-// Optional: Configure fees
-GameMatch(gameMatch).configureFees(
-    [feeRecipient1, feeRecipient2],
-    [250, 250] // 2.5% + 2.5% = 5% total
-);
-
-// Optional: Set scoreboard
-GameMatch(gameMatch).setScoreBoard(scoreBoardAddress);
+// Note: Fees are automatically configured at deployment from factory defaults
+// Fees can still be updated after deployment by the instance owner if needed
+GameMatch(gameMatch).configureFees(newRecipients, newShares);
 ```
 
 ### Migration Path

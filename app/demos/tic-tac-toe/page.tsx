@@ -5,10 +5,11 @@ import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
 import { WageringBox } from '@/sdk/src/components/WageringBox'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { X, Circle, ArrowLeft } from 'lucide-react'
+import { X, Circle, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { ContractDependencyInfo } from '@/components/ContractDependencyInfo'
+import { ProviderStatus } from '@/components/ProviderStatus'
 
 type CellValue = 'X' | 'O' | null
 type Board = CellValue[]
@@ -29,6 +30,7 @@ export default function TicTacToePage() {
   const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>('X')
   const [winner, setWinner] = useState<'X' | 'O' | 'draw' | null>(null)
   const [matchId, setMatchId] = useState<bigint | null>(null)
+  const [showDeveloperInfo, setShowDeveloperInfo] = useState(false)
 
   const checkWinner = (newBoard: Board): 'X' | 'O' | 'draw' | null => {
     for (const combo of WINNING_COMBINATIONS) {
@@ -84,18 +86,34 @@ export default function TicTacToePage() {
               Back to Home
             </Button>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Wagered Tic-Tac-Toe</h1>
-          <p className="text-gray-600">
-            Play tic-tac-toe with real stakes. Create or join a match to start playing.
-          </p>
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Wagered Tic-Tac-Toe</h1>
+              <p className="text-gray-600">
+                Play tic-tac-toe with real stakes. Create or join a match to start playing.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <ConnectWallet />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeveloperInfo(!showDeveloperInfo)}
+                className="flex items-center gap-1.5"
+              >
+                Developer Info
+                {showDeveloperInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <ConnectWallet />
-        </div>
-
-        {/* Automatic contract dependency detection */}
-        <ContractDependencyInfo className="mb-6" />
+        {showDeveloperInfo && (
+          <div className="space-y-4 mb-6 animate-in slide-in-from-top duration-200">
+            <ContractDependencyInfo />
+            <ProviderStatus />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Game Board */}

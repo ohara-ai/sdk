@@ -4,13 +4,15 @@ import { useState } from 'react'
 import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { ContractDependencyInfo } from '@/components/ContractDependencyInfo'
+import { ProviderStatus } from '@/components/ProviderStatus'
 
 export default function LeaderboardDemoPage() {
   const [sortBy, setSortBy] = useState<'wins' | 'prize'>('wins')
   const [limit, setLimit] = useState(10)
+  const [showDeveloperInfo, setShowDeveloperInfo] = useState(false)
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -22,11 +24,31 @@ export default function LeaderboardDemoPage() {
               Back to Home
             </Button>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Leaderboard Demo</h1>
-          <p className="text-gray-600">
-            Explore the LeaderBoard component with different configurations and sorting options.
-          </p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Leaderboard Demo</h1>
+              <p className="text-gray-600">
+                Explore the LeaderBoard component with different configurations and sorting options.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDeveloperInfo(!showDeveloperInfo)}
+              className="flex items-center gap-1.5"
+            >
+              Developer Info
+              {showDeveloperInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
+
+        {showDeveloperInfo && (
+          <div className="space-y-4 mb-6 animate-in slide-in-from-top duration-200">
+            <ContractDependencyInfo />
+            <ProviderStatus />
+          </div>
+        )}
 
         <div className="mb-6">
           <Card>
@@ -75,9 +97,6 @@ export default function LeaderboardDemoPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Automatic contract dependency detection */}
-        <ContractDependencyInfo className="mb-6" />
 
         {/* Address automatically resolved from OharaAiProvider */}
         <LeaderBoard

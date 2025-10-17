@@ -24,13 +24,10 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployGameMatch() public {
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
-        
         vm.expectEmit(false, true, true, true);
         emit GameMatchDeployed(address(0), factoryOwner, controller, address(0));
         
-        address instance = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance = factory.deployGameMatch(controller, address(0));
         
         assertTrue(instance != address(0));
         
@@ -42,11 +39,8 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployMultipleInstances() public {
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
-        
-        address instance1 = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
-        address instance2 = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance1 = factory.deployGameMatch(controller, address(0));
+        address instance2 = factory.deployGameMatch(controller, address(0));
         
         assertTrue(instance1 != instance2);
     }
@@ -62,13 +56,8 @@ contract GameMatchFactoryTest is Test {
         // Setup scoreboard
         address scoreBoardAddress = address(0x888);
         
-        // Deploy with full configuration
-        address instance = factory.deployGameMatch(
-            controller, 
-            scoreBoardAddress, 
-            feeRecipients, 
-            feeShares
-        );
+        // Deploy with scoreboard
+        address instance = factory.deployGameMatch(controller, scoreBoardAddress);
         
         assertTrue(instance != address(0));
         
@@ -80,6 +69,9 @@ contract GameMatchFactoryTest is Test {
         
         // Verify scoreboard is set
         assertEq(address(gameMatch.scoreBoard()), scoreBoardAddress);
+        
+        // Configure fees after deployment
+        gameMatch.configureFees(feeRecipients, feeShares);
         
         // Verify fee configuration
         (
@@ -108,23 +100,17 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployWithCustomInstanceOwner() public {
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
-        
         // Set custom instance owner
         factory.setInstanceOwner(instanceOwner);
         
         // Deploy instance
-        address instance = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance = factory.deployGameMatch(controller, address(0));
         
         GameMatch gameMatch = GameMatch(instance);
         assertEq(gameMatch.owner(), instanceOwner); // Should use custom instance owner
     }
 
     function test_ResetInstanceOwnerToFactoryOwner() public {
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
-        
         // Set custom instance owner
         factory.setInstanceOwner(instanceOwner);
         
@@ -132,7 +118,7 @@ contract GameMatchFactoryTest is Test {
         factory.setInstanceOwner(address(0));
         
         // Deploy instance
-        address instance = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance = factory.deployGameMatch(controller, address(0));
         
         GameMatch gameMatch = GameMatch(instance);
         assertEq(gameMatch.owner(), factoryOwner); // Should use factory owner again
@@ -158,10 +144,7 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployedGameMatchUsesFactoryDefault() public {
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
-        
-        address instance = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance = factory.deployGameMatch(controller, address(0));
         GameMatch gameMatch = GameMatch(instance);
         
         assertEq(gameMatch.maxActiveMatches(), 100);
@@ -184,11 +167,8 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_NewDeploymentsUseUpdatedDefault() public {
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
-        
         // Deploy with default (100)
-        address instance1 = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance1 = factory.deployGameMatch(controller, address(0));
         GameMatch gameMatch1 = GameMatch(instance1);
         
         assertEq(gameMatch1.maxActiveMatches(), 100);
@@ -197,7 +177,7 @@ contract GameMatchFactoryTest is Test {
         factory.setDefaultMaxActiveMatches(200);
         
         // Deploy with new default (200)
-        address instance2 = factory.deployGameMatch(controller, address(0), emptyRecipients, emptyShares);
+        address instance2 = factory.deployGameMatch(controller, address(0));
         GameMatch gameMatch2 = GameMatch(instance2);
         
         assertEq(gameMatch2.maxActiveMatches(), 200);
@@ -206,6 +186,66 @@ contract GameMatchFactoryTest is Test {
         assertEq(gameMatch1.maxActiveMatches(), 100);
     }
 
+    function test_SetDefaultFees() public {
+        address[] memory recipients = new address[](2);
+        recipients[0] = address(0x100);
+        recipients[1] = address(0x200);
+        uint256[] memory shares = new uint256[](2);
+        shares[0] = 250; // 2.5%
+        shares[1] = 250; // 2.5%
+        
+        vm.expectEmit(false, false, false, true);
+        emit DefaultFeesUpdated(recipients, shares);
+        factory.setDefaultFees(recipients, shares);
+        
+        (address[] memory storedRecipients, uint256[] memory storedShares) = factory.getDefaultFees();
+        assertEq(storedRecipients.length, 2);
+        assertEq(storedRecipients[0], address(0x100));
+        assertEq(storedRecipients[1], address(0x200));
+        assertEq(storedShares[0], 250);
+        assertEq(storedShares[1], 250);
+    }
+    
+    function test_DeployWithDefaultFees() public {
+        // Configure default fees in factory
+        address[] memory recipients = new address[](1);
+        recipients[0] = address(0x999);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 1000; // 10%
+        
+        factory.setDefaultFees(recipients, shares);
+        
+        // Deploy instance
+        address instance = factory.deployGameMatch(controller, address(0));
+        GameMatch gameMatch = GameMatch(instance);
+        
+        // Verify fees are configured
+        (
+            address[] memory instanceRecipients,
+            uint256[] memory instanceShares,
+            uint256 totalShare
+        ) = gameMatch.getFeeConfiguration();
+        
+        assertEq(instanceRecipients.length, 1);
+        assertEq(instanceRecipients[0], address(0x999));
+        assertEq(instanceShares[0], 1000);
+        assertEq(totalShare, 1000);
+    }
+    
+    function test_OnlyOwnerCanSetDefaultFees() public {
+        address[] memory recipients = new address[](1);
+        recipients[0] = address(0x999);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 1000;
+        
+        address nonOwner = address(0x123);
+        
+        vm.prank(nonOwner);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
+        factory.setDefaultFees(recipients, shares);
+    }
+
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
     event DefaultMaxActiveMatchesUpdated(uint256 newDefault);
+    event DefaultFeesUpdated(address[] recipients, uint256[] shares);
 }

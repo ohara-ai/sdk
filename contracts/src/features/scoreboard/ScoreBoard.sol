@@ -223,23 +223,32 @@ contract ScoreBoard is IScoreBoard, Owned {
         });
         _matchIds.push(matchId);
 
+        // Collect all new players to add (to avoid evicting newly added winner)
+        address[] memory newPlayers = new address[](processedLosers.length + 1);
+        uint256 newPlayerCount = 0;
+        
+        if (_playerIndex[winner] == 0) {
+            newPlayers[newPlayerCount++] = winner;
+        }
+        
+        for (uint256 i = 0; i < processedLosers.length; i++) {
+            if (_playerIndex[processedLosers[i]] == 0) {
+                newPlayers[newPlayerCount++] = processedLosers[i];
+            }
+        }
+        
+        // Add all new players
+        for (uint256 i = 0; i < newPlayerCount; i++) {
+            _addPlayer(newPlayers[i]);
+        }
+
         // Update winner score
         PlayerScore storage winnerScore = _scores[winner];
-        if (winnerScore.totalWins == 0 && _playerIndex[winner] == 0) {
-            _addPlayer(winner);
-        }
         winnerScore.player = winner;
         winnerScore.totalWins++;
         winnerScore.totalPrize += prize;
         winnerScore.lastMatchId = matchId;
         winnerScore.lastWinTimestamp = block.timestamp;
-
-        // Track losers (for participation tracking)
-        for (uint256 i = 0; i < processedLosers.length; i++) {
-            if (_scores[processedLosers[i]].totalWins == 0 && _playerIndex[processedLosers[i]] == 0) {
-                _addPlayer(processedLosers[i]);
-            }
-        }
 
         emit ScoreRecorded(matchId, winner, winnerScore.totalWins, winnerScore.totalPrize);
     }

@@ -7,8 +7,6 @@ const GAME_MATCH_FACTORY_ABI = [
     inputs: [
       { internalType: 'address', name: '_controller', type: 'address' },
       { internalType: 'address', name: '_scoreBoard', type: 'address' },
-      { internalType: 'address[]', name: '_feeRecipients', type: 'address[]' },
-      { internalType: 'uint256[]', name: '_feeShares', type: 'uint256[]' },
     ],
     name: 'deployGameMatch',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
@@ -35,6 +33,19 @@ const SCOREBOARD_ABI = [
       { internalType: 'bool', name: 'authorized', type: 'bool' },
     ],
     name: 'setRecorderAuthorization',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+] as const
+
+const GAME_MATCH_ABI = [
+  {
+    inputs: [
+      { internalType: 'address[]', name: '_recipients', type: 'address[]' },
+      { internalType: 'uint256[]', name: '_shares', type: 'uint256[]' },
+    ],
+    name: 'configureFees',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -121,8 +132,6 @@ export async function POST(request: NextRequest) {
       args: [
         controllerAddress as `0x${string}`,
         scoreBoardAddress as `0x${string}`,
-        feeRecipients as `0x${string}`[],
-        feeShares,
       ],
       chain: null,
     })
@@ -149,6 +158,28 @@ export async function POST(request: NextRequest) {
 
     if (!deployedAddress) {
       throw new Error('Could not extract deployed address from transaction receipt')
+    }
+
+    // Note: Fees are now configured at deployment time via the factory's defaultFees
+    // If you need to override fees for a specific instance, you can still call configureFees
+    // after deployment (but this is uncommon - factory defaults should be set instead)
+    if (feeRecipients.length > 0 && feeShares.length > 0) {
+      // Optional: Override factory defaults for this specific instance
+      try {
+        const feeHash = await walletClient.writeContract({
+          address: deployedAddress,
+          abi: GAME_MATCH_ABI,
+          functionName: 'configureFees',
+          args: [feeRecipients as `0x${string}`[], feeShares],
+          chain: null,
+        })
+
+        // Wait for fee configuration transaction
+        await publicClient.waitForTransactionReceipt({ hash: feeHash })
+      } catch (feeError) {
+        console.error('Fee configuration override error:', feeError)
+        // Continue - factory defaults will be used
+      }
     }
 
     // If scoreboard is configured (not zero address), authorize the GameMatch to record results

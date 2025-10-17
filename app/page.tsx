@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowRight, Trophy, Gamepad2, Boxes, Code2, Zap } from 'lucide-react'
+import { ArrowRight, Trophy, Gamepad2, Boxes, Code2, Zap, Book } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -33,7 +33,7 @@ export default function Home() {
           <p className="text-gray-600">Explore live examples of SDK components in action</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link href="/demos/tic-tac-toe" className="group">
             <Card className="h-full border-2 border-gray-200 hover:border-blue-500 transition-all duration-200 hover:shadow-lg">
               <CardHeader className="p-6">
@@ -63,6 +63,23 @@ export default function Home() {
                 <CardTitle className="text-lg font-semibold text-gray-900 mb-2">Leaderboard</CardTitle>
                 <CardDescription className="text-sm text-gray-600 leading-relaxed">
                   Top players, scores, and statistics. Explore LeaderBoard component with various configurations.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/docs" className="group">
+            <Card className="h-full border-2 border-gray-200 hover:border-orange-500 transition-all duration-200 hover:shadow-lg">
+              <CardHeader className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="p-2.5 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+                    <Book className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors group-hover:translate-x-1 duration-200" />
+                </div>
+                <CardTitle className="text-lg font-semibold text-gray-900 mb-2">Documentation</CardTitle>
+                <CardDescription className="text-sm text-gray-600 leading-relaxed">
+                  Complete documentation hub with guides, architecture, and API reference. Everything you need.
                 </CardDescription>
               </CardHeader>
             </Card>

@@ -26,8 +26,8 @@ contract ScoreBoardFactory is OwnedFactory {
 
     constructor() OwnedFactory(msg.sender) {
         // Initialize with default limits
-        maxLosersPerMatch = 100;
-        maxTotalPlayers = 100;
+        maxLosersPerMatch = 50;
+        maxTotalPlayers = 1000;
         maxTotalMatches = 100;
     }
 

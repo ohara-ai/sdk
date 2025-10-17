@@ -18,8 +18,10 @@ const CONFIG_PATH = path.join(process.cwd(), '.onchain-cfg.json')
 
 // Factory ABIs
 const GAME_MATCH_FACTORY_ABI = parseAbi([
-  'function deployGameMatch(address scoreBoardAddress) external returns (address)',
-  'function deployedContracts(uint256) external view returns (address)'
+  'function deployGameMatch(address controller, address scoreBoardAddress) external returns (address)',
+  'function deployedContracts(uint256) external view returns (address)',
+  'function setDefaultFees(address[] calldata recipients, uint256[] calldata shares) external',
+  'function getDefaultFees() external view returns (address[] memory recipients, uint256[] memory shares)'
 ])
 
 const SCOREBOARD_FACTORY_ABI = parseAbi([
@@ -212,7 +214,7 @@ async function deployGameMatch(ctx: ProvisioningContext, scoreboardAddress: stri
     address: factoryAddress as `0x${string}`,
     abi: GAME_MATCH_FACTORY_ABI,
     functionName: 'deployGameMatch',
-    args: [scoreboardAddress as `0x${string}`],
+    args: [ctx.controllerAccount.address, scoreboardAddress as `0x${string}`],
     account: ctx.controllerAccount,
   })
   

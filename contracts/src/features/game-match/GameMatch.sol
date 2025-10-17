@@ -44,22 +44,22 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         address _owner,
         address _controller,
         address _scoreBoard,
+        uint256 _maxActiveMatches,
         address[] memory _feeRecipients,
-        uint256[] memory _feeShares,
-        uint256 _maxActiveMatches
+        uint256[] memory _feeShares
     ) FeatureController(_owner, _controller) {
         // Initialize scoreboard if provided
         if (_scoreBoard != address(0)) {
             scoreBoard = IScoreBoard(_scoreBoard);
         }
         
+        // Set capacity limit
+        maxActiveMatches = _maxActiveMatches;
+        
         // Initialize fees if provided
         if (_feeRecipients.length > 0) {
             _initializeFees(_feeRecipients, _feeShares);
         }
-        
-        // Set capacity limit
-        maxActiveMatches = _maxActiveMatches;
     }
 
     /**

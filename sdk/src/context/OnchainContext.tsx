@@ -231,16 +231,20 @@ export function useOharaAi() {
 export function useComponentRegistration(componentName: ComponentName) {
   const context = useContext(OharaAiContext)
   
+  // Extract only the functions we need to avoid depending on the entire context
+  const registerComponent = context?.registerComponent
+  const unregisterComponent = context?.unregisterComponent
+  
   useEffect(() => {
-    if (!context) {
+    if (!registerComponent || !unregisterComponent) {
       // If no provider, component can still work but without dependency tracking
       return
     }
     
-    context.registerComponent(componentName)
+    registerComponent(componentName)
     
     return () => {
-      context.unregisterComponent(componentName)
+      unregisterComponent(componentName)
     }
-  }, [context, componentName])
+  }, [registerComponent, unregisterComponent, componentName])
 }

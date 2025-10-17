@@ -94,7 +94,8 @@ export function WageringBox({
       // TODO: Extract matchId from transaction logs
       onMatchCreated?.(BigInt(0))
     }
-  }, [isCreateSuccess, createHash, onMatchCreated])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCreateSuccess, createHash])
 
   useEffect(() => {
     if (isJoinSuccess && joinHash) {
@@ -102,7 +103,8 @@ export function WageringBox({
       setStakeAmount('')
       onMatchJoined?.(BigInt(matchIdToJoin))
     }
-  }, [isJoinSuccess, joinHash, matchIdToJoin, onMatchJoined])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isJoinSuccess, joinHash, matchIdToJoin])
 
   if (!address) {
     return (

@@ -16,40 +16,64 @@ contract FeeCollectorValidationTest is Test {
     }
 
     function test_DeployWithExactAPIParams() public {
-        // Use exact parameters from the API call
+        // Deploy first
+        address instance = factory.deployGameMatch(controller, address(0));
+        
+        assertTrue(instance != address(0));
+        console.log("Deployed successfully at:", instance);
+        
+        // Configure fees after deployment
+        GameMatch gameMatch = GameMatch(instance);
+        
         address[] memory feeRecipients = new address[](1);
         feeRecipients[0] = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         
         uint256[] memory feeShares = new uint256[](1);
         feeShares[0] = 1000;
         
-        address instance = factory.deployGameMatch(
-            controller, 
-            address(0),
-            feeRecipients,
-            feeShares
-        );
+        gameMatch.configureFees(feeRecipients, feeShares);
         
-        assertTrue(instance != address(0));
-        console.log("Deployed successfully at:", instance);
+        // Verify fee configuration
+        (
+            address[] memory recipients,
+            uint256[] memory shares,
+            uint256 totalShare
+        ) = gameMatch.getFeeConfiguration();
+        
+        assertEq(recipients.length, 1);
+        assertEq(recipients[0], 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266);
+        assertEq(shares[0], 1000);
+        assertEq(totalShare, 1000);
     }
     
     function test_DeployWithZeroAddressRecipient() public {
-        // Test with zero address recipient
+        // Deploy first
+        address instance = factory.deployGameMatch(controller, address(0));
+        
+        assertTrue(instance != address(0));
+        console.log("Deployed with zero recipient at:", instance);
+        
+        // Configure fees with zero address recipient after deployment
+        GameMatch gameMatch = GameMatch(instance);
+        
         address[] memory feeRecipients = new address[](1);
         feeRecipients[0] = address(0);
         
         uint256[] memory feeShares = new uint256[](1);
         feeShares[0] = 1000;
         
-        address instance = factory.deployGameMatch(
-            controller, 
-            address(0),
-            feeRecipients,
-            feeShares
-        );
+        gameMatch.configureFees(feeRecipients, feeShares);
         
-        assertTrue(instance != address(0));
-        console.log("Deployed with zero recipient at:", instance);
+        // Verify fee configuration
+        (
+            address[] memory recipients,
+            uint256[] memory shares,
+            uint256 totalShare
+        ) = gameMatch.getFeeConfiguration();
+        
+        assertEq(recipients.length, 1);
+        assertEq(recipients[0], address(0));
+        assertEq(shares[0], 1000);
+        assertEq(totalShare, 1000);
     }
 }

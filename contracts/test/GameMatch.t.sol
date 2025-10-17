@@ -41,10 +41,10 @@ contract GameMatchTest is Test {
 
     function setUp() public {
         vm.startPrank(owner);
-        address[] memory emptyRecipients = new address[](0);
-        uint256[] memory emptyShares = new uint256[](0);
         uint256 defaultMaxActiveMatches = 100; // Default limit
-        gameMatch = new GameMatch(owner, controller, address(0), emptyRecipients, emptyShares, defaultMaxActiveMatches);
+        address[] memory feeRecipients = new address[](0);
+        uint256[] memory feeShares = new uint256[](0);
+        gameMatch = new GameMatch(owner, controller, address(0), defaultMaxActiveMatches, feeRecipients, feeShares);
         token = new MockERC20(1000000 ether);
         scoreBoard = new MockScoreBoard();
         vm.stopPrank();

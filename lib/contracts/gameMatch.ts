@@ -259,12 +259,30 @@ export const GAME_MATCH_FACTORY_ABI = [
     inputs: [
       { internalType: 'address', name: '_controller', type: 'address' },
       { internalType: 'address', name: '_scoreBoard', type: 'address' },
-      { internalType: 'address[]', name: '_feeRecipients', type: 'address[]' },
-      { internalType: 'uint256[]', name: '_feeShares', type: 'uint256[]' },
     ],
     name: 'deployGameMatch',
     outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'address[]', name: '_recipients', type: 'address[]' },
+      { internalType: 'uint256[]', name: '_shares', type: 'uint256[]' },
+    ],
+    name: 'setDefaultFees',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getDefaultFees',
+    outputs: [
+      { internalType: 'address[]', name: 'recipients', type: 'address[]' },
+      { internalType: 'uint256[]', name: 'shares', type: 'uint256[]' },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   // Events
@@ -277,6 +295,15 @@ export const GAME_MATCH_FACTORY_ABI = [
       { indexed: false, internalType: 'address', name: 'scoreBoard', type: 'address' },
     ],
     name: 'GameMatchDeployed',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address[]', name: 'recipients', type: 'address[]' },
+      { indexed: false, internalType: 'uint256[]', name: 'shares', type: 'uint256[]' },
+    ],
+    name: 'DefaultFeesUpdated',
     type: 'event',
   },
 ] as const
