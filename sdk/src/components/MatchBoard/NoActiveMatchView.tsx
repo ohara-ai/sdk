@@ -241,37 +241,43 @@ export function NoActiveMatchView({
                   ETH Matches ({ethMatches.length})
                 </h3>
                 <div className="space-y-2">
-                  {ethMatches.map((match) => (
-                    <button
-                      key={match.id.toString()}
-                      onClick={() => onJoinMatch(match.id, match.stakeAmount, match.token)}
-                      disabled={isJoining || isJoinConfirming}
-                      className={cn(
-                        "w-full p-4 border border-gray-200 rounded-lg text-left transition-all",
-                        isJoining || isJoinConfirming
-                          ? "cursor-not-allowed opacity-50"
-                          : "hover:border-blue-400 hover:shadow-md cursor-pointer hover:bg-blue-50"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm font-medium text-gray-900">
-                          Match #{match.id.toString()}
+                  {ethMatches.map((match) => {
+                    const isFull = match.players.length >= Number(match.maxPlayers)
+                    return (
+                      <button
+                        key={match.id.toString()}
+                        onClick={() => !isFull && onJoinMatch(match.id, match.stakeAmount, match.token)}
+                        disabled={isJoining || isJoinConfirming || isFull}
+                        className={cn(
+                          "w-full p-4 border border-gray-200 rounded-lg text-left transition-all",
+                          isJoining || isJoinConfirming || isFull
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:border-blue-400 hover:shadow-md cursor-pointer hover:bg-blue-50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-medium text-gray-900">
+                            Match #{match.id.toString()}
+                          </div>
+                          <div className="text-lg font-bold text-blue-600">
+                            {formatEther(match.stakeAmount)} ETH
+                          </div>
                         </div>
-                        <div className="text-lg font-bold text-blue-600">
-                          {formatEther(match.stakeAmount)} ETH
+                        <div className="flex items-center justify-between text-xs text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {match.players.length}/{match.maxPlayers.toString()} players
+                          </div>
+                          <div className={cn(
+                            "font-semibold",
+                            isFull ? "text-gray-400" : "text-blue-600"
+                          )}>
+                            {isFull ? "Match Full" : "Click to join →"}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {match.players.length}/{match.maxPlayers.toString()} players
-                        </div>
-                        <div className="text-blue-600 font-semibold">
-                          Click to join →
-                        </div>
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -283,40 +289,46 @@ export function NoActiveMatchView({
                   ERC20 Token Matches ({erc20Matches.length})
                 </h3>
                 <div className="space-y-2">
-                  {erc20Matches.map((match) => (
-                    <button
-                      key={match.id.toString()}
-                      onClick={() => onJoinMatch(match.id, match.stakeAmount, match.token)}
-                      disabled={isJoining || isJoinConfirming}
-                      className={cn(
-                        "w-full p-4 border border-gray-200 rounded-lg text-left transition-all",
-                        isJoining || isJoinConfirming
-                          ? "cursor-not-allowed opacity-50"
-                          : "hover:border-purple-400 hover:shadow-md cursor-pointer hover:bg-purple-50"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="text-sm font-medium text-gray-900">
-                          Match #{match.id.toString()}
+                  {erc20Matches.map((match) => {
+                    const isFull = match.players.length >= Number(match.maxPlayers)
+                    return (
+                      <button
+                        key={match.id.toString()}
+                        onClick={() => !isFull && onJoinMatch(match.id, match.stakeAmount, match.token)}
+                        disabled={isJoining || isJoinConfirming || isFull}
+                        className={cn(
+                          "w-full p-4 border border-gray-200 rounded-lg text-left transition-all",
+                          isJoining || isJoinConfirming || isFull
+                            ? "cursor-not-allowed opacity-50"
+                            : "hover:border-purple-400 hover:shadow-md cursor-pointer hover:bg-purple-50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-sm font-medium text-gray-900">
+                            Match #{match.id.toString()}
+                          </div>
+                          <div className="text-lg font-bold text-purple-600">
+                            {match.stakeAmount.toString()} Tokens
+                          </div>
                         </div>
-                        <div className="text-lg font-bold text-purple-600">
-                          {match.stakeAmount.toString()} Tokens
+                        <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {match.players.length}/{match.maxPlayers.toString()} players
+                          </div>
+                          <div className={cn(
+                            "font-semibold",
+                            isFull ? "text-gray-400" : "text-purple-600"
+                          )}>
+                            {isFull ? "Match Full" : "Click to join →"}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
-                        <div className="flex items-center gap-1">
-                          <Users className="w-3 h-3" />
-                          {match.players.length}/{match.maxPlayers.toString()} players
+                        <div className="text-xs text-gray-500 font-mono truncate">
+                          Token: {match.token}
                         </div>
-                        <div className="text-purple-600 font-semibold">
-                          Click to join →
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-500 font-mono truncate">
-                        Token: {match.token}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}

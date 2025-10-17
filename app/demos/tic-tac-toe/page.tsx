@@ -154,7 +154,7 @@ export default function TicTacToePage() {
 
   // Poll activation countdown status
   useEffect(() => {
-    if (!matchId || matchActivated || activationCountdown === null) return
+    if (!matchId || matchActivated) return
 
     const pollCountdown = async () => {
       try {
@@ -191,28 +191,6 @@ export default function TicTacToePage() {
     // Then poll every second
     const interval = setInterval(pollCountdown, 1000)
     return () => clearInterval(interval)
-  }, [matchId, matchActivated, activationCountdown])
-
-  // Check for existing countdown on page load
-  useEffect(() => {
-    if (!matchId || matchActivated) return
-
-    const checkExistingCountdown = async () => {
-      try {
-        const response = await fetch(`/api/match-countdown/status?matchId=${matchId.toString()}`)
-        const data = await response.json()
-
-        if (data.success && data.hasCountdown && !data.activated) {
-          console.log('⏱️ Found existing countdown:', data.remainingSeconds)
-          setActivationCountdown(data.remainingSeconds)
-          setIsActivatingMatch(data.isActivating)
-        }
-      } catch (error) {
-        console.error('Error checking countdown:', error)
-      }
-    }
-
-    checkExistingCountdown()
   }, [matchId, matchActivated])
 
   // Cancel countdown on withdrawal
