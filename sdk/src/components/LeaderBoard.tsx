@@ -30,6 +30,35 @@ export function LeaderBoard({
   const { getContractAddress } = useOharaAi()
   const scoreBoardAddress = scoreBoardAddressProp || getContractAddress(ContractType.SCOREBOARD)
 
+  // Call all hooks unconditionally, use enabled to control execution
+  const { data: leaderboardData, isLoading, error } = useReadContract({
+    address: scoreBoardAddress,
+    abi: SCOREBOARD_ABI,
+    functionName: sortBy === 'wins' ? 'getTopPlayersByWins' : 'getTopPlayersByPrize',
+    args: [BigInt(limit)],
+    query: {
+      enabled: !!scoreBoardAddress,
+    },
+  })
+
+  const { data: totalPlayers } = useReadContract({
+    address: scoreBoardAddress,
+    abi: SCOREBOARD_ABI,
+    functionName: 'getTotalPlayers',
+    query: {
+      enabled: !!scoreBoardAddress,
+    },
+  })
+
+  const { data: totalMatches } = useReadContract({
+    address: scoreBoardAddress,
+    abi: SCOREBOARD_ABI,
+    functionName: 'getTotalMatches',
+    query: {
+      enabled: !!scoreBoardAddress,
+    },
+  })
+
   // If no address provided or found, show error
   if (!scoreBoardAddress) {
     return (
@@ -44,25 +73,6 @@ export function LeaderBoard({
       </div>
     )
   }
-  
-  const { data: leaderboardData, isLoading, error } = useReadContract({
-    address: scoreBoardAddress,
-    abi: SCOREBOARD_ABI,
-    functionName: sortBy === 'wins' ? 'getTopPlayersByWins' : 'getTopPlayersByPrize',
-    args: [BigInt(limit)],
-  })
-
-  const { data: totalPlayers } = useReadContract({
-    address: scoreBoardAddress,
-    abi: SCOREBOARD_ABI,
-    functionName: 'getTotalPlayers',
-  })
-
-  const { data: totalMatches } = useReadContract({
-    address: scoreBoardAddress,
-    abi: SCOREBOARD_ABI,
-    functionName: 'getTotalMatches',
-  })
 
   if (isLoading) {
     return (

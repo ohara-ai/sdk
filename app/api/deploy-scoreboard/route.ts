@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createWalletClient, http, createPublicClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+import { setContractAddress } from '@/lib/server/contractStorage'
 
 const SCOREBOARD_FACTORY_ABI = [
   {
@@ -58,6 +59,9 @@ export async function POST(request: NextRequest) {
       transport: http(rpcUrl),
     })
 
+    // Get chain ID for storage
+    const chainId = await publicClient.getChainId()
+
     // Deploy the contract
     const hash = await walletClient.writeContract({
       address: factoryAddress as `0x${string}`,
@@ -89,6 +93,14 @@ export async function POST(request: NextRequest) {
 
     if (!deployedAddress) {
       throw new Error('Could not extract deployed address from transaction receipt')
+    }
+
+    // Save the deployed address to backend storage
+    try {
+      await setContractAddress(chainId, 'scoreboard', deployedAddress)
+    } catch (storageError) {
+      console.error('Failed to save address to backend storage:', storageError)
+      // Continue - deployment was successful even if storage failed
     }
 
     return NextResponse.json({

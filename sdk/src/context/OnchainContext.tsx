@@ -7,8 +7,7 @@ import {
 } from '../utils/dependencies'
 
 interface ContractAddresses {
-  [ContractType.SCOREBOARD]?: `0x${string}`
-  [ContractType.GAME_MATCH]?: `0x${string}`
+  [key: string]: `0x${string}` | undefined
 }
 
 interface OnchainContextValue {
@@ -80,50 +79,52 @@ export function OharaAiProvider({ children, env = process.env, chainId: chainIdP
   
   const chainId = chainIdProp || detectedChainId
   
-  // Read addresses from localStorage (reactive to changes)
+  // Read addresses from backend API (shared across all clients)
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === 'undefined' || !chainId) {
+      return
+    }
     
-    const loadAddresses = () => {
-      const addresses: ContractAddresses = {}
-      
-      if (chainId) {
-        // Load from localStorage with chain-specific keys
-        const gameMatchKey = `deployed_game_match_${chainId}`
-        const scoreboardKey = `deployed_scoreboard_${chainId}`
+    const loadAddresses = async () => {
+      try {
+        const response = await fetch(`/api/contracts?chainId=${chainId}`)
         
-        const gameMatch = localStorage.getItem(gameMatchKey)
-        const scoreboard = localStorage.getItem(scoreboardKey)
-        
-        if (gameMatch && gameMatch !== '0x0000000000000000000000000000000000000000') {
-          addresses[ContractType.GAME_MATCH] = gameMatch as `0x${string}`
+        if (!response.ok) {
+          console.error('Failed to fetch contract addresses:', response.statusText)
+          setStorageAddresses({})
+          return
         }
         
-        if (scoreboard && scoreboard !== '0x0000000000000000000000000000000000000000') {
-          addresses[ContractType.SCOREBOARD] = scoreboard as `0x${string}`
+        const data = await response.json()
+        const addresses: ContractAddresses = {}
+        
+        // Map backend keys (camelCase) to ContractType enum values
+        if (data.addresses?.gameMatch && data.addresses.gameMatch !== '0x0000000000000000000000000000000000000000') {
+          addresses[ContractType.GAME_MATCH] = data.addresses.gameMatch as `0x${string}`
         }
+        
+        if (data.addresses?.scoreboard && data.addresses.scoreboard !== '0x0000000000000000000000000000000000000000') {
+          addresses[ContractType.SCOREBOARD] = data.addresses.scoreboard as `0x${string}`
+        }
+        
+        setStorageAddresses(addresses)
+      } catch (error) {
+        console.error('Error loading contract addresses from backend:', error)
+        setStorageAddresses({})
       }
-      
-      setStorageAddresses(addresses)
     }
     
     loadAddresses()
     
-    // Listen for localStorage changes (e.g., from contract deployment)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key?.startsWith('deployed_')) {
-        loadAddresses()
-      }
-    }
+    // Poll for changes every 10 seconds to keep all clients in sync
+    const pollInterval = setInterval(loadAddresses, 10000)
     
-    window.addEventListener('storage', handleStorageChange)
-    
-    // Also listen for custom events (for same-window updates)
+    // Also listen for custom events (for immediate updates after deployment)
     const handleCustomEvent = () => loadAddresses()
     window.addEventListener('contractDeployed', handleCustomEvent)
     
     return () => {
-      window.removeEventListener('storage', handleStorageChange)
+      clearInterval(pollInterval)
       window.removeEventListener('contractDeployed', handleCustomEvent)
     }
   }, [chainId])
@@ -150,7 +151,7 @@ export function OharaAiProvider({ children, env = process.env, chainId: chainIdP
     [activeComponents]
   )
   
-  // Merge addresses: localStorage overrides env vars (more dynamic)
+  // Merge addresses: backend storage overrides env vars (more dynamic)
   const addresses: ContractAddresses = useMemo(() => ({
     [ContractType.SCOREBOARD]: 
       storageAddresses[ContractType.SCOREBOARD] ||

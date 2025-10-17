@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
+import { ConnectWallet } from '@/components/ConnectWallet'
 import { ContractDependencyInfo } from '@/components/ContractDependencyInfo'
 import { ProviderStatus } from '@/components/ProviderStatus'
 
@@ -31,15 +32,18 @@ export default function LeaderboardDemoPage() {
                 Explore the LeaderBoard component with different configurations and sorting options.
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowDeveloperInfo(!showDeveloperInfo)}
-              className="flex items-center gap-1.5"
-            >
-              Developer Info
-              {showDeveloperInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </Button>
+            <div className="flex items-center gap-3">
+              <ConnectWallet />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDeveloperInfo(!showDeveloperInfo)}
+                className="flex items-center gap-1.5"
+              >
+                Developer Info
+                {showDeveloperInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
+            </div>
           </div>
         </div>
 

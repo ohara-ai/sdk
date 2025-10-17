@@ -67,11 +67,13 @@ export default function TicTacToePage() {
   }
 
   const handleMatchCreated = (id: bigint) => {
+    console.log('Match created with ID:', id.toString())
     setMatchId(id)
     resetGame()
   }
 
   const handleMatchJoined = (id: bigint) => {
+    console.log('Joined match with ID:', id.toString())
     setMatchId(id)
     resetGame()
   }
