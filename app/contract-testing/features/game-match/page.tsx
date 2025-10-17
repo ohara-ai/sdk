@@ -11,13 +11,16 @@ import { ContractInformation } from '@/components/features/ContractInformation'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount, useReadContract } from 'wagmi'
-import { useContractInfo } from '@/lib/hooks/useContractInfo'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 import { Button } from '@/components/ui/button'
 import { GAME_MATCH_ABI } from '@/lib/contracts/gameMatch'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
-  const { contractAddress, factoryAddress } = useContractInfo()
+  const { getContractAddress } = useOharaAi()
+  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
+  const factoryAddress = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}` | undefined
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState('matches')

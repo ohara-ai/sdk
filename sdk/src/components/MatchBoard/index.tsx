@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract, usePublicClient, useWatchContractEvent } from 'wagmi'
-import { parseEther, zeroAddress, formatEther, decodeEventLog } from 'viem'
+import { parseEther, parseUnits, zeroAddress, formatEther, decodeEventLog } from 'viem'
 import { GAME_MATCH_ABI, MatchStatus } from '../../abis/gameMatch'
 import { MATCH_BOARD_METADATA } from '../../metadata/componentDependencies'
 import { useComponentRegistration, useOharaAi } from '../../context/OnchainContext'
@@ -15,6 +15,11 @@ export function MatchBoard({
   presetMaxPlayers,
   onMatchCreated,
   onMatchJoined,
+  onMatchActivated,
+  onMatchFull,
+  onMatchLeft,
+  countdownSeconds: countdownSecondsProp,
+  isActivating: isActivatingProp,
   className,
 }: MatchBoardProps) {
   // Auto-register this component for dependency tracking
@@ -26,7 +31,10 @@ export function MatchBoard({
   
   const { address } = useAccount()
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [stakeAmount, setStakeAmount] = useState('')
+  const [stakeAmount, setStakeAmount] = useState('0.01')
+  const [tokenType, setTokenType] = useState<'ETH' | 'ERC20'>('ETH')
+  const [tokenAddress, setTokenAddress] = useState('')
+  const [tokenDecimals, setTokenDecimals] = useState('18')
   const [maxPlayers, setMaxPlayers] = useState(presetMaxPlayers?.toString() || '2')
   const [matches, setMatches] = useState<MatchInfo[]>([])
   const [isLoadingMatches, setIsLoadingMatches] = useState(false)
@@ -34,6 +42,9 @@ export function MatchBoard({
   const [currentMatchInfo, setCurrentMatchInfo] = useState<MatchInfo | null>(null)
   const [matchCreated, setMatchCreated] = useState(false)
   const [isLoadingCurrentMatch, setIsLoadingCurrentMatch] = useState(false)
+  // Use countdown from props (controlled by parent component like TicTacToe app)
+  const countdownSeconds = countdownSecondsProp ?? null
+  const isActivating = isActivatingProp ?? false
 
   // Fetch active match IDs
   const { data: matchIds, refetch: refetchMatchIds, error: matchIdsError } = useReadContract({
@@ -138,9 +149,10 @@ export function MatchBoard({
           })
         )
 
-        // Filter to only show Open matches and check if user has joined any
+        // Filter to only show Open matches and check if user has joined any non-cancelled match
         const openMatches = matchDetails.filter((m) => m.status === 0)
         const joinedMatch = matchDetails.find((m) => 
+          m.status !== 3 && // Not cancelled
           m.players.some((p) => p.toLowerCase() === address.toLowerCase())
         )
         
@@ -166,31 +178,61 @@ export function MatchBoard({
 
   const handleCreateMatch = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!stakeAmount || !maxPlayers || !gameMatchAddress) return
+    
+    console.log('🎮 Create Match - Form Data:', {
+      stakeAmount,
+      maxPlayers,
+      tokenType,
+      tokenAddress,
+      tokenDecimals,
+      gameMatchAddress,
+    })
+    
+    if (!stakeAmount || !maxPlayers || !gameMatchAddress) {
+      console.error('❌ Validation failed:', { stakeAmount, maxPlayers, gameMatchAddress })
+      return
+    }
+    if (tokenType === 'ERC20' && (!tokenAddress || !tokenDecimals)) {
+      console.error('❌ ERC20 token address and decimals required')
+      return
+    }
 
     try {
+      const token = tokenType === 'ETH' ? zeroAddress : tokenAddress as `0x${string}`
+      // For ETH, parseEther handles 18 decimals automatically
+      // For ERC20, parseUnits allows specifying custom decimals
+      const stake = tokenType === 'ETH' 
+        ? parseEther(stakeAmount) 
+        : parseUnits(stakeAmount, parseInt(tokenDecimals))
+      const value = tokenType === 'ETH' ? parseEther(stakeAmount) : 0n
+
+      console.log('✅ Creating match with:', { token, stake: stake.toString(), maxPlayers, value: value.toString(), decimals: tokenDecimals })
+
       createMatch({
         address: gameMatchAddress,
         abi: GAME_MATCH_ABI,
         functionName: 'createMatch',
-        args: [zeroAddress, parseEther(stakeAmount), BigInt(maxPlayers)],
-        value: parseEther(stakeAmount),
+        args: [token, stake, BigInt(maxPlayers)],
+        value,
       })
     } catch (error) {
-      console.error('Error creating match:', error)
+      console.error('❌ Error creating match:', error)
     }
   }
 
-  const handleJoinMatch = async (matchId: bigint, stake: bigint) => {
+  const handleJoinMatch = async (matchId: bigint, stake: bigint, token: `0x${string}`) => {
     if (!gameMatchAddress) return
 
     try {
+      // Only send value if it's an ETH match (token === zeroAddress)
+      const value = token === zeroAddress ? stake : 0n
+      
       joinMatch({
         address: gameMatchAddress,
         abi: GAME_MATCH_ABI,
         functionName: 'joinMatch',
         args: [matchId],
-        value: stake,
+        value,
       })
     } catch (error) {
       console.error('Error joining match:', error)
@@ -247,7 +289,10 @@ export function MatchBoard({
         }
       }
       
-      setStakeAmount('')
+      setStakeAmount('0.01')
+      setTokenType('ETH')
+      setTokenAddress('')
+      setTokenDecimals('18')
       setMaxPlayers(presetMaxPlayers?.toString() || '2')
       setShowCreateForm(false)
     }
@@ -296,10 +341,19 @@ export function MatchBoard({
   useEffect(() => {
     if (isWithdrawSuccess) {
       console.log('✅ Successfully withdrew from match')
+      
+      // Notify parent component
+      onMatchLeft?.()
+      
       setUserJoinedMatchId(null)
       setCurrentMatchInfo(null)
       setMatchCreated(false)
+      // Immediate refetch to update match list
       refetchMatchIds()
+      // Add another refetch after delay to ensure blockchain state has propagated
+      setTimeout(() => {
+        refetchMatchIds()
+      }, 1000)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isWithdrawSuccess])
@@ -318,6 +372,7 @@ export function MatchBoard({
           fetchCurrentMatchInfo()
         }, 300)
       }
+      // Refetch match list to update player counts
       refetchMatchIds()
     },
     enabled: !!gameMatchAddress && userJoinedMatchId !== null,
@@ -330,8 +385,9 @@ export function MatchBoard({
     eventName: 'MatchActivated',
     onLogs(logs) {
       console.log('🔔 MatchActivated event received:', logs)
-      // Update current match info to reflect new status
+      // Notify parent component
       if (userJoinedMatchId !== null) {
+        onMatchActivated?.(userJoinedMatchId)
         setTimeout(() => {
           fetchCurrentMatchInfo()
         }, 300)
@@ -339,6 +395,74 @@ export function MatchBoard({
       refetchMatchIds()
     },
     enabled: !!gameMatchAddress && userJoinedMatchId !== null,
+  })
+
+  // Watch for PlayerWithdrew events to immediately update when user withdraws
+  useWatchContractEvent({
+    address: gameMatchAddress,
+    abi: GAME_MATCH_ABI,
+    eventName: 'PlayerWithdrew',
+    onLogs(logs) {
+      console.log('🔔 PlayerWithdrew event received:', logs)
+      // Check if the withdrawn player is the current user
+      logs.forEach((log) => {
+        try {
+          const decoded = decodeEventLog({
+            abi: GAME_MATCH_ABI,
+            data: log.data,
+            topics: log.topics,
+          })
+          const player = (decoded.args as any).player as string
+          if (player.toLowerCase() === address?.toLowerCase()) {
+            console.log('✅ User withdrew from match, clearing state')
+            setUserJoinedMatchId(null)
+            setCurrentMatchInfo(null)
+            setMatchCreated(false)
+          }
+        } catch (error) {
+          console.error('Error decoding PlayerWithdrew event:', error)
+        }
+      })
+      // Refresh match list after any withdrawal
+      setTimeout(() => {
+        refetchMatchIds()
+      }, 500)
+    },
+    enabled: !!gameMatchAddress && !!address,
+  })
+
+  // Watch for MatchCancelled events to update when matches are cancelled
+  useWatchContractEvent({
+    address: gameMatchAddress,
+    abi: GAME_MATCH_ABI,
+    eventName: 'MatchCancelled',
+    onLogs(logs) {
+      console.log('🔔 MatchCancelled event received:', logs)
+      // Check if the cancelled match is the one the user is in
+      logs.forEach((log) => {
+        try {
+          const decoded = decodeEventLog({
+            abi: GAME_MATCH_ABI,
+            data: log.data,
+            topics: log.topics,
+          })
+          const matchId = (decoded.args as any).matchId as bigint
+          if (userJoinedMatchId !== null && matchId === userJoinedMatchId) {
+            console.log('✅ User\'s match was cancelled, clearing state')
+            setUserJoinedMatchId(null)
+            setCurrentMatchInfo(null)
+            setMatchCreated(false)
+          }
+        } catch (error) {
+          console.error('Error decoding MatchCancelled event:', error)
+        }
+      })
+      // Refresh match list after cancellation
+      setTimeout(() => {
+        refetchMatchIds()
+      }, 500)
+    },
+    enabled: !!gameMatchAddress && !!address,
   })
 
   // Fetch current match info when user is in a match
@@ -383,49 +507,15 @@ export function MatchBoard({
         status: matchInfo.status,
       })
       
-      // Auto-activate when match is full
+      // Notify parent when match becomes full
       if (matchInfo.players.length === Number(matchInfo.maxPlayers) && matchInfo.status === 0) {
-        console.log('🎮 Match is full! Auto-activating...')
-        activateMatch(userJoinedMatchId)
+        onMatchFull?.(userJoinedMatchId)
       }
     } catch (error) {
       console.error('❌ Error fetching current match info:', error)
       setCurrentMatchInfo(null)
     } finally {
       setIsLoadingCurrentMatch(false)
-    }
-  }
-
-  // Auto-activate match when it's full (via API)
-  const [isActivating, setIsActivating] = useState(false)
-
-  const activateMatch = async (matchId: bigint) => {
-    if (!gameMatchAddress || isActivating) return
-
-    setIsActivating(true)
-    try {
-      const response = await fetch('/api/activate-match', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          matchId: matchId.toString(),
-          contractAddress: gameMatchAddress,
-        }),
-      })
-
-      const data = await response.json()
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to activate match')
-      }
-      
-      console.log('✅ Match activated:', data)
-    } catch (error) {
-      console.error('Error activating match:', error)
-    } finally {
-      setIsActivating(false)
     }
   }
 
@@ -480,6 +570,8 @@ export function MatchBoard({
             isWithdrawing={isWithdrawing}
             isWithdrawConfirming={isWithdrawConfirming}
             userAddress={address}
+            countdownSeconds={countdownSeconds}
+            isActivating={isActivating}
             onWithdraw={handleWithdrawStake}
             onRetryFetch={fetchCurrentMatchInfo}
           />
@@ -510,6 +602,9 @@ export function MatchBoard({
         matchIds={matchIds as readonly bigint[] | undefined}
         showCreateForm={showCreateForm}
         stakeAmount={stakeAmount}
+        tokenType={tokenType}
+        tokenAddress={tokenAddress}
+        tokenDecimals={tokenDecimals}
         maxPlayers={maxPlayers}
         presetMaxPlayers={presetMaxPlayers}
         isCreating={isCreating}
@@ -521,6 +616,9 @@ export function MatchBoard({
         onCreateMatch={handleCreateMatch}
         onJoinMatch={handleJoinMatch}
         onStakeChange={setStakeAmount}
+        onTokenTypeChange={setTokenType}
+        onTokenAddressChange={setTokenAddress}
+        onTokenDecimalsChange={setTokenDecimals}
         onMaxPlayersChange={setMaxPlayers}
         onShowCreateForm={setShowCreateForm}
       />

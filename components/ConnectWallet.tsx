@@ -56,11 +56,6 @@ export function ConnectWallet() {
           <Button variant="outline" onClick={() => disconnect()}>
             {shortenAddress(address)}
           </Button>
-          {chain && (
-            <div className="text-xs px-2 py-1 rounded bg-secondary text-secondary-foreground">
-              {chain.name}
-            </div>
-          )}
         </div>
         {isWrongChain && switchChain && (
           <div className="flex items-center gap-2">

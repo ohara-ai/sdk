@@ -5,6 +5,11 @@ export interface MatchBoardProps {
   presetMaxPlayers?: number
   onMatchCreated?: (matchId: bigint) => void
   onMatchJoined?: (matchId: bigint) => void
+  onMatchActivated?: (matchId: bigint) => void
+  onMatchFull?: (matchId: bigint) => void
+  onMatchLeft?: () => void
+  countdownSeconds?: number | null
+  isActivating?: boolean
   className?: string
 }
 

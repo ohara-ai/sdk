@@ -95,8 +95,8 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         // Remove from active tracking
         _removeFromActiveMatches(matchId);
         
-        // Delete match data
-        delete _matches[matchId];
+        // Clean up match data (consistent with other cleanup paths)
+        _cleanupMatch(matchId);
         
         emit InactiveMatchCleaned(matchId, createdAt);
     }
@@ -248,6 +248,19 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         _transfer(m.token, msg.sender, stake);
 
         emit PlayerWithdrew(matchId, msg.sender, stake);
+
+        // If this was the last player, cancel the match and clean up data
+        if (m.players.length == 0) {
+            m.status = MatchStatus.Cancelled;
+            
+            // Remove from active matches tracking
+            _removeFromActiveMatches(matchId);
+            
+            emit MatchCancelled(matchId, new address[](0), 0);
+            
+            // Clean up match data to free storage
+            _cleanupMatch(matchId);
+        }
     }
 
     /// @inheritdoc IGameMatch
@@ -347,10 +360,14 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     function _cleanupMatch(uint256 matchId) internal {
         Match storage m = _matches[matchId];
         address[] memory players = m.players;
+        
+        // Clean up stakes mapping for all players
         for (uint256 i = 0; i < players.length; i++) {
             delete m.stakes[players[i]];
         }
-        delete m.players;
+        
+        // Delete the entire match struct (resets all fields to default values)
+        delete _matches[matchId];
     }
 
     /// @inheritdoc IGameMatch

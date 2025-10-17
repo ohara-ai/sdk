@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label'
 import { getGameMatchFactoryAddress } from '@/lib/contracts/gameMatch'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../DeployFactoryContract'
-import { useDeployedScoreBoardAddress } from '@/lib/hooks/useDeployedAddress'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 
 interface DeployContractProps {
   onDeployed: (address: `0x${string}`) => void
@@ -25,7 +26,8 @@ export function DeployContract({ onDeployed, deployedScoreBoardAddress: propScor
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
   const factoryAddress = getGameMatchFactoryAddress()
-  const { address: hookScoreBoardAddress } = useDeployedScoreBoardAddress()
+  const { getContractAddress } = useOharaAi()
+  const hookScoreBoardAddress = getContractAddress(ContractType.SCOREBOARD)
   
   // Use prop if provided, otherwise fall back to hook (prop takes precedence for reactivity)
   const deployedScoreBoardAddress = propScoreBoardAddress ?? hookScoreBoardAddress

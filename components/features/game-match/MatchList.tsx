@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
 import { useAccount, useReadContract, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
-import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
+import { GAME_MATCH_ABI, MatchStatus } from '@/sdk/src/abis/gameMatch'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 
 interface MatchListProps {
   onSelectMatch: (matchId: number) => void
@@ -28,17 +30,27 @@ interface MatchData {
 
 export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
   const chainId = useChainId()
-  const contractAddress = getGameMatchAddress(chainId)
+  const { getContractAddress } = useOharaAi()
+  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
   const [matches, setMatches] = useState<MatchData[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [matchCount, setMatchCount] = useState(10) // Fetch first 10 matches by default
   
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
-  // For now, we'll use a simple approach: try to read matches 0-9
-  // In production, you'd want to use event logs or a subgraph to get match IDs
+  // Fetch active match IDs from the contract
+  const { data: activeMatchIds, refetch: refetchMatchIds } = useReadContract({
+    address: contractAddress,
+    abi: GAME_MATCH_ABI,
+    functionName: 'getActiveMatchIds',
+    args: [0n, 100n], // Fetch up to 100 active matches
+    query: {
+      enabled: !!contractAddress,
+    },
+  })
+
+  // Fetch match details for all active match IDs
   useEffect(() => {
-    if (!contractAddress) {
+    if (!contractAddress || !activeMatchIds) {
       setMatches([])
       return
     }
@@ -51,43 +63,43 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
       const { readContract } = await import('wagmi/actions')
       const { config } = await import('@/lib/wagmi')
 
-      for (let i = 0; i < matchCount; i++) {
+      console.log('[MatchList] Fetching matches for IDs:', activeMatchIds)
+
+      for (const matchId of (activeMatchIds as readonly bigint[] | undefined) || []) {
         try {
           const result = await readContract(config, {
             address: contractAddress,
             abi: GAME_MATCH_ABI,
             functionName: 'getMatch',
-            args: [BigInt(i)],
+            args: [matchId],
           })
 
-          const [token, stakeAmount, maxPlayers, players, status, winner] = result as [
-            string,
+          const [token, stakeAmount, maxPlayers, players, status, winner, createdAt] = result as readonly [
+            `0x${string}`,
             bigint,
             bigint,
-            string[],
+            readonly `0x${string}`[],
             number,
-            string
+            `0x${string}`,
+            bigint
           ]
 
-          // Only add if match exists (has players)
-          if (players && players.length > 0) {
-            console.log(`[MatchList] Found match ${i} with ${players.length} players`)
-            const isNativeToken = token === zeroAddress
-            fetchedMatches.push({
-              id: i,
-              stakeAmount: formatEther(stakeAmount),
-              maxPlayers: Number(maxPlayers),
-              currentPlayers: players.length,
-              status: ['Open', 'Active', 'Finalized'][status] || 'Unknown',
-              token: isNativeToken ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
-              tokenAddress: token,
-              isNativeToken,
-              winner: winner !== zeroAddress ? `${winner.slice(0, 6)}...${winner.slice(-4)}` : undefined,
-            })
-          }
+          console.log(`[MatchList] Found match ${matchId.toString()} with ${players.length} players, status: ${status}`)
+          const isNativeToken = token === zeroAddress
+          fetchedMatches.push({
+            id: Number(matchId),
+            stakeAmount: formatEther(stakeAmount),
+            maxPlayers: Number(maxPlayers),
+            currentPlayers: players.length,
+            status: ['Open', 'Active', 'Finalized'][status] || 'Unknown',
+            token: isNativeToken ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
+            tokenAddress: token,
+            isNativeToken,
+            winner: winner !== zeroAddress ? `${winner.slice(0, 6)}...${winner.slice(-4)}` : undefined,
+          })
         } catch (err) {
-          // Match doesn't exist or error, skip
-          console.log(`[MatchList] Skipping match ${i}: ${err instanceof Error ? err.message : 'unknown error'}`)
+          // Match read error, skip
+          console.error(`[MatchList] Error reading match ${matchId.toString()}:`, err)
           continue
         }
       }
@@ -99,7 +111,7 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
     }
 
     fetchMatches()
-  }, [contractAddress, blockNumber, matchCount])
+  }, [contractAddress, activeMatchIds, blockNumber])
 
   if (!contractAddress) {
     return (
@@ -144,54 +156,7 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
               variant="outline"
               size="sm"
               onClick={() => {
-                const fetchMatches = async () => {
-                  if (!contractAddress) return
-                  setIsLoading(true)
-                  const fetchedMatches: MatchData[] = []
-                  const { readContract } = await import('wagmi/actions')
-                  const { config } = await import('@/lib/wagmi')
-
-                  for (let i = 0; i < matchCount; i++) {
-                    try {
-                      const result = await readContract(config, {
-                        address: contractAddress,
-                        abi: GAME_MATCH_ABI,
-                        functionName: 'getMatch',
-                        args: [BigInt(i)],
-                      })
-                      const [token, stakeAmount, maxPlayers, players, status, winner] = result as [
-                        string,
-                        bigint,
-                        bigint,
-                        string[],
-                        number,
-                        string
-                      ]
-                      if (players && players.length > 0) {
-                        console.log(`[MatchList] Found match ${i} with ${players.length} players`)
-                        const isNativeToken = token === zeroAddress
-                        fetchedMatches.push({
-                          id: i,
-                          stakeAmount: formatEther(stakeAmount),
-                          maxPlayers: Number(maxPlayers),
-                          currentPlayers: players.length,
-                          status: ['Open', 'Active', 'Finalized'][status] || 'Unknown',
-                          token: isNativeToken ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
-                          tokenAddress: token,
-                          isNativeToken,
-                          winner: winner !== zeroAddress ? `${winner.slice(0, 6)}...${winner.slice(-4)}` : undefined,
-                        })
-                      }
-                    } catch (err) {
-                      console.log(`[MatchList] Skipping match ${i}: ${err instanceof Error ? err.message : 'unknown error'}`)
-                      continue
-                    }
-                  }
-                  console.log(`[MatchList] Total matches found: ${fetchedMatches.length}`)
-                  setMatches(fetchedMatches)
-                  setIsLoading(false)
-                }
-                fetchMatches()
+                refetchMatchIds()
               }}
               disabled={isLoading}
             >

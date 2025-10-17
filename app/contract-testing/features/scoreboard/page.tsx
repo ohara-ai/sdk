@@ -8,13 +8,14 @@ import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount, useReadContract } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { useDeployedScoreBoardAddress } from '@/lib/hooks/useDeployedAddress'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 import { getScoreBoardFactoryAddress, SCOREBOARD_ABI } from '@/lib/contracts/scoreBoard'
 
 export default function ScoreBoardPage() {
   const { isConnected, address: userAddress } = useAccount()
-  const { address: contractAddressRaw } = useDeployedScoreBoardAddress()
-  const contractAddress = contractAddressRaw || undefined
+  const { getContractAddress } = useOharaAi()
+  const contractAddress = getContractAddress(ContractType.SCOREBOARD)
   const factoryAddress = getScoreBoardFactoryAddress()
   
   const [mounted, setMounted] = useState(false)

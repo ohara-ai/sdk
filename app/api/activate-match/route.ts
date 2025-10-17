@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createWalletClient, http, createPublicClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+import { MatchActivationStorage } from '@/lib/server/matchActivationStorage'
 
 const GAME_MATCH_ABI = [
   {
@@ -103,6 +104,9 @@ export async function POST(request: NextRequest) {
 
     // Wait for transaction receipt
     const receipt = await publicClient.waitForTransactionReceipt({ hash })
+
+    // Mark the match as activated in our countdown storage
+    MatchActivationStorage.markActivated(matchId.toString())
 
     return NextResponse.json({
       success: true,

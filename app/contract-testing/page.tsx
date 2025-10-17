@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { ArrowRight, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
-import { useDeployedGameMatchAddress, useDeployedScoreBoardAddress } from '@/lib/hooks/useDeployedAddress'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 import { DeployContract as DeployGameMatch } from '@/components/features/game-match/DeployContract'
 import { DeployContract as DeployScoreBoard } from '@/components/features/scoreboard/DeployContract'
 import { FactoryInformation } from '@/components/features/FactoryInformation'
@@ -12,19 +13,9 @@ import { ConnectWallet } from '@/components/ConnectWallet'
 import { Button } from '@/components/ui/button'
 
 export default function ContractTestingPage() {
-  const { 
-    address: gameMatchAddress, 
-    setAddress: setGameMatchAddress, 
-    isValidating: isValidatingGameMatch, 
-    isFromEnv: isGameMatchFromEnv 
-  } = useDeployedGameMatchAddress()
-  
-  const { 
-    address: scoreBoardAddress, 
-    setAddress: setScoreBoardAddress, 
-    isValidating: isValidatingScoreBoard, 
-    isFromEnv: isScoreBoardFromEnv 
-  } = useDeployedScoreBoardAddress()
+  const { getContractAddress, addresses } = useOharaAi()
+  const gameMatchAddress = getContractAddress(ContractType.GAME_MATCH)
+  const scoreBoardAddress = getContractAddress(ContractType.SCOREBOARD)
   
   const [mounted, setMounted] = useState(false)
   const [showFactoryDetails, setShowFactoryDetails] = useState(false)
@@ -34,11 +25,13 @@ export default function ContractTestingPage() {
   }, [])
 
   const handleGameMatchDeployed = (newAddress: `0x${string}`) => {
-    setGameMatchAddress(newAddress)
+    // Address will be automatically picked up by OharaAiProvider polling
+    console.log('GameMatch deployed:', newAddress)
   }
 
   const handleScoreBoardDeployed = (newAddress: `0x${string}`) => {
-    setScoreBoardAddress(newAddress)
+    // Address will be automatically picked up by OharaAiProvider polling
+    console.log('ScoreBoard deployed:', newAddress)
   }
 
   const formatAddress = (addr: string) => {
@@ -111,17 +104,12 @@ export default function ContractTestingPage() {
                     Escrow-based match system with stake management and winner selection
                   </CardDescription>
                   <div className="pt-3 border-t border-gray-100">
-                    {mounted && !isValidatingGameMatch && gameMatchAddress ? (
+                    {mounted && gameMatchAddress ? (
                       <div className="space-y-2">
                         <div className="text-xs font-medium text-gray-700">Contract Address</div>
                         <code className="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-mono bg-blue-50 text-blue-700 border border-blue-200">
                           {formatAddress(gameMatchAddress)}
                         </code>
-                        {isGameMatchFromEnv && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            from .env configuration
-                          </div>
-                        )}
                       </div>
                     ) : (
                       <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
@@ -132,7 +120,7 @@ export default function ContractTestingPage() {
                 </CardHeader>
               </Card>
             </Link>
-            {mounted && !isValidatingGameMatch && (
+            {mounted && (
               <DeployGameMatch 
                 onDeployed={handleGameMatchDeployed}
                 deployedScoreBoardAddress={scoreBoardAddress}
@@ -156,17 +144,12 @@ export default function ContractTestingPage() {
                     Track player scores, wins, and match history across all games
                   </CardDescription>
                   <div className="pt-3 border-t border-gray-100">
-                    {mounted && !isValidatingScoreBoard && scoreBoardAddress ? (
+                    {mounted && scoreBoardAddress ? (
                       <div className="space-y-2">
                         <div className="text-xs font-medium text-gray-700">Contract Address</div>
                         <code className="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-mono bg-purple-50 text-purple-700 border border-purple-200">
                           {formatAddress(scoreBoardAddress)}
                         </code>
-                        {isScoreBoardFromEnv && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            from .env configuration
-                          </div>
-                        )}
                       </div>
                     ) : (
                       <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
@@ -177,7 +160,7 @@ export default function ContractTestingPage() {
                 </CardHeader>
               </Card>
             </Link>
-            {mounted && !isValidatingScoreBoard && (
+            {mounted && (
               <DeployScoreBoard onDeployed={handleScoreBoardDeployed} />
             )}
           </div>

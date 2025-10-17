@@ -1,85 +1,379 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useAccount } from 'wagmi'
 import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
 import { MatchBoard } from '@/sdk/src/components/MatchBoard'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { X, Circle, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { X, Circle, ArrowLeft, ChevronDown, ChevronUp, Clock, Loader2, Trophy, Users } from 'lucide-react'
 import Link from 'next/link'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { ContractDependencyInfo } from '@/components/ContractDependencyInfo'
 import { ProviderStatus } from '@/components/ProviderStatus'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 
 type CellValue = 'X' | 'O' | null
 type Board = CellValue[]
 
-const WINNING_COMBINATIONS = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-]
+interface GameState {
+  matchId: string
+  contractAddress: string
+  board: Board
+  players: {
+    X: string
+    O: string
+  }
+  currentTurn: 'X' | 'O'
+  status: 'waiting' | 'active' | 'finished'
+  winner: 'X' | 'O' | 'draw' | null
+  moveDeadline: number | null
+  moveHistory: any[]
+}
 
 export default function TicTacToePage() {
-  const [board, setBoard] = useState<Board>(Array(9).fill(null))
-  const [currentPlayer, setCurrentPlayer] = useState<'X' | 'O'>('X')
-  const [winner, setWinner] = useState<'X' | 'O' | 'draw' | null>(null)
+  const { address } = useAccount()
+  const { getContractAddress } = useOharaAi()
+  const gameMatchAddress = getContractAddress(ContractType.GAME_MATCH)
+  
   const [matchId, setMatchId] = useState<bigint | null>(null)
   const [showDeveloperInfo, setShowDeveloperInfo] = useState(false)
   const [isMatchCreated, setIsMatchCreated] = useState(false)
+  const [gameState, setGameState] = useState<GameState | null>(null)
+  const [isLoadingGame, setIsLoadingGame] = useState(false)
+  const [isInitializingGame, setIsInitializingGame] = useState(false)
+  const [isMakingMove, setIsMakingMove] = useState(false)
+  const [moveError, setMoveError] = useState<string | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
+  const [matchActivated, setMatchActivated] = useState(false)
+  const [activationCountdown, setActivationCountdown] = useState<number | null>(null)
+  const [isActivatingMatch, setIsActivatingMatch] = useState(false)
 
-  const checkWinner = (newBoard: Board): 'X' | 'O' | 'draw' | null => {
-    for (const combo of WINNING_COMBINATIONS) {
-      const [a, b, c] = combo
-      if (newBoard[a] && newBoard[a] === newBoard[b] && newBoard[a] === newBoard[c]) {
-        return newBoard[a]!
+  // Initialize game when match is activated
+  const initializeGame = useCallback(async () => {
+    if (!matchId || !gameMatchAddress || isInitializingGame) return
+
+    setIsInitializingGame(true)
+    try {
+      const response = await fetch('/api/game/init', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matchId: matchId.toString(),
+          contractAddress: gameMatchAddress,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success && data.game) {
+        setGameState(data.game)
+        setMatchActivated(true)
+        console.log('🎮 Game initialized:', data.game)
+      }
+    } catch (error) {
+      console.error('Failed to initialize game:', error)
+    } finally {
+      setIsInitializingGame(false)
+    }
+  }, [matchId, gameMatchAddress, isInitializingGame])
+
+  // Fetch game state
+  const fetchGameState = useCallback(async () => {
+    if (!matchId) return
+
+    try {
+      const response = await fetch(`/api/game/state?matchId=${matchId.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.success && data.game) {
+          setGameState(data.game)
+        }
+      } else if (response.status === 404) {
+        // Game not initialized yet
+        if (matchActivated) {
+          await initializeGame()
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch game state:', error)
+    }
+  }, [matchId, matchActivated, initializeGame])
+
+  // Make a move
+  const handleCellClick = async (index: number) => {
+    if (!gameState || !address || isMakingMove) return
+    if (gameState.status !== 'active') return
+    if (gameState.board[index] !== null) return
+
+    // Check if it's the player's turn
+    const playerSymbol = gameState.players.X.toLowerCase() === address.toLowerCase() ? 'X' : 
+                        gameState.players.O.toLowerCase() === address.toLowerCase() ? 'O' : null
+    
+    if (!playerSymbol) {
+      setMoveError('You are not a player in this game')
+      return
+    }
+
+    if (playerSymbol !== gameState.currentTurn) {
+      setMoveError('Not your turn')
+      setTimeout(() => setMoveError(null), 3000)
+      return
+    }
+
+    setIsMakingMove(true)
+    setMoveError(null)
+
+    try {
+      const response = await fetch('/api/game/move', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matchId: matchId!.toString(),
+          playerAddress: address,
+          position: index,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success && data.game) {
+        setGameState(data.game)
+      } else {
+        setMoveError(data.error || 'Failed to make move')
+        setTimeout(() => setMoveError(null), 3000)
+      }
+    } catch (error) {
+      console.error('Failed to make move:', error)
+      setMoveError('Failed to make move')
+      setTimeout(() => setMoveError(null), 3000)
+    } finally {
+      setIsMakingMove(false)
+    }
+  }
+
+  // Poll activation countdown status
+  useEffect(() => {
+    if (!matchId || matchActivated || activationCountdown === null) return
+
+    const pollCountdown = async () => {
+      try {
+        const response = await fetch(`/api/match-countdown/status?matchId=${matchId.toString()}`)
+        const data = await response.json()
+
+        if (data.success) {
+          if (data.hasCountdown && !data.activated) {
+            setActivationCountdown(data.remainingSeconds)
+            setIsActivatingMatch(data.isActivating)
+            
+            if (data.remainingSeconds === 0) {
+              setIsActivatingMatch(true)
+            }
+          } else if (data.activated) {
+            // Match activated
+            setActivationCountdown(null)
+            setIsActivatingMatch(false)
+            setMatchActivated(true)
+          } else {
+            // No countdown
+            setActivationCountdown(null)
+            setIsActivatingMatch(false)
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error polling countdown:', error)
       }
     }
-    if (newBoard.every((cell) => cell !== null)) {
-      return 'draw'
+
+    // Poll immediately
+    pollCountdown()
+
+    // Then poll every second
+    const interval = setInterval(pollCountdown, 1000)
+    return () => clearInterval(interval)
+  }, [matchId, matchActivated, activationCountdown])
+
+  // Check for existing countdown on page load
+  useEffect(() => {
+    if (!matchId || matchActivated) return
+
+    const checkExistingCountdown = async () => {
+      try {
+        const response = await fetch(`/api/match-countdown/status?matchId=${matchId.toString()}`)
+        const data = await response.json()
+
+        if (data.success && data.hasCountdown && !data.activated) {
+          console.log('⏱️ Found existing countdown:', data.remainingSeconds)
+          setActivationCountdown(data.remainingSeconds)
+          setIsActivatingMatch(data.isActivating)
+        }
+      } catch (error) {
+        console.error('Error checking countdown:', error)
+      }
     }
-    return null
-  }
 
-  const handleCellClick = (index: number) => {
-    if (board[index] || winner) return
+    checkExistingCountdown()
+  }, [matchId, matchActivated])
 
-    const newBoard = [...board]
-    newBoard[index] = currentPlayer
-    setBoard(newBoard)
+  // Cancel countdown on withdrawal
+  const cancelCountdown = useCallback(async () => {
+    if (!matchId) return
 
-    const gameWinner = checkWinner(newBoard)
-    if (gameWinner) {
-      setWinner(gameWinner)
-    } else {
-      setCurrentPlayer(currentPlayer === 'X' ? 'O' : 'X')
+    try {
+      await fetch('/api/match-countdown/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId: matchId.toString() }),
+      })
+      setActivationCountdown(null)
+      setIsActivatingMatch(false)
+    } catch (error) {
+      console.error('Error cancelling countdown:', error)
     }
-  }
+  }, [matchId])
 
-  const resetGame = () => {
-    setBoard(Array(9).fill(null))
-    setCurrentPlayer('X')
-    setWinner(null)
-  }
+  // Check for timeouts
+  const checkTimeout = useCallback(async () => {
+    if (!matchId || !gameState || gameState.status !== 'active') return
+
+    try {
+      const response = await fetch('/api/game/check-timeout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId: matchId.toString() }),
+      })
+
+      const data = await response.json()
+      if (data.success && data.game) {
+        setGameState(data.game)
+        if (data.timedOut) {
+          console.log('⏰ Player timed out, match finalized')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check timeout:', error)
+    }
+  }, [matchId, gameState])
 
   const handleMatchCreated = (id: bigint) => {
     console.log('Match created with ID:', id.toString())
     setMatchId(id)
     setIsMatchCreated(true)
-    resetGame()
+    setGameState(null)
+    setMatchActivated(false)
+    setActivationCountdown(null)
+    setIsActivatingMatch(false)
   }
 
   const handleMatchJoined = (id: bigint) => {
     console.log('Joined match with ID:', id.toString())
     setMatchId(id)
     setIsMatchCreated(false)
-    resetGame()
+    setGameState(null)
+    setMatchActivated(false)
+    setActivationCountdown(null)
+    setIsActivatingMatch(false)
   }
+
+  const handleMatchLeft = useCallback(() => {
+    console.log('Left match, cancelling countdown')
+    cancelCountdown()
+    setMatchId(null)
+    setIsMatchCreated(false)
+    setGameState(null)
+    setMatchActivated(false)
+    setActivationCountdown(null)
+    setIsActivatingMatch(false)
+  }, [cancelCountdown])
+
+  const handleMatchActivated = () => {
+    console.log('Match activated, initializing game...')
+    setMatchActivated(true)
+    setActivationCountdown(null)
+    setIsActivatingMatch(false)
+  }
+
+  const handleMatchFull = useCallback(async (id: bigint) => {
+    console.log('Match is full! Starting countdown...', id.toString())
+    if (!gameMatchAddress) return
+
+    try {
+      const response = await fetch('/api/match-countdown/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matchId: id.toString(),
+          contractAddress: gameMatchAddress,
+          countdownSeconds: 30,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        console.log('✅ Countdown started:', data)
+        setActivationCountdown(data.remainingSeconds)
+      } else {
+        console.error('❌ Failed to start countdown:', data.error)
+      }
+    } catch (error) {
+      console.error('❌ Error starting countdown:', error)
+    }
+  }, [gameMatchAddress])
+
+  // Poll for game state updates
+  useEffect(() => {
+    if (!matchId || !matchActivated) return
+
+    fetchGameState()
+    const interval = setInterval(fetchGameState, 2000) // Poll every 2 seconds
+    return () => clearInterval(interval)
+  }, [matchId, matchActivated, fetchGameState])
+
+  // Initialize game when match is activated
+  useEffect(() => {
+    if (matchActivated && !gameState && matchId) {
+      initializeGame()
+    }
+  }, [matchActivated, gameState, matchId, initializeGame])
+
+  // Update time remaining
+  useEffect(() => {
+    if (!gameState || gameState.status !== 'active' || !gameState.moveDeadline) {
+      setTimeRemaining(null)
+      return
+    }
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((gameState.moveDeadline! - Date.now()) / 1000))
+      setTimeRemaining(remaining)
+
+      if (remaining === 0) {
+        // Check for timeout
+        checkTimeout()
+      }
+    }
+
+    updateTimer()
+    const interval = setInterval(updateTimer, 100)
+    return () => clearInterval(interval)
+  }, [gameState, checkTimeout])
+
+  // Get player info
+  const getPlayerInfo = () => {
+    if (!gameState || !address) return null
+
+    const addr = address.toLowerCase()
+    if (gameState.players.X === addr) {
+      return { symbol: 'X' as const, isMyTurn: gameState.currentTurn === 'X' }
+    }
+    if (gameState.players.O === addr) {
+      return { symbol: 'O' as const, isMyTurn: gameState.currentTurn === 'O' }
+    }
+    return null
+  }
+
+  const playerInfo = getPlayerInfo()
+  const isSpectator = gameState && address && !playerInfo
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -143,49 +437,205 @@ export default function TicTacToePage() {
               </CardHeader>
               <CardContent>
                 <div className="max-w-md mx-auto">
-                  {winner ? (
-                    <div className="mb-6 text-center">
-                      <div className="text-2xl font-bold mb-2">
-                        {winner === 'draw' ? "It's a Draw!" : `Player ${winner} Wins!`}
-                      </div>
-                      <Button onClick={resetGame} className="mt-4">
-                        Play Again
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="mb-6 text-center">
-                      <div className="text-xl font-semibold">
-                        Current Player: {currentPlayer}
+                  {/* Activation Countdown Banner */}
+                  {activationCountdown !== null && !matchActivated && (
+                    <div className="mb-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg p-6 shadow-lg animate-pulse">
+                      <div className="text-center">
+                        <Clock className="w-16 h-16 mx-auto mb-3 text-white" />
+                        <div className="text-2xl font-bold text-white mb-2">Match Starting Soon!</div>
+                        <div className="text-lg text-white/90 mb-3">
+                          Game begins in <span className="text-4xl font-bold tabular-nums">{activationCountdown}</span> seconds
+                        </div>
+                        {isActivatingMatch && (
+                          <div className="flex items-center justify-center gap-2 text-white">
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span className="text-sm">Activating match...</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  <div className="grid grid-cols-3 gap-3 aspect-square">
-                    {board.map((cell, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleCellClick(index)}
-                        disabled={!!cell || !!winner}
-                        className="bg-white border-2 border-gray-300 rounded-lg hover:border-blue-500 
-                                 transition-all disabled:cursor-not-allowed disabled:hover:border-gray-300
-                                 flex items-center justify-center text-4xl font-bold"
-                      >
-                        {cell === 'X' && <X className="w-16 h-16 text-blue-600" />}
-                        {cell === 'O' && <Circle className="w-16 h-16 text-red-600" />}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Waiting for match */}
+                  {!gameState && !matchActivated && activationCountdown === null && (
+                    <div className="text-center py-12 text-gray-500">
+                      <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-lg font-semibold mb-2">No Active Game</p>
+                      <p className="text-sm">Create or join a match to start playing</p>
+                    </div>
+                  )}
 
-                  <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                    <h3 className="font-semibold mb-2">How to Play:</h3>
-                    <ol className="text-sm text-gray-700 space-y-1">
-                      <li>1. Create or join a wagered match using the MatchBoard</li>
-                      <li>2. Players take turns placing X and O</li>
-                      <li>3. First to get 3 in a row wins the match</li>
-                      <li>4. Winner takes the prize pool!</li>
-                    </ol>
-                  </div>
+                  {/* Initializing game */}
+                  {matchActivated && !gameState && isInitializingGame && (
+                    <div className="text-center py-12">
+                      <Loader2 className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
+                      <p className="text-lg font-semibold">Initializing game...</p>
+                    </div>
+                  )}
+
+                  {/* Active game */}
+                  {gameState && (
+                    <>
+                      {/* Error Message */}
+                      {moveError && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm text-center">
+                          {moveError}
+                        </div>
+                      )}
+
+                      {/* Game Status */}
+                      {gameState.status === 'finished' ? (
+                        <div className="mb-6 text-center">
+                          <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full mb-4">
+                            <Trophy className="w-6 h-6" />
+                            <span className="text-2xl font-bold">
+                              {gameState.winner === 'draw' 
+                                ? "It's a Draw!" 
+                                : `Player ${gameState.winner} Wins!`}
+                            </span>
+                          </div>
+                          {gameState.winner !== 'draw' && playerInfo && (
+                            <div className="text-lg">
+                              {playerInfo.symbol === gameState.winner ? (
+                                <span className="text-green-600 font-semibold">🎉 You Won!</span>
+                              ) : (
+                                <span className="text-red-600 font-semibold">You Lost</span>
+                              )}
+                            </div>
+                          )}
+                          <p className="text-sm text-gray-600 mt-2">Match finalized on-chain</p>
+                        </div>
+                      ) : (
+                        <div className="mb-6">
+                          {/* Current Turn & Timer */}
+                          <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                            <div>
+                              <div className="text-sm text-gray-600 mb-1">Current Turn</div>
+                              <div className="flex items-center gap-2">
+                                {gameState.currentTurn === 'X' ? (
+                                  <X className="w-6 h-6 text-blue-600" />
+                                ) : (
+                                  <Circle className="w-6 h-6 text-red-600" />
+                                )}
+                                <span className="text-xl font-bold">Player {gameState.currentTurn}</span>
+                                {playerInfo && playerInfo.isMyTurn && (
+                                  <Badge className="bg-green-500">Your Turn</Badge>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {timeRemaining !== null && (
+                              <div className="text-center">
+                                <div className="text-sm text-gray-600 mb-1">Time Left</div>
+                                <div className={`flex items-center gap-2 text-2xl font-bold tabular-nums ${
+                                  timeRemaining <= 10 ? 'text-red-600 animate-pulse' : 'text-gray-800'
+                                }`}>
+                                  <Clock className="w-5 h-5" />
+                                  {timeRemaining}s
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Player Info */}
+                          {playerInfo && (
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
+                              <span className="text-sm text-blue-800">
+                                You are playing as <span className="font-bold">Player {playerInfo.symbol}</span>
+                              </span>
+                            </div>
+                          )}
+
+                          {isSpectator && (
+                            <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                              <span className="text-sm text-gray-600">
+                                👁️ You are spectating this game
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Game Board */}
+                      <div className="grid grid-cols-3 gap-3 aspect-square relative">
+                        {isMakingMove && (
+                          <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10 rounded-lg">
+                            <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                          </div>
+                        )}
+                        {gameState.board.map((cell: CellValue, index: number) => {
+                          const isMyTurn = playerInfo?.isMyTurn
+                          const canClick = gameState.status === 'active' && !cell && isMyTurn && !isMakingMove
+                          
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => handleCellClick(index)}
+                              disabled={!canClick}
+                              className={`bg-white border-2 rounded-lg transition-all flex items-center justify-center text-4xl font-bold ${
+                                canClick
+                                  ? 'border-gray-300 hover:border-blue-500 hover:bg-blue-50 cursor-pointer'
+                                  : 'border-gray-200 cursor-not-allowed'
+                              } ${cell ? 'bg-gray-50' : ''}`}
+                            >
+                              {cell === 'X' && <X className="w-16 h-16 text-blue-600" />}
+                              {cell === 'O' && <Circle className="w-16 h-16 text-red-600" />}
+                            </button>
+                          )
+                        })}
+                      </div>
+
+                      {/* Game Info */}
+                      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                        <h3 className="font-semibold mb-3 flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Players
+                        </h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between p-2 bg-white rounded">
+                            <div className="flex items-center gap-2">
+                              <X className="w-4 h-4 text-blue-600" />
+                              <span className="font-mono text-xs">
+                                {gameState.players.X.slice(0, 6)}...{gameState.players.X.slice(-4)}
+                              </span>
+                            </div>
+                            {playerInfo?.symbol === 'X' && (
+                              <Badge variant="outline" className="text-xs">You</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between p-2 bg-white rounded">
+                            <div className="flex items-center gap-2">
+                              <Circle className="w-4 h-4 text-red-600" />
+                              <span className="font-mono text-xs">
+                                {gameState.players.O.slice(0, 6)}...{gameState.players.O.slice(-4)}
+                              </span>
+                            </div>
+                            {playerInfo?.symbol === 'O' && (
+                              <Badge variant="outline" className="text-xs">You</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* How to Play */}
+            <Card>
+              <CardHeader>
+                <CardTitle>How to Play</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ol className="text-sm text-gray-700 space-y-2">
+                  <li>1. Create or join a wagered match using the MatchBoard</li>
+                  <li>2. Wait for another player to join (30s countdown starts)</li>
+                  <li>3. Game activates automatically when full</li>
+                  <li>4. Players take turns placing X and O (60s per move)</li>
+                  <li>5. First to get 3 in a row wins the prize pool!</li>
+                  <li>6. If you timeout, you lose automatically</li>
+                </ol>
               </CardContent>
             </Card>
           </div>
@@ -196,16 +646,30 @@ export default function TicTacToePage() {
               presetMaxPlayers={2}
               onMatchCreated={handleMatchCreated}
               onMatchJoined={handleMatchJoined}
+              onMatchActivated={handleMatchActivated}
+              onMatchFull={handleMatchFull}
+              onMatchLeft={handleMatchLeft}
+              countdownSeconds={activationCountdown}
+              isActivating={isActivatingMatch}
+            />
+            {matchId && activationCountdown !== null && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center gap-2 text-sm text-yellow-800">
+                  <Clock className="w-4 h-4" />
+                  <span className="font-semibold">Match starts in {activationCountdown}s</span>
+                </div>
+                <p className="text-xs text-yellow-700 mt-1">
+                  You can still withdraw before the countdown ends
+                </p>
+              </div>
+            )}
+
+            {/* Leaderboard - Address automatically resolved from OharaAiProvider */}
+            <LeaderBoard
+              limit={10}
+              sortBy="wins"
             />
           </div>
-        </div>
-
-        {/* Leaderboard - Address automatically resolved from OharaAiProvider */}
-        <div className="mt-6">
-          <LeaderBoard
-            limit={10}
-            sortBy="wins"
-          />
         </div>
       </div>
     </div>

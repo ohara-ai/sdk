@@ -7,8 +7,10 @@ import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, Clock, CheckCircle2, AlertCircle, Play, Flag } from 'lucide-react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress, parseEther } from 'viem'
-import { GAME_MATCH_ABI, getGameMatchAddress, MatchStatus } from '@/lib/contracts/gameMatch'
+import { GAME_MATCH_ABI, MatchStatus } from '@/lib/contracts/gameMatch'
 import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
 
 interface MatchDetailsProps {
   matchId: number | null
@@ -27,7 +29,8 @@ interface MatchData {
 export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { address } = useAccount()
   const chainId = useChainId()
-  const contractAddress = getGameMatchAddress(chainId)
+  const { getContractAddress } = useOharaAi()
+  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
   const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -90,13 +93,14 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           args: [BigInt(matchId)],
         })
 
-        const [token, stakeAmount, maxPlayers, players, status, winner] = result as [
-          string,
+        const [token, stakeAmount, maxPlayers, players, status, winner, createdAt] = result as readonly [
+          `0x${string}`,
           bigint,
           bigint,
-          string[],
+          readonly `0x${string}`[],
           number,
-          string
+          `0x${string}`,
+          bigint
         ]
 
         console.log(`[MatchDetails] Fetched match ${matchId}:`, {
@@ -121,12 +125,12 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         }
 
         setMatchData({
-          token,
+          token: token as string,
           stakeAmount,
           maxPlayers,
-          players,
+          players: Array.from(players) as string[],
           status,
-          winner,
+          winner: winner as string,
         })
         setFetchError(null)
       } catch (error) {

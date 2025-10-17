@@ -112,27 +112,30 @@ contract ScoreBoard is IScoreBoard, Owned {
 
     /**
      * @notice Evict the oldest match record
+     * @dev Oldest match is always at index 0 due to append-only chronological ordering.
+     *      Uses swap-and-pop for O(1) removal instead of O(n) shift-left.
      */
     function _evictOldestMatch() internal {
         if (_matchIds.length == 0) return;
         
-        // The oldest match is always at index 0
+        // Oldest match is always at index 0 (chronological order guaranteed)
         uint256 oldestMatchId = _matchIds[0];
+        uint256 oldestTimestamp = _matchRecords[oldestMatchId].timestamp;
         
-        // Remove from array by shifting all elements left
-        for (uint256 i = 0; i < _matchIds.length - 1; i++) {
-            _matchIds[i] = _matchIds[i + 1];
+        // Swap first with last, then pop (O(1) instead of shift-left O(n))
+        uint256 lastIndex = _matchIds.length - 1;
+        if (lastIndex > 0) {
+            _matchIds[0] = _matchIds[lastIndex];
         }
         _matchIds.pop();
         
-        // Get match data before deleting
-        MatchRecord storage record = _matchRecords[oldestMatchId];
-        uint256 evictedTimestamp = record.timestamp;
+        // Explicitly clean up dynamic array within struct for gas refund
+        delete _matchRecords[oldestMatchId].losers;
         
-        // Clean up the match record
+        // Clean up the entire match record
         delete _matchRecords[oldestMatchId];
         
-        emit MatchEvicted(oldestMatchId, evictedTimestamp);
+        emit MatchEvicted(oldestMatchId, oldestTimestamp);
     }
 
     /**

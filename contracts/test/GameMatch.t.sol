@@ -158,13 +158,20 @@ contract GameMatchTest is Test {
         vm.prank(player1);
         vm.expectEmit(true, true, false, true);
         emit PlayerWithdrew(matchId, player1, STAKE_AMOUNT);
+        vm.expectEmit(true, false, false, true);
+        emit MatchCancelled(matchId, new address[](0), 0);
         gameMatch.withdrawStake(matchId);
 
         assertEq(player1.balance, balanceBefore + STAKE_AMOUNT);
         assertEq(gameMatch.getPlayerStake(matchId, player1), 0);
         
-        (, , , address[] memory players, , , ) = gameMatch.getMatch(matchId);
+        // After cleanup, match data is deleted and returns default values
+        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
         assertEq(players.length, 0);
+        assertEq(matchToken, address(0)); // Default value
+        assertEq(matchStake, 0); // Default value
+        assertEq(uint256(status), 0); // Default (Open) - match data deleted
+        assertEq(gameMatch.getActiveMatchCount(), 0); // Match removed from active matches
     }
 
     function test_CannotWithdrawAfterActivation() public {
@@ -184,6 +191,69 @@ contract GameMatchTest is Test {
         vm.prank(player1);
         vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
         gameMatch.withdrawStake(matchId);
+    }
+
+    function test_LastPlayerWithdrawalCancelsMatch() public {
+        // Create match with 3 players
+        vm.prank(player1);
+        uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
+            address(0),
+            STAKE_AMOUNT,
+            MAX_PLAYERS
+        );
+
+        vm.prank(player2);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
+
+        vm.prank(player3);
+        gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
+
+        assertEq(gameMatch.getActiveMatchCount(), 1);
+        
+        uint256 player1BalanceBefore = player1.balance;
+        uint256 player2BalanceBefore = player2.balance;
+        uint256 player3BalanceBefore = player3.balance;
+
+        // Player 1 withdraws - match should still be Open
+        vm.prank(player1);
+        vm.expectEmit(true, true, false, true);
+        emit PlayerWithdrew(matchId, player1, STAKE_AMOUNT);
+        gameMatch.withdrawStake(matchId);
+
+        (, , , address[] memory players1, IGameMatch.MatchStatus status1, , ) = gameMatch.getMatch(matchId);
+        assertEq(players1.length, 2);
+        assertEq(uint256(status1), uint256(IGameMatch.MatchStatus.Open));
+        assertEq(gameMatch.getActiveMatchCount(), 1); // Still active
+        assertEq(player1.balance, player1BalanceBefore + STAKE_AMOUNT);
+
+        // Player 2 withdraws - match should still be Open
+        vm.prank(player2);
+        vm.expectEmit(true, true, false, true);
+        emit PlayerWithdrew(matchId, player2, STAKE_AMOUNT);
+        gameMatch.withdrawStake(matchId);
+
+        (, , , address[] memory players2, IGameMatch.MatchStatus status2, , ) = gameMatch.getMatch(matchId);
+        assertEq(players2.length, 1);
+        assertEq(uint256(status2), uint256(IGameMatch.MatchStatus.Open));
+        assertEq(gameMatch.getActiveMatchCount(), 1); // Still active
+        assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
+
+        // Player 3 withdraws (last player) - match should be Cancelled
+        vm.prank(player3);
+        vm.expectEmit(true, true, false, true);
+        emit PlayerWithdrew(matchId, player3, STAKE_AMOUNT);
+        vm.expectEmit(true, false, false, true);
+        emit MatchCancelled(matchId, new address[](0), 0);
+        gameMatch.withdrawStake(matchId);
+
+        // After cleanup, match data is deleted and returns default values
+        (address matchToken, uint256 matchStake, , address[] memory players3, IGameMatch.MatchStatus status3, , ) = gameMatch.getMatch(matchId);
+        assertEq(players3.length, 0);
+        assertEq(matchToken, address(0)); // Default value
+        assertEq(matchStake, 0); // Default value
+        assertEq(uint256(status3), 0); // Default (Open) - match data deleted
+        assertEq(gameMatch.getActiveMatchCount(), 0); // Removed from active matches
+        assertEq(player3.balance, player3BalanceBefore + STAKE_AMOUNT);
     }
 
     function test_ActivateMatch() public {
@@ -263,9 +333,13 @@ contract GameMatchTest is Test {
 
         assertEq(player1.balance, player1BalanceBefore + totalPrize);
         
-        (, , , , IGameMatch.MatchStatus status, address winner, ) = gameMatch.getMatch(matchId);
-        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Finalized));
-        assertEq(winner, player1);
+        // After cleanup, match data is deleted and returns default values
+        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, address winner, ) = gameMatch.getMatch(matchId);
+        assertEq(matchToken, address(0)); // Default value
+        assertEq(matchStake, 0); // Default value
+        assertEq(players.length, 0); // Default value
+        assertEq(uint256(status), 0); // Default (Open) - match data deleted
+        assertEq(winner, address(0)); // Default value
     }
 
     function test_CannotFinalizeBeforeActivation() public {
@@ -501,19 +575,24 @@ contract GameMatchTest is Test {
         vm.prank(player1);
         uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
         
-        // Player withdraws, leaving match empty
+        // Player withdraws, leaving match empty - this now auto-cancels the match
         vm.prank(player1);
         gameMatch.withdrawStake(matchId);
         
-        assertEq(gameMatch.getActiveMatchCount(), 1);
-        
-        // Owner can clean up
-        vm.prank(owner);
-        vm.expectEmit(true, false, false, false);
-        emit InactiveMatchCleaned(matchId, block.timestamp);
-        gameMatch.cleanupInactiveMatch(matchId);
-        
+        // After withdrawal cleanup, match is removed from active matches
         assertEq(gameMatch.getActiveMatchCount(), 0);
+        
+        // Match data is deleted and returns default values
+        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        assertEq(matchToken, address(0)); // Default value
+        assertEq(matchStake, 0); // Default value
+        assertEq(players.length, 0); // Default value
+        assertEq(uint256(status), 0); // Default (Open) - match data deleted
+        
+        // Cannot clean up a match that doesn't exist (stakeAmount == 0 means InvalidMatchId)
+        vm.prank(owner);
+        vm.expectRevert(GameMatch.InvalidMatchId.selector);
+        gameMatch.cleanupInactiveMatch(matchId);
     }
 
     function test_CannotCleanupMatchWithPlayers() public {
@@ -607,9 +686,12 @@ contract GameMatchTest is Test {
         assertEq(player1.balance, player1BalanceBefore + STAKE_AMOUNT);
         assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
 
-        // Verify match status
-        (, , , , IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
-        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Cancelled));
+        // After cleanup, match data is deleted and returns default values
+        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        assertEq(matchToken, address(0)); // Default value
+        assertEq(matchStake, 0); // Default value
+        assertEq(players.length, 0); // Default value
+        assertEq(uint256(status), 0); // Default (Open) - match data deleted
 
         // Verify capacity freed
         assertEq(gameMatch.getActiveMatchCount(), 0);
@@ -671,9 +753,12 @@ contract GameMatchTest is Test {
         assertEq(player1.balance, player1BalanceBefore + STAKE_AMOUNT);
         assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
 
-        // Verify match status
-        (, , , , IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
-        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Cancelled));
+        // After cleanup, match data is deleted and returns default values
+        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        assertEq(matchToken, address(0)); // Default value
+        assertEq(matchStake, 0); // Default value
+        assertEq(players.length, 0); // Default value
+        assertEq(uint256(status), 0); // Default (Open) - match data deleted
     }
 
     function test_OnlyControllerCanCancelMatch() public {

@@ -1,8 +1,9 @@
+import { useState } from 'react'
 import { useReadContract } from 'wagmi'
 import { SCOREBOARD_ABI } from '../abis/scoreboard'
 import { formatAddress, formatTokenAmount } from '../utils/format'
 import { cn } from '../utils/cn'
-import { Trophy, TrendingUp, Coins } from 'lucide-react'
+import { TrendingUp, Coins } from 'lucide-react'
 import { LEADERBOARD_METADATA } from '../metadata/componentDependencies'
 import { useComponentRegistration, useOharaAi } from '../context/OnchainContext'
 import { ContractType } from '../types/contracts'
@@ -13,15 +14,13 @@ export interface LeaderBoardProps {
   limit?: number
   sortBy?: 'wins' | 'prize'
   className?: string
-  showStats?: boolean
 }
 
 export function LeaderBoard({
   scoreBoardAddress: scoreBoardAddressProp,
   limit = 10,
-  sortBy = 'wins',
+  sortBy: initialSortBy = 'wins',
   className,
-  showStats = true,
 }: LeaderBoardProps) {
   // Auto-register this component for dependency tracking
   useComponentRegistration('LeaderBoard')
@@ -29,6 +28,9 @@ export function LeaderBoard({
   // Get contract address from context if not provided
   const { getContractAddress } = useOharaAi()
   const scoreBoardAddress = scoreBoardAddressProp || getContractAddress(ContractType.SCOREBOARD)
+
+  // Local state for sorting type
+  const [sortBy, setSortBy] = useState<'wins' | 'prize'>(initialSortBy)
 
   // Call all hooks unconditionally, use enabled to control execution
   const { data: leaderboardData, isLoading, error } = useReadContract({
@@ -41,34 +43,12 @@ export function LeaderBoard({
     },
   })
 
-  const { data: totalPlayers } = useReadContract({
-    address: scoreBoardAddress,
-    abi: SCOREBOARD_ABI,
-    functionName: 'getTotalPlayers',
-    query: {
-      enabled: !!scoreBoardAddress,
-    },
-  })
-
-  const { data: totalMatches } = useReadContract({
-    address: scoreBoardAddress,
-    abi: SCOREBOARD_ABI,
-    functionName: 'getTotalMatches',
-    query: {
-      enabled: !!scoreBoardAddress,
-    },
-  })
-
   // If no address provided or found, show error
   if (!scoreBoardAddress) {
     return (
-      <div className={cn('bg-white rounded-lg shadow-lg p-6', className)}>
-        <div className="flex items-center gap-2 mb-6">
-          <Trophy className="w-6 h-6 text-yellow-500" />
-          <h2 className="text-2xl font-bold">Leaderboard</h2>
-        </div>
-        <div className="text-red-500">
-          Scoreboard contract address not configured. Please set NEXT_PUBLIC_SCOREBOARD_ADDRESS or provide scoreBoardAddress prop.
+      <div className={className}>
+        <div className="text-red-500 text-sm">
+          Scoreboard contract address not configured.
         </div>
       </div>
     )
@@ -76,13 +56,9 @@ export function LeaderBoard({
 
   if (isLoading) {
     return (
-      <div className={cn('bg-white rounded-lg shadow-lg p-6', className)}>
-        <div className="flex items-center gap-2 mb-6">
-          <Trophy className="w-6 h-6 text-yellow-500" />
-          <h2 className="text-2xl font-bold">Leaderboard</h2>
-        </div>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-500">Loading leaderboard...</div>
+      <div className={className}>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-gray-500 text-sm">Loading...</div>
         </div>
       </div>
     )
@@ -90,12 +66,8 @@ export function LeaderBoard({
 
   if (error) {
     return (
-      <div className={cn('bg-white rounded-lg shadow-lg p-6', className)}>
-        <div className="flex items-center gap-2 mb-6">
-          <Trophy className="w-6 h-6 text-yellow-500" />
-          <h2 className="text-2xl font-bold">Leaderboard</h2>
-        </div>
-        <div className="text-red-500">Error loading leaderboard</div>
+      <div className={className}>
+        <div className="text-red-500 text-sm">Error loading leaderboard</div>
       </div>
     )
   }
@@ -103,35 +75,45 @@ export function LeaderBoard({
   const [players, wins, prizes] = leaderboardData || [[], [], []]
 
   return (
-    <div className={cn('bg-white rounded-lg shadow-lg p-6', className)}>
-      <div className="flex items-center gap-2 mb-6">
-        <Trophy className="w-6 h-6 text-yellow-500" />
-        <h2 className="text-2xl font-bold">Leaderboard</h2>
+    <div className={className}>
+      {/* Toggle buttons */}
+      <div className="flex gap-2 mb-4">
+        <button
+          onClick={() => setSortBy('wins')}
+          className={cn(
+            'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors',
+            sortBy === 'wins'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          )}
+        >
+          <div className="flex items-center justify-center gap-1.5">
+            <TrendingUp className="w-4 h-4" />
+            <span>By Wins</span>
+          </div>
+        </button>
+        <button
+          onClick={() => setSortBy('prize')}
+          className={cn(
+            'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors',
+            sortBy === 'prize'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          )}
+        >
+          <div className="flex items-center justify-center gap-1.5">
+            <Coins className="w-4 h-4" />
+            <span>By Prize</span>
+          </div>
+        </button>
       </div>
 
-      {showStats && (
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="bg-blue-50 rounded-lg p-4">
-            <div className="text-sm text-blue-600 font-medium">Total Players</div>
-            <div className="text-2xl font-bold text-blue-900">
-              {totalPlayers?.toString() || '0'}
-            </div>
-          </div>
-          <div className="bg-purple-50 rounded-lg p-4">
-            <div className="text-sm text-purple-600 font-medium">Total Matches</div>
-            <div className="text-2xl font-bold text-purple-900">
-              {totalMatches?.toString() || '0'}
-            </div>
-          </div>
-        </div>
-      )}
-
       {players.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          No players yet. Be the first to compete!
+        <div className="text-center py-8 text-gray-500 text-sm">
+          No players yet
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           {players.map((player: string, index: number) => {
             const rank = index + 1
             const isTopThree = rank <= 3
@@ -140,40 +122,42 @@ export function LeaderBoard({
               <div
                 key={player}
                 className={cn(
-                  'flex items-center justify-between p-4 rounded-lg transition-colors',
-                  isTopThree ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200' : 'bg-gray-50 hover:bg-gray-100'
+                  'flex items-center gap-3 p-3 rounded-lg transition-colors',
+                  isTopThree ? 'bg-gradient-to-r from-yellow-50 to-orange-50' : 'bg-gray-50'
                 )}
               >
-                <div className="flex items-center gap-4 flex-1">
-                  <div
-                    className={cn(
-                      'w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm',
-                      rank === 1 && 'bg-yellow-400 text-yellow-900',
-                      rank === 2 && 'bg-gray-300 text-gray-700',
-                      rank === 3 && 'bg-orange-300 text-orange-900',
-                      rank > 3 && 'bg-gray-200 text-gray-600'
-                    )}
-                  >
-                    {rank}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-mono text-sm font-medium">
-                      {formatAddress(player)}
-                    </div>
+                {/* Rank */}
+                <div
+                  className={cn(
+                    'w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
+                    rank === 1 && 'bg-yellow-400 text-yellow-900',
+                    rank === 2 && 'bg-gray-300 text-gray-700',
+                    rank === 3 && 'bg-orange-300 text-orange-900',
+                    rank > 3 && 'bg-gray-200 text-gray-600'
+                  )}
+                >
+                  {rank}
+                </div>
+                
+                {/* Player Address */}
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono text-xs text-gray-900">
+                    {formatAddress(player)}
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-green-600" />
-                    <span className="font-semibold text-green-700">
-                      {wins[index]?.toString() || '0'} wins
+                {/* Stats */}
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-xs font-semibold text-green-700">
+                      {wins[index]?.toString() || '0'}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-blue-600" />
-                    <span className="font-semibold text-blue-700">
-                      {formatTokenAmount(prizes[index] || BigInt(0))} ETH
+                  <div className="flex items-center gap-1">
+                    <Coins className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-xs font-semibold text-blue-700">
+                      {formatTokenAmount(prizes[index] || BigInt(0))}
                     </span>
                   </div>
                 </div>
