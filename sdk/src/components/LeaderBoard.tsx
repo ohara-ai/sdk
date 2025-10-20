@@ -4,7 +4,7 @@ import { SCOREBOARD_ABI } from '../abis/scoreboard'
 import { GAME_MATCH_ABI } from '../abis/gameMatch'
 import { formatAddress, formatTokenAmount } from '../utils/format'
 import { cn } from '../utils/cn'
-import { TrendingUp, Coins } from 'lucide-react'
+import { TrendingUp, Coins, Trophy, Loader2 } from 'lucide-react'
 import { LEADERBOARD_METADATA } from '../metadata/componentDependencies'
 import { useComponentRegistration, useOharaAi } from '../context/OnchainContext'
 import { ContractType } from '../types/contracts'
@@ -81,8 +81,9 @@ export function LeaderBoard({
   if (!gameScoreAddress) {
     return (
       <div className={className}>
-        <div className="text-red-500 text-sm">
-          Scoreboard contract address not configured.
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="font-semibold mb-1 text-red-700">Configuration Error</div>
+          <div className="text-sm text-red-600">GameScore contract address not configured.</div>
         </div>
       </div>
     )
@@ -91,8 +92,8 @@ export function LeaderBoard({
   if (isLoading) {
     return (
       <div className={className}>
-        <div className="flex items-center justify-center py-8">
-          <div className="text-gray-500 text-sm">Loading...</div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       </div>
     )
@@ -101,7 +102,10 @@ export function LeaderBoard({
   if (error) {
     return (
       <div className={className}>
-        <div className="text-red-500 text-sm">Error loading leaderboard</div>
+        <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+          <div className="font-semibold mb-1 text-red-700">Error Loading Leaderboard</div>
+          <div className="text-sm text-red-600">Failed to load leaderboard data</div>
+        </div>
       </div>
     )
   }
@@ -110,44 +114,56 @@ export function LeaderBoard({
 
   return (
     <div className={className}>
-      {/* Toggle buttons */}
-      <div className="flex gap-2 mb-4">
-        <button
-          onClick={() => setSortBy('wins')}
-          className={cn(
-            'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors',
-            sortBy === 'wins'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          )}
-        >
-          <div className="flex items-center justify-center gap-1.5">
-            <TrendingUp className="w-4 h-4" />
-            <span>By Wins</span>
-          </div>
-        </button>
-        <button
-          onClick={() => setSortBy('prize')}
-          className={cn(
-            'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors',
-            sortBy === 'prize'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          )}
-        >
-          <div className="flex items-center justify-center gap-1.5">
-            <Coins className="w-4 h-4" />
-            <span>By Prize</span>
-          </div>
-        </button>
+      {/* Header with toggle buttons */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Trophy className="w-5 h-5 text-amber-600" />
+          <h3 className="text-lg font-semibold text-gray-900">Leaderboard</h3>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setSortBy('wins')}
+            className={cn(
+              'flex-1 py-3 px-4 rounded-lg font-semibold transition-all shadow-sm',
+              sortBy === 'wins'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow'
+            )}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <TrendingUp className="w-4 h-4" />
+              <span>By Wins</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setSortBy('prize')}
+            className={cn(
+              'flex-1 py-3 px-4 rounded-lg font-semibold transition-all shadow-sm',
+              sortBy === 'prize'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow'
+            )}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <Coins className="w-4 h-4" />
+              <span>By Prize</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {players.length === 0 ? (
-        <div className="text-center py-8 text-gray-500 text-sm">
-          No players yet
+        <div className="text-center py-12">
+          <Trophy className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <div className="text-gray-500 mb-2 font-medium">
+            No players yet
+          </div>
+          <div className="text-xs text-gray-400">
+            Play matches to appear on the leaderboard!
+          </div>
         </div>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-2 max-h-[500px] overflow-y-auto">
           {players.map((player: string, index: number) => {
             const rank = index + 1
             const isTopThree = rank <= 3
@@ -156,18 +172,20 @@ export function LeaderBoard({
               <div
                 key={player}
                 className={cn(
-                  'flex items-center gap-3 p-3 rounded-lg transition-colors',
-                  isTopThree ? 'bg-gradient-to-r from-yellow-50 to-orange-50' : 'bg-gray-50'
+                  'flex items-center gap-3 p-4 rounded-lg transition-all border',
+                  isTopThree 
+                    ? 'bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 border-amber-200 shadow-sm' 
+                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm'
                 )}
               >
-                {/* Rank */}
+                {/* Rank Badge */}
                 <div
                   className={cn(
-                    'w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
-                    rank === 1 && 'bg-yellow-400 text-yellow-900',
-                    rank === 2 && 'bg-gray-300 text-gray-700',
-                    rank === 3 && 'bg-orange-300 text-orange-900',
-                    rank > 3 && 'bg-gray-200 text-gray-600'
+                    'w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 border-2',
+                    rank === 1 && 'bg-white border-amber-400 text-amber-600 shadow-md',
+                    rank === 2 && 'bg-white border-gray-400 text-gray-700 shadow-md',
+                    rank === 3 && 'bg-white border-orange-400 text-orange-600 shadow-md',
+                    rank > 3 && 'bg-gray-50 border-gray-300 text-gray-600 shadow-sm'
                   )}
                 >
                   {rank}
@@ -175,24 +193,38 @@ export function LeaderBoard({
                 
                 {/* Player Address */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-mono text-xs text-gray-900">
+                  <div className="font-mono text-sm font-medium text-gray-900">
                     {formatAddress(player)}
                   </div>
+                  {isTopThree && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Trophy className="w-3 h-3 text-amber-600" />
+                      <span className="text-xs text-amber-700 font-semibold">
+                        {rank === 1 ? 'Champion' : rank === 2 ? 'Runner-up' : 'Third Place'}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Stats */}
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="w-3.5 h-3.5 text-green-600" />
-                    <span className="text-xs font-semibold text-green-700">
-                      {wins[index]?.toString() || '0'}
-                    </span>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="text-right">
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-bold text-green-700">
+                        {wins[index]?.toString() || '0'}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">wins</div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Coins className="w-3.5 h-3.5 text-blue-600" />
-                    <span className="text-xs font-semibold text-blue-700">
-                      {formatTokenAmount(prizes[index] || BigInt(0))}
-                    </span>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1.5 justify-end">
+                      <Coins className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-bold text-blue-700">
+                        {formatTokenAmount(prizes[index] || BigInt(0))}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">prize</div>
                   </div>
                 </div>
               </div>
