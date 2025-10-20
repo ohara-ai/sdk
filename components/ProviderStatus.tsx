@@ -126,15 +126,15 @@ export function ProviderStatus({ className }: ProviderStatusProps) {
             <div className="space-y-2">
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-gray-700">Scoreboard</span>
-                  {addresses.Scoreboard ? (
+                  <span className="text-xs font-medium text-gray-700">GameScore</span>
+                  {addresses.GameScore ? (
                     <CheckCircle2 className="w-3 h-3 text-green-600" />
                   ) : (
                     <XCircle className="w-3 h-3 text-gray-400" />
                   )}
                 </div>
                 <p className="text-xs font-mono text-gray-600 break-all">
-                  {addresses.Scoreboard || 'Not configured'}
+                  {addresses.GameScore || 'Not configured'}
                 </p>
               </div>
               <div>
