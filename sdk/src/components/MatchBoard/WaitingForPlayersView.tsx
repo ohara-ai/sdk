@@ -52,6 +52,28 @@ export function WaitingForPlayersView({
           </div>
         )}
 
+        {/* Countdown Banner */}
+        {countdownSeconds !== null && countdownSeconds > 0 && !isActivating && (
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg p-4 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold">Match Starting Soon</div>
+                  <div className="text-xs opacity-90">
+                    Game begins in {countdownSeconds} seconds
+                  </div>
+                </div>
+              </div>
+              <div className="text-3xl font-bold tabular-nums">
+                {countdownSeconds}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Activating Banner */}
         {isActivating && (
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-4 shadow-lg">

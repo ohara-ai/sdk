@@ -62,6 +62,20 @@ export async function GET(request: NextRequest) {
 
       const [, , maxPlayers, players, status] = matchData
 
+      // If match is Active (status 1), mark as activated
+      if (status === 1) {
+        console.log(`✅ Match ${matchId} is now Active - marking as activated`)
+        MatchActivationStorage.markActivated(matchId)
+        
+        return NextResponse.json({
+          success: true,
+          hasCountdown: true,
+          remainingSeconds: 0,
+          activated: true,
+          isActivating: false,
+        })
+      }
+      
       // If match is no longer Open (status 0) or not full, cancel countdown
       if (status !== 0 || players.length < Number(maxPlayers)) {
         console.log(`⚠️ Match ${matchId} is no longer full or not Open - auto-cancelling countdown`)

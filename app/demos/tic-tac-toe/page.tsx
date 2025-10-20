@@ -50,6 +50,7 @@ export default function TicTacToePage() {
   const [matchActivated, setMatchActivated] = useState(false)
   const [activationCountdown, setActivationCountdown] = useState<number | null>(null)
   const [isActivatingMatch, setIsActivatingMatch] = useState(false)
+  const [countdownStartedForMatch, setCountdownStartedForMatch] = useState<string | null>(null)
 
   // Initialize game when match is activated
   const initializeGame = useCallback(async () => {
@@ -88,13 +89,18 @@ export default function TicTacToePage() {
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.game) {
+          console.log('📊 Game state updated:', data.game.status)
           setGameState(data.game)
         }
       } else if (response.status === 404) {
         // Game not initialized yet
+        console.log('⚠️ Game not found (404), match activated:', matchActivated)
         if (matchActivated) {
+          console.log('🔄 Triggering game initialization from fetchGameState')
           await initializeGame()
         }
+      } else {
+        console.error('❌ Unexpected response status:', response.status)
       }
     } catch (error) {
       console.error('Failed to fetch game state:', error)
@@ -171,9 +177,11 @@ export default function TicTacToePage() {
             }
           } else if (data.activated) {
             // Match activated
+            console.log('🎮 Match activated detected by countdown polling')
             setActivationCountdown(null)
             setIsActivatingMatch(false)
             setMatchActivated(true)
+            setCountdownStartedForMatch(null)
           } else {
             // No countdown
             setActivationCountdown(null)
@@ -241,6 +249,7 @@ export default function TicTacToePage() {
     setMatchActivated(false)
     setActivationCountdown(null)
     setIsActivatingMatch(false)
+    setCountdownStartedForMatch(null)
   }
 
   const handleMatchJoined = (id: bigint) => {
@@ -251,6 +260,7 @@ export default function TicTacToePage() {
     setMatchActivated(false)
     setActivationCountdown(null)
     setIsActivatingMatch(false)
+    setCountdownStartedForMatch(null)
   }
 
   const handleMatchLeft = useCallback(() => {
@@ -262,6 +272,7 @@ export default function TicTacToePage() {
     setMatchActivated(false)
     setActivationCountdown(null)
     setIsActivatingMatch(false)
+    setCountdownStartedForMatch(null)
   }, [cancelCountdown])
 
   const handlePlayerWithdrew = useCallback((withdrawnMatchId: bigint, player: string) => {
@@ -275,23 +286,42 @@ export default function TicTacToePage() {
     }
   }, [matchId, activationCountdown, cancelCountdown])
 
-  const handleMatchActivated = () => {
-    console.log('Match activated, initializing game...')
+  const handleMatchActivated = (id?: bigint) => {
+    const activatedMatchId = id || matchId
+    console.log('Match activated, initializing game...', activatedMatchId?.toString())
+    
+    // Set matchId if provided (important for page refresh case)
+    if (id && matchId !== id) {
+      setMatchId(id)
+    }
+    
     setMatchActivated(true)
     setActivationCountdown(null)
     setIsActivatingMatch(false)
+    setCountdownStartedForMatch(null)
   }
 
   const handleMatchFull = useCallback(async (id: bigint) => {
-    console.log('Match is full! Starting countdown...', id.toString())
+    const matchIdStr = id.toString()
+    
+    // Only start countdown once per match
+    if (countdownStartedForMatch === matchIdStr) {
+      console.log('⏭️ Countdown already started for match:', matchIdStr)
+      return
+    }
+
+    console.log('Match is full! Starting countdown...', matchIdStr)
     if (!gameMatchAddress) return
+
+    // Mark that we're starting the countdown for this match
+    setCountdownStartedForMatch(matchIdStr)
 
     try {
       const response = await fetch('/api/match-countdown/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matchId: id.toString(),
+          matchId: matchIdStr,
           contractAddress: gameMatchAddress,
           countdownSeconds: 30,
         }),
@@ -300,30 +330,72 @@ export default function TicTacToePage() {
       const data = await response.json()
       if (data.success) {
         console.log('✅ Countdown started:', data)
-        setActivationCountdown(data.remainingSeconds)
+        // Only set the initial value, let polling handle updates
+        if (activationCountdown === null) {
+          setActivationCountdown(data.remainingSeconds)
+        }
       } else {
         console.error('❌ Failed to start countdown:', data.error)
+        // Reset the flag on error so it can be retried
+        setCountdownStartedForMatch(null)
       }
     } catch (error) {
       console.error('❌ Error starting countdown:', error)
+      // Reset the flag on error so it can be retried
+      setCountdownStartedForMatch(null)
     }
-  }, [gameMatchAddress])
+  }, [gameMatchAddress, countdownStartedForMatch, activationCountdown])
 
-  // Poll for game state updates
+  // Check for existing game when matchId changes (handles page refresh)
+  useEffect(() => {
+    if (!matchId) return
+    
+    const checkExistingGame = async () => {
+      try {
+        console.log('🔍 Checking for existing game on mount/matchId change:', matchId.toString())
+        const response = await fetch(`/api/game/state?matchId=${matchId.toString()}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.game) {
+            console.log('✅ Found existing game, loading state')
+            setGameState(data.game)
+            setMatchActivated(true)
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for existing game:', error)
+      }
+    }
+    
+    checkExistingGame()
+  }, [matchId])
+
+  // Poll for game state updates when match is activated
   useEffect(() => {
     if (!matchId || !matchActivated) return
 
+    console.log('🔄 Starting game state polling for match:', matchId.toString())
+    // Initial fetch
     fetchGameState()
-    const interval = setInterval(fetchGameState, 2000) // Poll every 2 seconds
-    return () => clearInterval(interval)
+    // Poll every 2 seconds
+    const interval = setInterval(fetchGameState, 2000)
+    return () => {
+      console.log('🛑 Stopping game state polling')
+      clearInterval(interval)
+    }
   }, [matchId, matchActivated, fetchGameState])
 
   // Initialize game when match is activated
   useEffect(() => {
-    if (matchActivated && !gameState && matchId) {
-      initializeGame()
+    if (matchActivated && !gameState && matchId && !isInitializingGame) {
+      console.log('🎮 Match activated, initializing game...')
+      // Small delay to ensure activation has propagated
+      const timer = setTimeout(() => {
+        initializeGame()
+      }, 500)
+      return () => clearTimeout(timer)
     }
-  }, [matchActivated, gameState, matchId, initializeGame])
+  }, [matchActivated, gameState, matchId, isInitializingGame, initializeGame])
 
   // Update time remaining
   useEffect(() => {
@@ -363,6 +435,19 @@ export default function TicTacToePage() {
 
   const playerInfo = getPlayerInfo()
   const isSpectator = gameState && address && !playerInfo
+
+  // Debug logging for render state
+  useEffect(() => {
+    console.log('🎨 Render state:', {
+      matchId: matchId?.toString() || 'null',
+      matchActivated,
+      hasGameState: !!gameState,
+      gameStatus: gameState?.status || 'none',
+      activationCountdown,
+      isActivatingMatch,
+      isInitializingGame,
+    })
+  }, [matchId, matchActivated, gameState, activationCountdown, isActivatingMatch, isInitializingGame])
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -463,11 +548,18 @@ export default function TicTacToePage() {
                     </div>
                   )}
 
-                  {/* Initializing game */}
-                  {matchActivated && !gameState && isInitializingGame && (
+                  {/* Initializing game or waiting for game state */}
+                  {matchActivated && !gameState && (
                     <div className="text-center py-12">
                       <Loader2 className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
-                      <p className="text-lg font-semibold">Initializing game...</p>
+                      <p className="text-lg font-semibold mb-2">Initializing game...</p>
+                      <p className="text-sm text-gray-500">Setting up the game board</p>
+                      <button
+                        onClick={() => initializeGame()}
+                        className="mt-4 text-sm text-blue-600 hover:text-blue-700 underline"
+                      >
+                        Retry Initialization
+                      </button>
                     </div>
                   )}
 

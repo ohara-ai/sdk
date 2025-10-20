@@ -161,11 +161,29 @@ export function MatchBoard({
           totalMatches: matchDetails.length,
           openMatches: openMatches.length,
           joinedMatchId: joinedMatch?.id.toString(),
+          joinedMatchStatus: joinedMatch?.status,
           allStatuses: matchDetails.map(m => ({ id: m.id.toString(), status: m.status })),
         })
         
         setMatches(openMatches)
-        setUserJoinedMatchId(joinedMatch ? joinedMatch.id : null)
+        
+        // Update userJoinedMatchId and notify parent if user is in a match
+        const currentJoinedId = userJoinedMatchId
+        const newJoinedId = joinedMatch ? joinedMatch.id : null
+        
+        if (newJoinedId !== null && currentJoinedId !== newJoinedId && joinedMatch) {
+          console.log('🔄 User joined match detected:', newJoinedId.toString(), 'status:', joinedMatch.status)
+          setUserJoinedMatchId(newJoinedId)
+          
+          // Notify parent based on match status
+          if (joinedMatch.status === 1) { // Active
+            onMatchActivated?.(newJoinedId)
+          } else if (joinedMatch.status === 0) { // Open
+            onMatchJoined?.(newJoinedId)
+          }
+        } else if (newJoinedId === null && currentJoinedId !== null) {
+          setUserJoinedMatchId(null)
+        }
       } catch (error) {
         console.error('❌ Error fetching matches:', error)
         setMatches([])
@@ -519,9 +537,15 @@ export function MatchBoard({
         status: matchInfo.status,
       })
       
-      // Notify parent when match becomes full
+      // Notify parent when match becomes full (status 0 = Open)
       if (matchInfo.players.length === Number(matchInfo.maxPlayers) && matchInfo.status === 0) {
         onMatchFull?.(userJoinedMatchId)
+      }
+      
+      // Notify parent when match is activated (status 1 = Active)
+      if (matchInfo.status === 1) {
+        console.log('🎮 Match is Active, notifying parent')
+        onMatchActivated?.(userJoinedMatchId)
       }
     } catch (error) {
       console.error('❌ Error fetching current match info:', error)
@@ -544,6 +568,25 @@ export function MatchBoard({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userJoinedMatchId, gameMatchAddress, publicClient])
+
+  // Poll match status when waiting for activation (during countdown or activating)
+  useEffect(() => {
+    if (userJoinedMatchId === null || !currentMatchInfo) return
+    
+    // Only poll if match is Open (waiting for activation)
+    if (currentMatchInfo.status === MatchStatus.Open) {
+      console.log('🔄 Polling match status for activation detection')
+      const interval = setInterval(() => {
+        fetchCurrentMatchInfo()
+      }, 2000) // Poll every 2 seconds
+      
+      return () => {
+        console.log('🛑 Stopped polling match status')
+        clearInterval(interval)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userJoinedMatchId, currentMatchInfo?.status])
 
   // Check gameMatchAddress FIRST to ensure consistent SSR/client rendering
   if (!gameMatchAddress) {
