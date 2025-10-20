@@ -46,6 +46,19 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Check storage state first - if already marked as activated, return immediately
+    // This ensures fast response even if blockchain hasn't fully propagated yet
+    if (state.activated) {
+      console.log(`✅ Match ${matchId} already marked as activated in storage`)
+      return NextResponse.json({
+        success: true,
+        hasCountdown: true,
+        remainingSeconds: 0,
+        activated: true,
+        isActivating: false,
+      })
+    }
+
     // Verify the match is still full and in Open status
     try {
       const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
@@ -64,7 +77,7 @@ export async function GET(request: NextRequest) {
 
       // If match is Active (status 1), mark as activated
       if (status === 1) {
-        console.log(`✅ Match ${matchId} is now Active - marking as activated`)
+        console.log(`✅ Match ${matchId} is now Active on-chain - marking as activated`)
         MatchActivationStorage.markActivated(matchId)
         
         return NextResponse.json({

@@ -120,6 +120,17 @@ export const GAME_MATCH_ABI = [
     name: 'MatchCancelled',
     type: 'event',
   },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
+      { indexed: true, internalType: 'address', name: 'winner', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'totalPrize', type: 'uint256' },
+      { indexed: false, internalType: 'uint256', name: 'winnerAmount', type: 'uint256' },
+    ],
+    name: 'MatchFinalized',
+    type: 'event',
+  },
 ] as const
 
 export enum MatchStatus {

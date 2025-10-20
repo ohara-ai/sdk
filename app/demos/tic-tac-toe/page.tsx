@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAccount } from 'wagmi'
 import { LeaderBoard } from '@/sdk/src/components/LeaderBoard'
 import { MatchBoard } from '@/sdk/src/components/MatchBoard'
@@ -51,18 +51,33 @@ export default function TicTacToePage() {
   const [activationCountdown, setActivationCountdown] = useState<number | null>(null)
   const [isActivatingMatch, setIsActivatingMatch] = useState(false)
   const [countdownStartedForMatch, setCountdownStartedForMatch] = useState<string | null>(null)
+  const [leaderboardRefetch, setLeaderboardRefetch] = useState<(() => void) | null>(null)
 
+  // Track initialization to avoid duplicate calls without causing re-renders
+  const isInitializingRef = useRef(false)
+  const hasInitializedRef = useRef<string | null>(null) // Track which match we've initialized
+  
   // Initialize game when match is activated
   const initializeGame = useCallback(async () => {
-    if (!matchId || !gameMatchAddress || isInitializingGame) return
+    if (matchId === null || !gameMatchAddress || isInitializingRef.current) return
+    
+    const matchIdStr = matchId.toString()
+    
+    // Check if we've already initialized this match
+    if (hasInitializedRef.current === matchIdStr) {
+      console.log('⚠️ Game already initialized for match:', matchIdStr)
+      return
+    }
 
+    console.log('🎮 Starting game initialization for match:', matchIdStr)
+    isInitializingRef.current = true
     setIsInitializingGame(true)
     try {
       const response = await fetch('/api/game/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matchId: matchId.toString(),
+          matchId: matchIdStr,
           contractAddress: gameMatchAddress,
         }),
       })
@@ -71,31 +86,39 @@ export default function TicTacToePage() {
       if (data.success && data.game) {
         setGameState(data.game)
         setMatchActivated(true)
+        hasInitializedRef.current = matchIdStr // Mark as initialized
         console.log('🎮 Game initialized:', data.game)
       }
     } catch (error) {
       console.error('Failed to initialize game:', error)
     } finally {
+      isInitializingRef.current = false
       setIsInitializingGame(false)
     }
-  }, [matchId, gameMatchAddress, isInitializingGame])
+  }, [matchId, gameMatchAddress])
 
   // Fetch game state
   const fetchGameState = useCallback(async () => {
-    if (!matchId) return
+    if (matchId === null) return
 
     try {
       const response = await fetch(`/api/game/state?matchId=${matchId.toString()}`)
       if (response.ok) {
         const data = await response.json()
         if (data.success && data.game) {
-          console.log('📊 Game state updated:', data.game.status)
-          setGameState(data.game)
+          // Verify this game state is for the current match
+          if (data.game.matchId === matchId.toString()) {
+            console.log('📊 Game state updated:', data.game.status)
+            setGameState(data.game)
+          } else {
+            console.log('⚠️ Game state matchId mismatch, ignoring. Expected:', matchId.toString(), 'Got:', data.game.matchId)
+          }
         }
       } else if (response.status === 404) {
-        // Game not initialized yet
+        // Game not initialized yet OR was cleaned up after finalization
         console.log('⚠️ Game not found (404), match activated:', matchActivated)
-        if (matchActivated) {
+        // Only try to initialize if match is activated AND we haven't already tried
+        if (matchActivated && hasInitializedRef.current !== matchId?.toString()) {
           console.log('🔄 Triggering game initialization from fetchGameState')
           await initializeGame()
         }
@@ -110,8 +133,19 @@ export default function TicTacToePage() {
   // Make a move
   const handleCellClick = async (index: number) => {
     if (!gameState || !address || isMakingMove) return
-    if (gameState.status !== 'active') return
+    if (gameState.status !== 'active') {
+      console.log('⚠️ Cannot make move: game status is', gameState.status)
+      return
+    }
     if (gameState.board[index] !== null) return
+
+    // Ensure this is the correct match
+    if (matchId === null || gameState.matchId !== matchId.toString()) {
+      console.log('⚠️ Cannot make move: match ID mismatch. Current:', matchId?.toString(), 'Game:', gameState.matchId)
+      setMoveError('Game state mismatch, please refresh')
+      setTimeout(() => setMoveError(null), 3000)
+      return
+    }
 
     // Check if it's the player's turn
     const playerSymbol = gameState.players.X.toLowerCase() === address.toLowerCase() ? 'X' : 
@@ -160,7 +194,7 @@ export default function TicTacToePage() {
 
   // Poll activation countdown status
   useEffect(() => {
-    if (!matchId || matchActivated) return
+    if (matchId === null || matchActivated) return
 
     const pollCountdown = async () => {
       try {
@@ -203,7 +237,7 @@ export default function TicTacToePage() {
 
   // Cancel countdown on withdrawal
   const cancelCountdown = useCallback(async () => {
-    if (!matchId) return
+    if (matchId === null) return
 
     try {
       await fetch('/api/match-countdown/cancel', {
@@ -220,7 +254,7 @@ export default function TicTacToePage() {
 
   // Check for timeouts
   const checkTimeout = useCallback(async () => {
-    if (!matchId || !gameState || gameState.status !== 'active') return
+    if (matchId === null || !gameState || gameState.status !== 'active') return
 
     try {
       const response = await fetch('/api/game/check-timeout', {
@@ -250,6 +284,7 @@ export default function TicTacToePage() {
     setActivationCountdown(null)
     setIsActivatingMatch(false)
     setCountdownStartedForMatch(null)
+    hasInitializedRef.current = null // Reset initialization tracking
   }
 
   const handleMatchJoined = (id: bigint) => {
@@ -261,6 +296,7 @@ export default function TicTacToePage() {
     setActivationCountdown(null)
     setIsActivatingMatch(false)
     setCountdownStartedForMatch(null)
+    hasInitializedRef.current = null // Reset initialization tracking
   }
 
   const handleMatchLeft = useCallback(() => {
@@ -287,22 +323,72 @@ export default function TicTacToePage() {
   }, [matchId, activationCountdown, cancelCountdown])
 
   const handleMatchActivated = (id?: bigint) => {
-    const activatedMatchId = id || matchId
+    const activatedMatchId = id ?? matchId
     console.log('Match activated, initializing game...', activatedMatchId?.toString())
     
+    // Check if this match is already activated - don't reset state if so
+    // This prevents infinite reinitialization when MatchBoard keeps polling
+    if (matchActivated && matchId === activatedMatchId && hasInitializedRef.current === activatedMatchId?.toString()) {
+      console.log('⏭️ Match already activated and initialized, ignoring duplicate activation event')
+      return
+    }
+    
     // Set matchId if provided (important for page refresh case)
-    if (id && matchId !== id) {
+    // Use !== undefined because bigint 0n is falsy but valid
+    if (id !== undefined && matchId !== id) {
       setMatchId(id)
     }
     
+    // Clear any stale game state from previous match
+    // Game will be reinitialized after activation
+    setGameState(null)
     setMatchActivated(true)
     setActivationCountdown(null)
     setIsActivatingMatch(false)
     setCountdownStartedForMatch(null)
+    hasInitializedRef.current = null // Reset to allow initialization for this activated match
   }
+
+  const handleMatchFinalized = (id: bigint, winner: `0x${string}`) => {
+    console.log('🏆 Match finalized! Winner:', winner, 'Match ID:', id.toString())
+    // The MatchBoard will handle showing the finalized state
+    // Refresh the LeaderBoard to show updated stats
+    if (leaderboardRefetch) {
+      console.log('🏆 Refreshing LeaderBoard after match finalization')
+      setTimeout(() => {
+        leaderboardRefetch()
+      }, 1000) // Small delay to ensure on-chain data has updated
+    }
+  }
+
+  const handleMatchDismissed = useCallback(() => {
+    console.log('🔄 Match finalized summary dismissed, resetting game state')
+    // Reset all game-related state to allow starting a new game
+    setMatchId(null)
+    setIsMatchCreated(false)
+    setGameState(null)
+    setMatchActivated(false)
+    setActivationCountdown(null)
+    setIsActivatingMatch(false)
+    setCountdownStartedForMatch(null)
+    hasInitializedRef.current = null // Reset initialization tracking
+  }, [])
 
   const handleMatchFull = useCallback(async (id: bigint) => {
     const matchIdStr = id.toString()
+    
+    // Only process if this is the current match
+    // Don't process if we have state from a different match
+    if (matchId !== null && matchId !== id) {
+      console.log('⏭️ Match full event for different match, ignoring. Current:', matchId.toString(), 'Event:', matchIdStr)
+      return
+    }
+    
+    // Don't start countdown if THIS match is already activated or has a game state
+    if (matchId === id && (matchActivated || gameState)) {
+      console.log('⏭️ This match already activated/has game state, ignoring match full event:', matchIdStr)
+      return
+    }
     
     // Only start countdown once per match
     if (countdownStartedForMatch === matchIdStr) {
@@ -344,11 +430,11 @@ export default function TicTacToePage() {
       // Reset the flag on error so it can be retried
       setCountdownStartedForMatch(null)
     }
-  }, [gameMatchAddress, countdownStartedForMatch, activationCountdown])
+  }, [gameMatchAddress, countdownStartedForMatch, activationCountdown, matchActivated, gameState, matchId])
 
   // Check for existing game when matchId changes (handles page refresh)
   useEffect(() => {
-    if (!matchId) return
+    if (matchId === null) return
     
     const checkExistingGame = async () => {
       try {
@@ -372,22 +458,22 @@ export default function TicTacToePage() {
 
   // Poll for game state updates when match is activated
   useEffect(() => {
-    if (!matchId || !matchActivated) return
-
-    console.log('🔄 Starting game state polling for match:', matchId.toString())
+    if (matchId === null || !matchActivated) return
+    
+    console.log('🔄 Starting game state polling for match:', matchId.toString(), 'callback ID:', fetchGameState)
     // Initial fetch
     fetchGameState()
-    // Poll every 2 seconds
-    const interval = setInterval(fetchGameState, 2000)
+    // Poll every 5 seconds
+    const interval = setInterval(fetchGameState, 5000)
     return () => {
-      console.log('🛑 Stopping game state polling')
+      console.log('🛑 Stopping game state polling for match:', matchId.toString())
       clearInterval(interval)
     }
   }, [matchId, matchActivated, fetchGameState])
 
   // Initialize game when match is activated
   useEffect(() => {
-    if (matchActivated && !gameState && matchId && !isInitializingGame) {
+    if (matchActivated && !gameState && matchId !== null && !isInitializingGame) {
       console.log('🎮 Match activated, initializing game...')
       // Small delay to ensure activation has propagated
       const timer = setTimeout(() => {
@@ -513,27 +599,27 @@ export default function TicTacToePage() {
                 <div className="max-w-md mx-auto">
                   {/* Activation Countdown Banner */}
                   {activationCountdown !== null && !matchActivated && (
-                    <div className="mb-6 border-2 border-green-500 rounded-lg p-4">
+                    <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-5 shadow-lg border-2 border-green-400">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                            <Clock className="w-5 h-5 text-green-600" />
+                          <div className="w-12 h-12 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
+                            <Clock className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <div className="text-sm font-semibold text-green-900">Match Starting Soon</div>
-                            <div className="text-xs text-green-700">
-                              Game begins in {activationCountdown} seconds
+                            <div className="text-base font-bold text-white">Match Starting Soon</div>
+                            <div className="text-sm text-white/95 font-medium">
+                              Game begins in {activationCountdown} {activationCountdown === 1 ? 'second' : 'seconds'}
                             </div>
                           </div>
                         </div>
-                        <div className="text-3xl font-bold tabular-nums text-green-600">
+                        <div className="text-4xl font-bold tabular-nums text-white drop-shadow-lg">
                           {activationCountdown}
                         </div>
                       </div>
                       {isActivatingMatch && (
-                        <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-green-200">
-                          <Loader2 className="w-4 h-4 animate-spin text-green-600" />
-                          <span className="text-sm text-green-700">Activating match...</span>
+                        <div className="flex items-center justify-center gap-2 mt-3 pt-3 border-t border-white/20">
+                          <Loader2 className="w-4 h-4 animate-spin text-white" />
+                          <span className="text-sm text-white font-medium">Activating match...</span>
                         </div>
                       )}
                     </div>
@@ -740,6 +826,8 @@ export default function TicTacToePage() {
               onMatchFull={handleMatchFull}
               onMatchLeft={handleMatchLeft}
               onPlayerWithdrew={handlePlayerWithdrew}
+              onMatchFinalized={handleMatchFinalized}
+              onMatchDismissed={handleMatchDismissed}
               countdownSeconds={activationCountdown}
               isActivating={isActivatingMatch}
             />
@@ -748,6 +836,8 @@ export default function TicTacToePage() {
             <LeaderBoard
               limit={10}
               sortBy="wins"
+              pollingInterval={10000}
+              onRefetchReady={useCallback((refetch: () => void) => setLeaderboardRefetch(() => refetch), [])}
             />
           </div>
         </div>

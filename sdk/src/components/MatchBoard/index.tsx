@@ -9,6 +9,7 @@ import { MatchBoardProps, MatchInfo } from './types'
 import { NoActiveMatchView } from './NoActiveMatchView'
 import { WaitingForPlayersView } from './WaitingForPlayersView'
 import { MatchActiveView } from './MatchActiveView'
+import { MatchFinalizedView } from './MatchFinalizedView'
 
 export function MatchBoard({
   gameMatchAddress: gameMatchAddressProp,
@@ -19,6 +20,8 @@ export function MatchBoard({
   onMatchFull,
   onMatchLeft,
   onPlayerWithdrew,
+  onMatchFinalized,
+  onMatchDismissed,
   countdownSeconds: countdownSecondsProp,
   isActivating: isActivatingProp,
   className,
@@ -176,13 +179,24 @@ export function MatchBoard({
           setUserJoinedMatchId(newJoinedId)
           
           // Notify parent based on match status
-          if (joinedMatch.status === 1) { // Active
+          if (joinedMatch.status === 2) { // Finalized
+            onMatchFinalized?.(newJoinedId, joinedMatch.winner)
+          } else if (joinedMatch.status === 1) { // Active
             onMatchActivated?.(newJoinedId)
           } else if (joinedMatch.status === 0) { // Open
             onMatchJoined?.(newJoinedId)
           }
         } else if (newJoinedId === null && currentJoinedId !== null) {
-          setUserJoinedMatchId(null)
+          // If match disappeared from active list but we have currentMatchInfo that's finalized, keep it
+          if (currentMatchInfo?.status === MatchStatus.Finalized) {
+            console.log('⚠️ Finalized match no longer in active list, keeping state for user to dismiss')
+            // Don't clear userJoinedMatchId - the finalized view should remain visible
+            // User can manually dismiss via the "Close Match Summary" button
+          } else {
+            console.log('⚠️ Match no longer found and not finalized, clearing state')
+            setUserJoinedMatchId(null)
+            setCurrentMatchInfo(null)
+          }
         }
       } catch (error) {
         console.error('❌ Error fetching matches:', error)
@@ -495,6 +509,63 @@ export function MatchBoard({
     enabled: !!gameMatchAddress && !!address,
   })
 
+  // Watch for MatchFinalized events
+  useWatchContractEvent({
+    address: gameMatchAddress,
+    abi: GAME_MATCH_ABI,
+    eventName: 'MatchFinalized',
+    onLogs(logs) {
+      console.log('🔔 MatchFinalized event received:', logs)
+      logs.forEach((log) => {
+        try {
+          const decoded = decodeEventLog({
+            abi: GAME_MATCH_ABI,
+            data: log.data,
+            topics: log.topics,
+          })
+          const matchId = (decoded.args as any).matchId as bigint
+          const winner = (decoded.args as any).winner as `0x${string}`
+          
+          console.log('🏆 Match finalized:', matchId.toString(), 'Winner:', winner)
+          
+          // Notify parent component
+          onMatchFinalized?.(matchId, winner)
+          
+          // If this is the user's match, update state immediately with finalized status
+          if (userJoinedMatchId !== null && matchId === userJoinedMatchId) {
+            // Update currentMatchInfo with finalized status from event
+            // This is critical because the on-chain data gets cleaned up immediately
+            if (currentMatchInfo) {
+              setCurrentMatchInfo({
+                ...currentMatchInfo,
+                status: MatchStatus.Finalized,
+                winner: winner,
+              })
+              console.log('✅ Updated match info to Finalized status from event')
+            }
+            
+            // Try to fetch from blockchain (might fail if cleaned up)
+            setTimeout(async () => {
+              await fetchCurrentMatchInfo()
+              // Refresh match list after a delay
+              setTimeout(() => {
+                refetchMatchIds()
+              }, 100)
+            }, 300)
+          } else {
+            // Not our match, just refresh the list
+            setTimeout(() => {
+              refetchMatchIds()
+            }, 500)
+          }
+        } catch (error) {
+          console.error('Error decoding MatchFinalized event:', error)
+        }
+      })
+    },
+    enabled: !!gameMatchAddress && !!address,
+  })
+
   // Fetch current match info when user is in a match
   const fetchCurrentMatchInfo = async () => {
     if (userJoinedMatchId === null || !gameMatchAddress || !publicClient) {
@@ -528,6 +599,29 @@ export function MatchBoard({
         createdAt: result[6] as bigint,
       }
       
+      // Check if match data is valid (not cleaned up)
+      // Cleaned up matches have maxPlayers = 0
+      if (matchInfo.maxPlayers === 0n) {
+        console.log('⚠️ Match has been cleaned up on-chain')
+        
+        // If we already have finalized match info, keep showing it
+        // This allows users to see the match results before dismissing
+        if (currentMatchInfo?.status === MatchStatus.Finalized) {
+          console.log('✅ Keeping finalized match info for user to review')
+          // Don't clear state - user will manually dismiss via "Close Match Summary" button
+          return
+        }
+        
+        // If we never got to see the finalized state, auto-dismiss
+        console.log('⚠️ Match cleaned up before finalization was captured, auto-dismissing')
+        setUserJoinedMatchId(null)
+        setCurrentMatchInfo(null)
+        setMatchCreated(false)
+        // Notify parent to also clear its state
+        onMatchDismissed?.()
+        return
+      }
+      
       setCurrentMatchInfo(matchInfo)
       console.log('✅ Current match info loaded:', {
         matchId: matchInfo.id.toString(),
@@ -543,9 +637,25 @@ export function MatchBoard({
       }
       
       // Notify parent when match is activated (status 1 = Active)
+      // Only notify if status changed to Active (not already Active)
       if (matchInfo.status === 1) {
-        console.log('🎮 Match is Active, notifying parent')
-        onMatchActivated?.(userJoinedMatchId)
+        if (currentMatchInfo?.status !== MatchStatus.Active) {
+          console.log('🎮 Match is Active (new), notifying parent')
+          onMatchActivated?.(userJoinedMatchId)
+        } else {
+          console.log('🎮 Match is Active (already known)')
+        }
+      }
+      
+      // Notify parent when match is finalized (status 2 = Finalized)
+      // Only notify if we haven't already (check if current state isn't already finalized)
+      if (matchInfo.status === 2 && matchInfo.winner) {
+        if (currentMatchInfo?.status !== MatchStatus.Finalized) {
+          console.log('🏆 Match is Finalized (new), notifying parent')
+          onMatchFinalized?.(userJoinedMatchId, matchInfo.winner)
+        } else {
+          console.log('🏆 Match is Finalized (already known)')
+        }
       }
     } catch (error) {
       console.error('❌ Error fetching current match info:', error)
@@ -569,13 +679,14 @@ export function MatchBoard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userJoinedMatchId, gameMatchAddress, publicClient])
 
-  // Poll match status when waiting for activation (during countdown or activating)
+  // Poll match status when waiting for activation or finalization
   useEffect(() => {
     if (userJoinedMatchId === null || !currentMatchInfo) return
     
-    // Only poll if match is Open (waiting for activation)
-    if (currentMatchInfo.status === MatchStatus.Open) {
-      console.log('🔄 Polling match status for activation detection')
+    // Poll if match is Open (waiting for activation) or Active (waiting for finalization)
+    if (currentMatchInfo.status === MatchStatus.Open || currentMatchInfo.status === MatchStatus.Active) {
+      const reason = currentMatchInfo.status === MatchStatus.Open ? 'activation' : 'finalization'
+      console.log(`🔄 Polling match status for ${reason} detection`)
       const interval = setInterval(() => {
         fetchCurrentMatchInfo()
       }, 2000) // Poll every 2 seconds
@@ -612,6 +723,16 @@ export function MatchBoard({
 
   // Determine which view to show based on match state
   const renderView = () => {
+    console.log('🎨 MatchBoard renderView:', {
+      userJoinedMatchId: userJoinedMatchId?.toString() || 'null',
+      hasCurrentMatchInfo: !!currentMatchInfo,
+      matchStatus: currentMatchInfo?.status,
+      statusName: currentMatchInfo?.status === 0 ? 'Open' : 
+                  currentMatchInfo?.status === 1 ? 'Active' :
+                  currentMatchInfo?.status === 2 ? 'Finalized' :
+                  currentMatchInfo?.status === 3 ? 'Cancelled' : 'Unknown'
+    })
+    
     // If user has joined a match
     if (userJoinedMatchId !== null && currentMatchInfo) {
       // Match is still Open - waiting for players
@@ -633,8 +754,26 @@ export function MatchBoard({
         )
       }
       
-      // Match is Active or Finalized
-      if (currentMatchInfo.status === MatchStatus.Active || currentMatchInfo.status === MatchStatus.Finalized) {
+      // Match is Finalized - show winner/loser feedback
+      if (currentMatchInfo.status === MatchStatus.Finalized) {
+        return (
+          <MatchFinalizedView
+            matchId={userJoinedMatchId}
+            matchInfo={currentMatchInfo}
+            userAddress={address}
+            onDismiss={() => {
+              setUserJoinedMatchId(null)
+              setCurrentMatchInfo(null)
+              setMatchCreated(false)
+              // Notify parent that finalized match was dismissed
+              onMatchDismissed?.()
+            }}
+          />
+        )
+      }
+      
+      // Match is Active
+      if (currentMatchInfo.status === MatchStatus.Active) {
         return (
           <MatchActiveView
             matchId={userJoinedMatchId}

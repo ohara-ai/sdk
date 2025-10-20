@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useReadContract } from 'wagmi'
+import { useState, useEffect } from 'react'
+import { useReadContract, useWatchContractEvent } from 'wagmi'
 import { SCOREBOARD_ABI } from '../abis/scoreboard'
+import { GAME_MATCH_ABI } from '../abis/gameMatch'
 import { formatAddress, formatTokenAmount } from '../utils/format'
 import { cn } from '../utils/cn'
 import { TrendingUp, Coins } from 'lucide-react'
@@ -13,6 +14,10 @@ export interface LeaderBoardProps {
   gameScoreAddress?: `0x${string}`
   limit?: number
   sortBy?: 'wins' | 'prize'
+  /** Polling interval in milliseconds. Set to 0 to disable polling. Default: 5000 (5 seconds) */
+  pollingInterval?: number
+  /** Callback to expose refetch function to parent */
+  onRefetchReady?: (refetch: () => void) => void
   className?: string
 }
 
@@ -20,27 +25,56 @@ export function LeaderBoard({
   gameScoreAddress: gameScoreAddressProp,
   limit = 10,
   sortBy: initialSortBy = 'wins',
+  pollingInterval = 5000,
+  onRefetchReady,
   className,
 }: LeaderBoardProps) {
   // Auto-register this component for dependency tracking
   useComponentRegistration('LeaderBoard')
   
-  // Get contract address from context if not provided
+  // Get contract addresses from context if not provided
   const { getContractAddress } = useOharaAi()
   const gameScoreAddress = gameScoreAddressProp || getContractAddress(ContractType.GAMESCORE)
+  const gameMatchAddress = getContractAddress(ContractType.GAME_MATCH)
 
   // Local state for sorting type
   const [sortBy, setSortBy] = useState<'wins' | 'prize'>(initialSortBy)
 
   // Call all hooks unconditionally, use enabled to control execution
-  const { data: leaderboardData, isLoading, error } = useReadContract({
+  const { data: leaderboardData, isLoading, error, refetch } = useReadContract({
     address: gameScoreAddress,
     abi: SCOREBOARD_ABI,
     functionName: sortBy === 'wins' ? 'getTopPlayersByWins' : 'getTopPlayersByPrize',
     args: [BigInt(limit)],
     query: {
       enabled: !!gameScoreAddress,
+      refetchInterval: pollingInterval > 0 ? pollingInterval : false,
     },
+  })
+
+  // Expose refetch function to parent component
+  useEffect(() => {
+    if (onRefetchReady && refetch) {
+      onRefetchReady(() => {
+        console.log('🔄 LeaderBoard: Manual refresh triggered')
+        refetch()
+      })
+    }
+  }, [onRefetchReady, refetch])
+
+  // Watch for MatchFinalized events to auto-refresh leaderboard
+  useWatchContractEvent({
+    address: gameMatchAddress,
+    abi: GAME_MATCH_ABI,
+    eventName: 'MatchFinalized',
+    onLogs() {
+      console.log('🏆 LeaderBoard: MatchFinalized event detected, refreshing...')
+      // Delay to ensure scoreboard contract has been updated
+      setTimeout(() => {
+        refetch()
+      }, 2000)
+    },
+    enabled: !!gameMatchAddress,
   })
 
   // If no address provided or found, show error

@@ -10,6 +10,10 @@ export interface MatchBoardProps {
   onMatchLeft?: () => void
   /** Called when any player withdraws from the match (including other players) */
   onPlayerWithdrew?: (matchId: bigint, player: string) => void
+  /** Called when the match is finalized with a winner */
+  onMatchFinalized?: (matchId: bigint, winner: `0x${string}`) => void
+  /** Called when user dismisses a finalized match summary */
+  onMatchDismissed?: () => void
   countdownSeconds?: number | null
   isActivating?: boolean
   className?: string
