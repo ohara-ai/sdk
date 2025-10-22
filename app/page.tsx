@@ -1,103 +1,81 @@
 'use client'
 
-import Link from 'next/link'
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { ArrowRight, Trophy, Gamepad2, Book, Code2 } from 'lucide-react'
+import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { ContractType } from '@/sdk/src/types/contracts'
+import { DeployContract as DeployGameMatch } from '@/components/features/game-match/DeployContract'
+import { DeployContract as DeployGameScore } from '@/components/features/game-score/DeployContract'
+import { FactoryInformation } from '@/components/features/FactoryInformation'
+import { ConnectWallet } from '@/components/ConnectWallet'
+import { Button } from '@/components/ui/button'
 
 export default function Home() {
+  const { getContractAddress } = useOharaAi()
+  const gameScoreAddress = getContractAddress(ContractType.GAMESCORE)
+  
+  const [showFactoryDetails, setShowFactoryDetails] = useState(false)
+
+  const handleGameMatchDeployed = (newAddress: `0x${string}`) => {
+    // Address will be automatically picked up by OharaAiProvider polling
+    console.log('GameMatch deployed:', newAddress)
+  }
+
+  const handleGameScoreDeployed = (newAddress: `0x${string}`) => {
+    // Address will be automatically picked up by OharaAiProvider polling
+    console.log('GameScore deployed:', newAddress)
+  }
+
   return (
     <main className="min-h-screen bg-white">
-      {/* Navigation Bar */}
-      <nav className="border-b border-gray-200 bg-white sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-gray-900">
-              Ohara AI SDK
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link 
-                href="/docs" 
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
+      {/* Header Section */}
+      <div className="border-b border-gray-200">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex items-start justify-between">
+            <div className="space-y-3">
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900">OharaAI SDK</h1>
+              <p className="text-lg text-gray-600 leading-relaxed">
+                Deploy and test on-chain gaming contracts. Functional primitives for Match and Scores operations.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <ConnectWallet />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFactoryDetails(!showFactoryDetails)}
+                className="flex items-center gap-1.5"
               >
-                <Book className="w-4 h-4" />
-                Documentation
-              </Link>
-              <Link 
-                href="/contract-testing" 
-                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors font-medium"
-              >
-                <Code2 className="w-4 h-4" />
-                Contract Testing
-              </Link>
+                Factory Details
+                {showFactoryDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </Button>
             </div>
           </div>
-        </div>
-      </nav>
-
-      {/* Hero Section */}
-      <div className="border-b border-gray-200 bg-gradient-to-b from-blue-50/50 to-white">
-        <div className="max-w-6xl mx-auto px-6 py-24">
-          <div className="text-center space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-lg">
-              <Gamepad2 className="w-4 h-4" />
-              <span>Gaming</span>
+          
+          {showFactoryDetails && (
+            <div className="mt-6 animate-in slide-in-from-top duration-200">
+              <FactoryInformation />
             </div>
-            <h1 className="text-6xl font-bold tracking-tight text-gray-900">
-              Ohara AI SDK
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Production-ready on-chain gaming components and smart contracts. 
-              Build wagered matches, leaderboards, and more with ease.
+          )}
+          
+          <div className="mt-6 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200">
+            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+            <p className="text-sm text-blue-900">
+              <span className="font-semibold">SDK Testing:</span> Deploy contracts and validate primitives
             </p>
           </div>
         </div>
       </div>
 
-      {/* Gaming Demos Section */}
-      <div className="max-w-6xl mx-auto px-6 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">Gaming Demos</h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore interactive examples showcasing wagered matches, leaderboards, and on-chain game mechanics
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          <Link href="/demos/tic-tac-toe" className="group">
-            <Card className="h-full border-2 border-gray-200 hover:border-blue-500 transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <CardHeader className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="p-3 bg-blue-50 rounded-xl group-hover:bg-blue-100 transition-colors">
-                    <Gamepad2 className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-all group-hover:translate-x-1 duration-200" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-3">Tic-Tac-Toe</CardTitle>
-                <CardDescription className="text-base text-gray-600 leading-relaxed">
-                  Full-featured wagered game with stake management, match activation, and real-time leaderboard tracking. 
-                  Experience the complete SDK integration.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-
-          <Link href="/demos/leaderboard" className="group">
-            <Card className="h-full border-2 border-gray-200 hover:border-purple-500 transition-all duration-200 hover:shadow-xl hover:-translate-y-1">
-              <CardHeader className="p-8">
-                <div className="flex items-start justify-between mb-6">
-                  <div className="p-3 bg-purple-50 rounded-xl group-hover:bg-purple-100 transition-colors">
-                    <Trophy className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-all group-hover:translate-x-1 duration-200" />
-                </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 mb-3">Leaderboard</CardTitle>
-                <CardDescription className="text-base text-gray-600 leading-relaxed">
-                  Standalone leaderboard showcase with rankings, player statistics, and customizable display options. 
-                  See how to integrate competitive features.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
+      {/* Content Section */}
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <DeployGameMatch 
+            onDeployed={handleGameMatchDeployed}
+            deployedGameScoreAddress={gameScoreAddress}
+          />
+          
+          <DeployGameScore onDeployed={handleGameScoreDeployed} />
         </div>
       </div>
     </main>

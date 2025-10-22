@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { getGameMatchFactoryAddress } from '@/lib/contracts/gameMatch'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OnchainContext'
@@ -25,8 +24,7 @@ export function DeployContract({ onDeployed, deployedGameScoreAddress: propGameS
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
-  const factoryAddress = getGameMatchFactoryAddress()
-  const { getContractAddress } = useOharaAi()
+  const { getContractAddress, factoryAddresses, deployGameMatch } = useOharaAi()
   const hookGameScoreAddress = getContractAddress(ContractType.GAMESCORE)
   
   // Use prop if provided, otherwise fall back to hook (prop takes precedence for reactivity)
@@ -169,15 +167,20 @@ export function DeployContract({ onDeployed, deployedGameScoreAddress: propGameS
     </>
   )
 
+  const gameMatchAddress = getContractAddress(ContractType.GAME_MATCH)
+
   return (
     <DeployFactoryContract
-      factoryAddress={factoryAddress}
+      factoryAddress={factoryAddresses.gameMatchFactory}
       factoryEnvVar="NEXT_PUBLIC_GAME_MATCH_FACTORY"
-      contractName="GameMatch"
-      apiRoute="/api/deploy-game-match"
+      contractName="Game Match"
+      contractDescription="Escrow-based match system with stake management and winner selection"
+      deployFunction={deployGameMatch}
       onDeployed={handleDeployed}
       configSection={configSection}
       getDeploymentBody={getDeploymentBody}
+      deployedAddress={gameMatchAddress}
+      featuresLink="/contract-testing/features/game-match"
     />
   )
 }

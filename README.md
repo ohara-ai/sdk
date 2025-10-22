@@ -1,6 +1,6 @@
 # On-Chain Features
 
-A comprehensive repository for modular on-chain gaming features with Solidity smart contracts, a user-ready SDK, and interactive demo applications.
+A comprehensive repository for modular on-chain gaming features with Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building gaming applications.
 
 ## Adding New Features
 
@@ -35,18 +35,16 @@ See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the 
 │   │   └── interfaces/ # Contract interfaces
 │   ├── test/           # Solidity tests
 │   └── script/         # Deployment scripts
-├── sdk/                # UI component SDK for developers
-│   ├── src/            # SDK source code
-│   │   ├── components/ # React UI components (LeaderBoard, MatchBoard)
+├── sdk/                # OharaAI SDK - Functional primitives for on-chain gaming
+│   ├── src/
+│   │   ├── core/       # Core primitives (Match, Scores, App)
+│   │   ├── context/    # OharaAiProvider for dependency coordination
 │   │   ├── abis/       # Contract ABIs
-│   │   └── utils/      # Utility functions
+│   │   └── types/      # TypeScript types
 │   ├── package.json    # SDK package configuration
 │   └── README.md       # SDK documentation
-├── app/                # Next.js demo application
-│   ├── demos/          # SDK component demos
-│   │   ├── tic-tac-toe/     # Tic-tac-toe game demo
-│   │   └── leaderboard/     # Leaderboard showcase
-│   └── contract-testing/    # Internal contract testing interface
+├── app/                # Next.js application
+│   └── contract-testing/    # Contract testing interface for validation
 ├── components/         # Shared React components
 └── lib/                # Utilities and helpers
 ```
@@ -57,7 +55,11 @@ For detailed information about implemented and proposed features, see the [`prop
 
 ## SDK
 
-The **@ohara-ai/game-sdk** provides production-ready UI components and hooks for building on-chain gaming applications. The SDK offers a user-centric abstraction over the smart contracts, making it easy to integrate gaming features into your app.
+The **OharaAI SDK** provides functional primitives for building on-chain gaming applications without dealing with blockchain complexity directly. The SDK exposes three main interfaces:
+
+- **Match** - Create, join, and manage wagered game matches
+- **Scores** - Query player statistics and leaderboards
+- **App** - High-level interface combining Match + Scores operations
 
 ### Quick Start
 
@@ -72,43 +74,48 @@ npm run sdk:build
 npm run sdk:dev
 ```
 
-### Components
-
-- **LeaderBoard**: Display high scores and player rankings from GameScore contracts with customizable sorting
-- **MatchBoard**: Create and join wagered game matches with built-in escrow management
-
 ### Example Usage
 
 ```tsx
-import { LeaderBoard, MatchBoard } from '@ohara-ai/game-sdk'
+import { useOharaAi } from '@ohara-ai/game-sdk'
+import { parseEther } from 'viem'
 
-function App() {
+function GameComponent() {
+  const { app } = useOharaAi()
+  
+  const createMatch = async () => {
+    // Create a 2-player match with 0.1 ETH stake
+    const hash = await app.match?.create({
+      token: '0x0000000000000000000000000000000000000000',
+      stakeAmount: parseEther('0.1'),
+      maxPlayers: 2
+    })
+  }
+  
+  const getLeaderboard = async () => {
+    // Get top 10 players by wins
+    const result = await app.scores?.getTopPlayersByWins(10)
+    return result
+  }
+  
   return (
-    <>
-      <MatchBoard 
-        gameMatchAddress="0x..."
-        onMatchCreated={(id) => console.log('Match created:', id)}
-        onMatchJoined={(id) => console.log('Joined match:', id)}
-      />
-      <LeaderBoard 
-        gameScoreAddress="0x..."
-        limit={10}
-        sortBy="wins"
-        showStats={true}
-      />
-    </>
+    <div>
+      <button onClick={createMatch}>Create Match</button>
+      <button onClick={getLeaderboard}>View Leaderboard</button>
+    </div>
   )
 }
 ```
 
-### Demo Applications
+### Key Features
 
-The main app includes interactive demos showcasing SDK components:
+✅ **Functional Primitives** - Simple async functions instead of raw contract calls  
+✅ **Type-Safe** - Full TypeScript support  
+✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
+✅ **No UI Lock-in** - Build your own interface on top of primitives  
+✅ **Fee Enforcement** - SDK coordinates on-chain fee requirements  
 
-- **Tic-Tac-Toe** (`/demos/tic-tac-toe`) - Full wagered game implementation using both components
-- **Leaderboard Demo** (`/demos/leaderboard`) - Interactive leaderboard configuration showcase
-
-See [`sdk/README.md`](./sdk/README.md) for detailed documentation.
+See [`SDK_QUICKSTART.md`](./SDK_QUICKSTART.md) for a quick start guide and [`sdk/README.md`](./sdk/README.md) for detailed documentation.
 
 ## Development
 
@@ -143,12 +150,12 @@ npm run forge:test:verbose
 npm run forge:coverage
 ```
 
-### Demo Application
+### Contract Testing Application
 
-The demo application showcases SDK components in action. It includes:
-- Interactive game demos (tic-tac-toe)
-- Component showcases (leaderboard)
-- Internal contract testing interface
+The application includes an internal contract testing interface for validating on-chain features:
+- Deploy and interact with GameMatch contracts
+- Deploy and query GameScore contracts
+- Test end-to-end workflows
 
 #### Quick Start with Anvil (Local Development)
 
@@ -159,15 +166,17 @@ The demo application showcases SDK components in action. It includes:
 
 2. **Deploy contracts**:
    ```bash
-   # Deploy the GameMatchFactory
-   forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
-     --rpc-url http://localhost:8545 \
-     --broadcast
-   
-   # Deploy the GameScoreFactory (optional, for leaderboard features)
-   forge script contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
-     --rpc-url http://localhost:8545 \
-     --broadcast
+    # Deploy DEVWORLD token (for testing ERC20 features)
+    forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
+      --rpc-url http://localhost:8545 --broadcast
+
+    # Deploy GameMatchFactory
+    forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
+      --rpc-url http://localhost:8545 --broadcast
+
+    # Deploy GameScoreFactory
+    forge script contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
+      --rpc-url http://localhost:8545 --broadcast
    ```
 
 3. **Configure environment**:
@@ -186,11 +195,10 @@ The demo application showcases SDK components in action. It includes:
    npm run dev
    ```
 
-5. **Explore the demos**:
-   - Open http://localhost:3000
-   - Try the **Tic-Tac-Toe** demo to see wagering in action
-   - Visit the **Leaderboard Demo** to explore ranking features
-   - Use the **Contract Testing** section to deploy and test contracts directly
+5. **Explore the contract testing interface**:
+   - Open http://localhost:3000/contract-testing
+   - Deploy GameMatch and GameScore contracts
+   - Test contract interactions directly
 
 #### Deployment Flow
 

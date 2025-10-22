@@ -1,39 +1,38 @@
-// Components
-export { LeaderBoard } from './components/LeaderBoard'
-export type { LeaderBoardProps } from './components/LeaderBoard'
-
-export { MatchBoard } from './components/MatchBoard'
-export type { MatchBoardProps } from './components/MatchBoard'
-
 // Provider & Context
 export { 
   OharaAiProvider, 
   useOharaAi,
-  useComponentRegistration,
 } from './context/OnchainContext'
+
+// Core Primitives
+export { 
+  createMatchOperations,
+  type MatchOperations,
+  type MatchConfig,
+  type Match,
+  MatchStatus,
+} from './core/match'
+
+export {
+  createScoreOperations,
+  type ScoreOperations,
+  type PlayerScore,
+  type TopPlayersResult,
+} from './core/scores'
+
+export {
+  createAppOperations,
+  resolveContractAddresses,
+  type AppOperations,
+  type AppConfig,
+} from './core/app'
+
+// Contract Types
+export { ContractType } from './types/contracts'
 
 // ABIs
 export { SCOREBOARD_ABI } from './abis/scoreboard'
-export { GAME_MATCH_ABI, MatchStatus } from './abis/gameMatch'
-
-// Contract Dependencies
-export { ContractType } from './types/contracts'
-export type { ContractDependency, ComponentMetadata } from './types/contracts'
-export { 
-  COMPONENT_REGISTRY,
-  LEADERBOARD_METADATA,
-  MATCH_BOARD_METADATA,
-  type ComponentName,
-} from './metadata/componentDependencies'
-export {
-  getContractDependencies,
-  getRequiredContracts,
-  getOptionalContracts,
-  validateContractConfiguration,
-  getComponentMetadata,
-  getComponentsByContract,
-} from './utils/dependencies'
+export { GAME_MATCH_ABI } from './abis/gameMatch'
 
 // Utils
-export { cn } from './utils/cn'
 export { formatAddress, formatTokenAmount } from './utils/format'

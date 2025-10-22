@@ -1,26 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createWalletClient, http, createPublicClient } from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
-import { setContractAddress } from '@/lib/server/contractStorage'
-
-const GAMESCORE_FACTORY_ABI = [
-  {
-    inputs: [],
-    name: 'deployGameScore',
-    outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
-    ],
-    name: 'GameScoreDeployed',
-    type: 'event',
-  },
-] as const
+import { deployGameScore, getDeploymentConfig } from '@/lib/server/deploymentService'
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,80 +13,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get configuration from environment
-    const privateKey = process.env.PRIVATE_KEY
-    const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
+    // Get deployment configuration from environment
+    const config = getDeploymentConfig()
 
-    if (!privateKey) {
-      return NextResponse.json(
-        { error: 'PRIVATE_KEY not configured in environment' },
-        { status: 500 }
-      )
-    }
+    // Deploy the contract using the service
+    const result = await deployGameScore(
+      { factoryAddress: factoryAddress as `0x${string}` },
+      config
+    )
 
-    // Create account from private key
-    const account = privateKeyToAccount(privateKey as `0x${string}`)
-
-    // Create clients without specifying chain - let them auto-detect
-    // This prevents chain ID mismatches with local networks
-    const walletClient = createWalletClient({
-      account,
-      transport: http(rpcUrl),
-    })
-
-    const publicClient = createPublicClient({
-      transport: http(rpcUrl),
-    })
-
-    // Get chain ID for storage
-    const chainId = await publicClient.getChainId()
-
-    // Deploy the contract
-    const hash = await walletClient.writeContract({
-      address: factoryAddress as `0x${string}`,
-      abi: GAMESCORE_FACTORY_ABI,
-      functionName: 'deployGameScore',
-      args: [],
-      chain: null,
-    })
-
-    // Wait for transaction receipt
-    const receipt = await publicClient.waitForTransactionReceipt({ hash })
-
-    // Extract deployed address from logs
-    // The GameScoreDeployed event has the instance as the first indexed parameter (topic[1])
-    let deployedAddress: `0x${string}` | null = null
-    
-    for (const log of receipt.logs) {
-      // Check if this log is from the factory contract
-      if (log.address.toLowerCase() === factoryAddress.toLowerCase() && log.topics.length >= 2) {
-        // The instance address is in topic[1] (first indexed parameter)
-        // Topics are 32 bytes, addresses are 20 bytes, so we take the last 40 hex chars
-        const instanceTopic = log.topics[1]
-        if (instanceTopic) {
-          deployedAddress = `0x${instanceTopic.slice(-40)}` as `0x${string}`
-          break
-        }
-      }
-    }
-
-    if (!deployedAddress) {
-      throw new Error('Could not extract deployed address from transaction receipt')
-    }
-
-    // Save the deployed address to backend storage
-    try {
-      await setContractAddress(chainId, 'gamescore', deployedAddress)
-    } catch (storageError) {
-      console.error('Failed to save address to backend storage:', storageError)
-      // Continue - deployment was successful even if storage failed
-    }
-
-    return NextResponse.json({
-      success: true,
-      address: deployedAddress,
-      transactionHash: hash,
-    })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Deployment error:', error)
     return NextResponse.json(

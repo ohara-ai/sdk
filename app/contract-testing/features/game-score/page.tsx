@@ -90,10 +90,10 @@ export default function GameScorePage() {
       {/* Header Section */}
       <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-6 py-6">
-          <Link href="/contract-testing">
+          <Link href="/">
             <Button variant="ghost" size="sm" className="mb-4 -ml-2">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Contract Testing
+              Back to Home
             </Button>
           </Link>
           

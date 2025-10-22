@@ -1,6 +1,6 @@
-# @ohara-ai/game-sdk
+# OharaAI SDK
 
-Production-ready UI components and hooks for building on-chain gaming applications.
+Functional primitives for building on-chain gaming applications. Simple async functions that abstract blockchain complexity without UI constraints.
 
 ## Installation
 
@@ -8,329 +8,155 @@ Production-ready UI components and hooks for building on-chain gaming applicatio
 npm install @ohara-ai/game-sdk viem wagmi
 ```
 
-## Table of Contents
+## Quick Start
 
-- [OharaAiProvider](#oharaAiprovider)
-- [Components](#components)
-- [Setup](#setup)
-- [Development](#development)
-
-## OharaAiProvider
-
-The `OharaAiProvider` is the core context provider that enables automatic contract dependency detection and management for all SDK components.
-
-### Overview
-
-Wrap your app with `OharaAiProvider` to enable:
-- ✅ Automatic tracking of mounted SDK components
-- ✅ Dynamic contract dependency resolution
-- ✅ Real-time validation of contract configurations
-- ✅ Reactive address resolution from environment and localStorage
-- ✅ Type-safe contract address management
-
-### Basic Usage
+### 1. Setup Provider
 
 ```tsx
 import { OharaAiProvider } from '@ohara-ai/game-sdk'
-import { WagmiProvider } from 'wagmi'
-import { QueryClientProvider } from '@tanstack/react-query'
+import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
 
-function Providers({ children }) {
+function AppProviders({ children }) {
+  const publicClient = usePublicClient()
+  const { data: walletClient } = useWalletClient()
+  const chainId = useChainId()
+  
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <OharaAiProvider>
-          {children}
-        </OharaAiProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <OharaAiProvider 
+      publicClient={publicClient}
+      walletClient={walletClient}
+      chainId={chainId}
+    >
+      {children}
+    </OharaAiProvider>
   )
 }
 ```
 
-### Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `children` | `ReactNode` | Required | Your app content |
-| `env` | `Record<string, string \| undefined>` | `process.env` | Environment variables for contract addresses |
-| `chainId` | `number` | Auto-detected | Chain ID for localStorage keys |
-
-### useOharaAi Hook
-
-Access provider data anywhere in your app using the `useOharaAi` hook.
-
-#### Returned Data
-
-```tsx
-const {
-  activeComponents,      // Set<ComponentName>
-  registerComponent,     // (name: ComponentName) => void
-  unregisterComponent,   // (name: ComponentName) => void
-  dependencies,          // ContractDependency[]
-  validation,            // { valid, missing, configured }
-  env,                   // Record<string, string | undefined>
-  getContractAddress,    // (type: ContractType) => Address | undefined
-  addresses,             // { GAMESCORE?: Address, GAME_MATCH?: Address }
-} = useOharaAi()
-```
-
-#### Data Types
-
-**`activeComponents: Set<ComponentName>`**
-- Currently mounted SDK components in your React tree
-- Updates automatically when components mount/unmount
-- Possible values: `'LeaderBoard'`, `'MatchBoard'`
-
-**`dependencies: ContractDependency[]`**
-- Array of contract dependencies based on active components
-- Each dependency includes:
-  - `contract`: `ContractType` - Type of contract (e.g., `'Scoreboard'`, `'GameMatch'`)
-  - `required`: `boolean` - Whether the contract is required
-  - `envVar`: `string` - Environment variable name for the address
-  - `description`: `string` - Why the contract is needed
-
-**`validation: ValidationResult`**
-- `valid`: `boolean` - Whether all required contracts are configured
-- `missing`: `ContractDependency[]` - Dependencies that are not configured
-- `configured`: `ContractDependency[]` - Dependencies that are properly configured
-
-**`addresses: ContractAddresses`**
-- Resolved contract addresses from environment variables and localStorage
-- Priority: localStorage > environment variables (allows runtime overrides)
-- Type: `{ GAMESCORE?: Address, GAME_MATCH?: Address }`
-
-**`getContractAddress(type: ContractType): Address | undefined`**
-- Helper function to get contract address by type
-- Returns the address or `undefined` if not configured
-
-### Example: Displaying Provider Data
-
-```tsx
-import { useOharaAi, ContractType } from '@ohara-ai/game-sdk'
-
-function AppStatus() {
-  const { 
-    activeComponents, 
-    dependencies, 
-    validation,
-    addresses,
-    getContractAddress 
-  } = useOharaAi()
-
-  return (
-    <div>
-      <h3>Active Components</h3>
-      <p>{Array.from(activeComponents).join(', ') || 'None'}</p>
-
-      <h3>Contract Dependencies</h3>
-      <ul>
-        {dependencies.map(dep => (
-          <li key={dep.contract}>
-            {dep.contract} - {dep.required ? 'Required' : 'Optional'}
-            <br />
-            <small>{dep.description}</small>
-          </li>
-        ))}
-      </ul>
-
-      <h3>Validation Status</h3>
-      <p>Valid: {validation.valid ? '✅' : '❌'}</p>
-      {validation.missing.length > 0 && (
-        <div>
-          <strong>Missing:</strong>
-          <ul>
-            {validation.missing.map(m => (
-              <li key={m.contract}>{m.contract} - Set {m.envVar}</li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      <h3>Configured Addresses</h3>
-      <ul>
-        <li>Scoreboard: {addresses.Scoreboard || 'Not configured'}</li>
-        <li>GameMatch: {addresses.GameMatch || 'Not configured'}</li>
-      </ul>
-    </div>
-  )
-}
-```
-
-### Example: Validation Guard
+### 2. Use Primitives
 
 ```tsx
 import { useOharaAi } from '@ohara-ai/game-sdk'
+import { parseEther } from 'viem'
 
-function GameDemo() {
-  const { validation } = useOharaAi()
-
-  if (!validation.valid) {
-    return (
-      <div className="error">
-        <h2>Configuration Required</h2>
-        <p>Please configure the following contracts:</p>
-        <ul>
-          {validation.missing.map(dep => (
-            <li key={dep.contract}>
-              {dep.contract}: Set environment variable {dep.envVar}
-            </li>
-          ))}
-        </ul>
-      </div>
-    )
+function GameComponent() {
+  const { app } = useOharaAi()
+  
+  // Create a match
+  const createMatch = async () => {
+    await app.match?.create({
+      token: '0x0000000000000000000000000000000000000000',
+      stakeAmount: parseEther('0.1'),
+      maxPlayers: 2
+    })
   }
-
+  
+  // Get leaderboard
+  const getTopPlayers = async () => {
+    const result = await app.scores?.getTopPlayersByWins(10)
+    return result
+  }
+  
   return (
     <div>
-      {/* Your game demo */}
+      <button onClick={createMatch}>Create Match</button>
+      <button onClick={getTopPlayers}>View Leaderboard</button>
     </div>
   )
 }
 ```
 
-### Environment Variables
+## Core Primitives
 
-The provider checks for contract addresses in the following environment variables:
+### Match Operations
 
-**Scoreboard Contract:**
-- `NEXT_PUBLIC_GAMESCORE_ADDRESS`
-- `NEXT_PUBLIC_GAMESCORE_INSTANCE`
-
-**GameMatch Contract:**
-- `NEXT_PUBLIC_GAME_MATCH_INSTANCE`
-- `NEXT_PUBLIC_GAME_MATCH_ADDRESS`
-
-**Note:** Addresses stored in localStorage take precedence over environment variables, enabling dynamic runtime configuration.
-
-### Advanced Features
-
-**Automatic Component Registration:**
-SDK components automatically register themselves when mounted:
-
-```tsx
-import { LeaderBoard } from '@ohara-ai/game-sdk'
-
-// LeaderBoard auto-registers on mount, unregisters on unmount
-<LeaderBoard gameScoreAddress="0x..." />
-```
-
-**Conditional Rendering Support:**
-Dependencies are only tracked when components are actually rendered:
-
-```tsx
-const [showLeaderboard, setShowLeaderboard] = useState(false)
-
-{showLeaderboard && <LeaderBoard gameScoreAddress="0x..." />}
-// Scoreboard contract only required when showLeaderboard is true
-```
-
-**localStorage Integration:**
-Contract addresses can be set dynamically at runtime:
-
-```tsx
-// Store address in localStorage
-localStorage.setItem(`deployed_scoreboard_${chainId}`, '0x123...')
-
-// Dispatch event to notify provider
-window.dispatchEvent(new Event('contractDeployed'))
-
-// Provider automatically picks up the new address
-```
-
-For more details, see [OHARA_AI_PROVIDER.md](./OHARA_AI_PROVIDER.md).
-
-## Components
-
-### LeaderBoard
-
-Display high scores and player rankings from GameScore contracts.
-
-```tsx
-import { LeaderBoard } from '@ohara-ai/game-sdk'
-
-function App() {
-  return (
-    <LeaderBoard 
-      gameScoreAddress="0x..."
-      limit={10}
-      sortBy="wins"
-    />
-  )
+```typescript
+interface MatchOperations {
+  create(config: MatchConfig): Promise<Hash>
+  join(matchId: bigint): Promise<Hash>
+  withdraw(matchId: bigint): Promise<Hash>
+  get(matchId: bigint): Promise<Match>
+  getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]>
+  getPlayerStake(matchId: bigint, player: Address): Promise<bigint>
 }
 ```
 
-**Props:**
-- `gameScoreAddress` (string): The address of the GameScore contract
-- `limit` (number, optional): Maximum number of entries to display (default: 10)
-- `sortBy` ('wins' | 'score' | 'recent', optional): Sorting criteria (default: 'wins')
-- `className` (string, optional): Additional CSS classes
+### Score Operations
 
-### MatchBoard
-
-Create and join wagered game matches with escrow management.
-
-```tsx
-import { MatchBoard } from '@ohara-ai/game-sdk'
-
-function App() {
-  return (
-    <MatchBoard 
-      gameMatchAddress="0x..."
-      onMatchCreated={(id) => console.log('Match created:', id)}
-      onMatchJoined={(id) => console.log('Joined match:', id)}
-    />
-  )
+```typescript
+interface ScoreOperations {
+  getPlayerScore(player: Address): Promise<PlayerScore>
+  getTopPlayersByWins(limit: number): Promise<TopPlayersResult>
+  getTopPlayersByPrize(limit: number): Promise<TopPlayersResult>
+  getTotalPlayers(): Promise<bigint>
+  getTotalMatches(): Promise<bigint>
 }
 ```
 
-**Props:**
-- `gameMatchAddress` (string): The address of the GameMatch contract
-- `onMatchCreated` (function, optional): Callback when a match is created
-- `onMatchJoined` (function, optional): Callback when a match is joined
-- `className` (string, optional): Additional CSS classes
+### App Operations
 
-## Setup
+```typescript
+interface AppOperations {
+  match?: MatchOperations
+  scores?: ScoreOperations
+  hasMatchSupport(): boolean
+  hasScoreSupport(): boolean
+}
+```
 
-The SDK components require a wagmi provider. Wrap your app with `WagmiProvider`:
+## Environment Variables
+
+```bash
+# GameMatch contract address
+NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x...
+
+# GameScore contract address
+NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...
+```
+
+## Key Features
+
+✅ **Functional Primitives** - Simple async functions, not React components  
+✅ **Type-Safe** - Full TypeScript support  
+✅ **No UI Lock-in** - Build any interface you want  
+✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
+✅ **Fee Enforcement** - SDK coordinates on-chain requirements  
+
+## Direct Usage
+
+You can also use primitives directly without the provider:
 
 ```tsx
-import { WagmiProvider, createConfig, http } from 'wagmi'
-import { mainnet, sepolia } from 'wagmi/chains'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createMatchOperations, createScoreOperations } from '@ohara-ai/game-sdk'
+import { usePublicClient, useWalletClient } from 'wagmi'
 
-const config = createConfig({
-  chains: [mainnet, sepolia],
-  transports: {
-    [mainnet.id]: http(),
-    [sepolia.id]: http(),
-  },
-})
-
-const queryClient = new QueryClient()
-
-function App() {
-  return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        {/* Your app */}
-      </QueryClientProvider>
-    </WagmiProvider>
+function Component() {
+  const publicClient = usePublicClient()
+  const { data: walletClient } = useWalletClient()
+  
+  const match = createMatchOperations(
+    '0x...', // GameMatch address
+    publicClient,
+    walletClient
   )
+  
+  const scores = createScoreOperations(
+    '0x...', // GameScore address
+    publicClient
+  )
+  
+  // Use match.create(), scores.getTopPlayersByWins(), etc.
 }
 ```
 
 ## Development
 
 ```bash
-# Build the package
+# Build the SDK
 npm run build
 
-# Watch mode for development
+# Watch mode
 npm run dev
-
-# Type check
-npm run type-check
 ```
 
 ## License
