@@ -3,7 +3,7 @@ import { mainnet, sepolia, hardhat, localhost } from 'wagmi/chains'
 import { injected, metaMask } from 'wagmi/connectors'
 
 // Use custom RPC URL if provided, otherwise use default
-const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
+const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
 
 // Prioritize local chain for development
 // Change order to [mainnet, sepolia, localhost] for production deployments

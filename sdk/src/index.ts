@@ -2,7 +2,47 @@
 export { 
   OharaAiProvider, 
   useOharaAi,
-} from './context/OnchainContext'
+} from './context/OharaAiProvider'
+
+export type {
+  OharaAiContext,
+  OharaContext,
+  GameContext,
+  AppContext,
+  InternalContext,
+  DeployGameMatchParams,
+  DeploymentResult,
+} from './context/OharaAiContext'
+
+// Server-side Context
+export {
+  createServerOharaAi,
+  clearOharaAiCache,
+  type ServerOharaAiContext,
+} from './server/createServerContext'
+
+// Storage
+export {
+  getContracts,
+  updateContracts,
+  getControllerKey,
+  getControllerAddress,
+  type ContractAddresses,
+  type OharaContracts,
+  type GameContracts,
+  type AppContracts,
+} from './storage/contractStorage'
+
+// Deployment
+export {
+  deployGameMatch,
+  deployGameScore,
+  getDeploymentConfig,
+  getFactoryAddresses,
+  type DeploymentConfig,
+  type GameMatchDeployParams,
+  type GameScoreDeployParams,
+} from './deployment/deploymentService'
 
 // Core Primitives
 export { 
@@ -30,9 +70,3 @@ export {
 // Contract Types
 export { ContractType } from './types/contracts'
 
-// ABIs
-export { SCOREBOARD_ABI } from './abis/scoreboard'
-export { GAME_MATCH_ABI } from './abis/gameMatch'
-
-// Utils
-export { formatAddress, formatTokenAmount } from './utils/format'

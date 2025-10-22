@@ -115,17 +115,17 @@ export function getContractFromConfig(
 export function injectConfigIntoEnv() {
   if (typeof window !== 'undefined') return
   
-  const config = loadOnchainConfigClient()
-  if (!config) return
+  // const config = loadOnchainConfigClient()
+  // if (!config) return
   
-  // Inject contract addresses as env vars so existing code works
-  if (config.contracts.scoreboard) {
-    process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS = config.contracts.scoreboard
-  }
-  if (config.contracts.gameMatch) {
-    process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE = config.contracts.gameMatch
-  }
+  // // Inject contract addresses as env vars so existing code works
+  // if (config.contracts.scoreboard) {
+  //   process.env.NEXT_PUBLIC_SCOREBOARD_ADDRESS = config.contracts.scoreboard
+  // }
+  // if (config.contracts.gameMatch) {
+  //   process.env.NEXT_PUBLIC_GAME_MATCH_INSTANCE = config.contracts.gameMatch
+  // }
   
-  // Inject chain ID and RPC
-  process.env.NEXT_PUBLIC_CHAIN_ID = String(config.chainId)
+  // // Inject chain ID and RPC
+  // process.env.NEXT_PUBLIC_CHAIN_ID = String(config.chainId)
 }

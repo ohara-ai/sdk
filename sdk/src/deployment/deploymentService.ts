@@ -1,93 +1,33 @@
 import { createWalletClient, http, createPublicClient, PublicClient, WalletClient } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { setContractAddress } from './contractStorage'
-
-// ABIs
-const GAME_MATCH_FACTORY_ABI = [
-  {
-    inputs: [
-      { internalType: 'address', name: '_controller', type: 'address' },
-      { internalType: 'address', name: '_gameScore', type: 'address' },
-    ],
-    name: 'deployGameMatch',
-    outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'controller', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'gameScore', type: 'address' },
-    ],
-    name: 'GameMatchDeployed',
-    type: 'event',
-  },
-] as const
-
-const GAMESCORE_FACTORY_ABI = [
-  {
-    inputs: [],
-    name: 'deployGameScore',
-    outputs: [{ internalType: 'address', name: 'instance', type: 'address' }],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'address', name: 'instance', type: 'address' },
-      { indexed: true, internalType: 'address', name: 'owner', type: 'address' },
-    ],
-    name: 'GameScoreDeployed',
-    type: 'event',
-  },
-] as const
-
-const SCOREBOARD_ABI = [
-  {
-    inputs: [
-      { internalType: 'address', name: 'recorder', type: 'address' },
-      { internalType: 'bool', name: 'authorized', type: 'bool' },
-    ],
-    name: 'setRecorderAuthorization',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const
-
-const GAME_MATCH_ABI = [
-  {
-    inputs: [
-      { internalType: 'address[]', name: '_recipients', type: 'address[]' },
-      { internalType: 'uint256[]', name: '_shares', type: 'uint256[]' },
-    ],
-    name: 'configureFees',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-] as const
+import { setContractAddress, getControllerKey, getControllerAddress } from '../storage/contractStorage'
+import { GAME_MATCH_FACTORY_ABI } from '../abis/gameMatchFactory'
+import { GAME_SCORE_FACTORY_ABI } from '../abis/gameScoreFactory'
+import { GAME_SCORE_ABI } from '../abis/gameScore'
+import { GAME_MATCH_ABI } from '../abis/gameMatch'
 
 // Types
 export interface DeploymentConfig {
-  privateKey: string
+  appControllerPrivateKey: string
   rpcUrl: string
-  controllerAddress?: string
+  controllerAddress: string
+  game: {
+    match: {
+      factoryAddress: `0x${string}`
+    }
+    score: {
+      factoryAddress: `0x${string}`
+    }
+  }
 }
 
 export interface GameMatchDeployParams {
-  factoryAddress: `0x${string}`
   gameScoreAddress?: `0x${string}`
   feeRecipients?: string[]
   feeShares?: string[]
 }
 
 export interface GameScoreDeployParams {
-  factoryAddress: `0x${string}`
 }
 
 export interface DeploymentResult {
@@ -124,7 +64,7 @@ function createDeploymentClients(config: DeploymentConfig): {
   publicClient: PublicClient
   account: ReturnType<typeof privateKeyToAccount>
 } {
-  const account = privateKeyToAccount(config.privateKey as `0x${string}`)
+  const account = privateKeyToAccount(config.appControllerPrivateKey as `0x${string}`)
 
   const walletClient = createWalletClient({
     account,
@@ -142,15 +82,15 @@ function createDeploymentClients(config: DeploymentConfig): {
  * Deploy a GameScore contract instance
  */
 export async function deployGameScore(
-  params: GameScoreDeployParams,
-  config: DeploymentConfig
+  params: GameScoreDeployParams
 ): Promise<DeploymentResult> {
+  const config = await getDeploymentConfig()
   const { walletClient, publicClient, account } = createDeploymentClients(config)
 
   // Deploy the contract
   const hash = await walletClient.writeContract({
-    address: params.factoryAddress,
-    abi: GAMESCORE_FACTORY_ABI,
+    address: config.game.score.factoryAddress,
+    abi: GAME_SCORE_FACTORY_ABI,
     functionName: 'deployGameScore',
     args: [],
     chain: null,
@@ -161,7 +101,7 @@ export async function deployGameScore(
   const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
   // Extract deployed address
-  const deployedAddress = extractDeployedAddress(receipt, params.factoryAddress)
+  const deployedAddress = extractDeployedAddress(receipt, config.game.score.factoryAddress)
   if (!deployedAddress) {
     throw new Error('Could not extract deployed address from transaction receipt')
   }
@@ -169,7 +109,7 @@ export async function deployGameScore(
   // Get chain ID and save to storage
   const chainId = await publicClient.getChainId()
   try {
-    await setContractAddress(chainId, 'gameScore', deployedAddress)
+    await setContractAddress(chainId, 'game', 'score', deployedAddress)
   } catch (storageError) {
     console.error('Failed to save address to backend storage:', storageError)
   }
@@ -185,13 +125,9 @@ export async function deployGameScore(
  * Deploy a GameMatch contract instance
  */
 export async function deployGameMatch(
-  params: GameMatchDeployParams,
-  config: DeploymentConfig
+  params: GameMatchDeployParams
 ): Promise<DeploymentResult> {
-  if (!config.controllerAddress) {
-    throw new Error('Controller address is required for GameMatch deployment')
-  }
-
+  const config = await getDeploymentConfig()
   const { walletClient, publicClient, account } = createDeploymentClients(config)
 
   // Use provided gameScoreAddress or default to zero address
@@ -214,7 +150,7 @@ export async function deployGameMatch(
 
   // Deploy the contract
   const hash = await walletClient.writeContract({
-    address: params.factoryAddress,
+    address: config.game.match.factoryAddress,
     abi: GAME_MATCH_FACTORY_ABI,
     functionName: 'deployGameMatch',
     args: [
@@ -229,7 +165,7 @@ export async function deployGameMatch(
   const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
   // Extract deployed address
-  const deployedAddress = extractDeployedAddress(receipt, params.factoryAddress)
+  const deployedAddress = extractDeployedAddress(receipt, config.game.match.factoryAddress)
   if (!deployedAddress) {
     throw new Error('Could not extract deployed address from transaction receipt')
   }
@@ -259,7 +195,7 @@ export async function deployGameMatch(
     try {
       const authHash = await walletClient.writeContract({
         address: gameScoreAddress as `0x${string}`,
-        abi: SCOREBOARD_ABI,
+        abi: GAME_SCORE_ABI,
         functionName: 'setRecorderAuthorization',
         args: [deployedAddress, true],
         chain: null,
@@ -276,7 +212,7 @@ export async function deployGameMatch(
   // Get chain ID and save to storage
   const chainId = await publicClient.getChainId()
   try {
-    await setContractAddress(chainId, 'gameMatch', deployedAddress)
+    await setContractAddress(chainId, 'game', 'match', deployedAddress)
   } catch (storageError) {
     console.error('Failed to save address to backend storage:', storageError)
   }
@@ -291,21 +227,45 @@ export async function deployGameMatch(
 }
 
 /**
- * Get deployment configuration from environment variables
+ * Get deployment configuration from storage and environment variables
  */
-export function getDeploymentConfig(): DeploymentConfig {
-  const privateKey = process.env.PRIVATE_KEY
-  const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545'
-  const controllerAddress = process.env.NEXT_PUBLIC_CONTROLLER_ADDRESS
-
-  if (!privateKey) {
-    throw new Error('PRIVATE_KEY not configured in environment')
+export async function getDeploymentConfig(): Promise<DeploymentConfig> {
+  // Get controller private key from storage
+  const appControllerPrivateKey = await getControllerKey()
+  
+  // Derive controller address from private key
+  const controllerAddress = await getControllerAddress()
+  
+  if (!controllerAddress) {
+    throw new Error('Failed to derive controller address from private key')
+  }
+  
+  const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+  
+  // Get factory addresses from environment
+  const gameMatchFactory = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}`
+  const gameScoreFactory = process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as `0x${string}`
+  
+  if (!gameMatchFactory) {
+    throw new Error('NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment')
+  }
+  
+  if (!gameScoreFactory) {
+    throw new Error('NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment')
   }
 
   return {
-    privateKey,
+    appControllerPrivateKey,
     rpcUrl,
     controllerAddress,
+    game: {
+      match: {
+        factoryAddress: gameMatchFactory,
+      },
+      score: {
+        factoryAddress: gameScoreFactory,
+      },
+    },
   }
 }
 
@@ -315,6 +275,6 @@ export function getDeploymentConfig(): DeploymentConfig {
 export function getFactoryAddresses() {
   return {
     gameMatchFactory: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}` | undefined,
-    gameScoreFactory: process.env.NEXT_PUBLIC_GAMESCORE_FACTORY as `0x${string}` | undefined,
+    gameScoreFactory: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as `0x${string}` | undefined,
   }
 }

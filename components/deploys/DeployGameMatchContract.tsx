@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../DeployFactoryContract'
-import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { ContractType } from '@/sdk/src/types/contracts'
 
 interface DeployContractProps {
@@ -19,17 +19,15 @@ interface FeeRecipient {
   share: string
 }
 
-export function DeployContract({ onDeployed, deployedGameScoreAddress: propGameScoreAddress }: DeployContractProps) {
+export function DeployContract({ onDeployed }: DeployContractProps) {
   // Configuration state
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
-  const { getContractAddress, factoryAddresses, deployGameMatch } = useOharaAi()
-  const hookGameScoreAddress = getContractAddress(ContractType.GAMESCORE)
+  const { game } = useOharaAi()
+  const hookGameScoreAddress = game.score.contractAddress
   
-  // Use prop if provided, otherwise fall back to hook (prop takes precedence for reactivity)
-  const deployedGameScoreAddress = propGameScoreAddress ?? hookGameScoreAddress
-
+  
   // Reset toggle when scoreboard address changes (e.g., new deployment)
   useEffect(() => {
     if (!deployedGameScoreAddress) {
@@ -171,7 +169,6 @@ export function DeployContract({ onDeployed, deployedGameScoreAddress: propGameS
 
   return (
     <DeployFactoryContract
-      factoryAddress={factoryAddresses.gameMatchFactory}
       factoryEnvVar="NEXT_PUBLIC_GAME_MATCH_FACTORY"
       contractName="Game Match"
       contractDescription="Escrow-based match system with stake management and winner selection"

@@ -68,6 +68,48 @@ export const GAME_MATCH_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  {
+    inputs: [
+      { internalType: 'address[]', name: '_recipients', type: 'address[]' },
+      { internalType: 'uint256[]', name: '_shares', type: 'uint256[]' },
+    ],
+    name: 'configureFees',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'getFeeConfiguration',
+    outputs: [
+      { internalType: 'address[]', name: 'recipients', type: 'address[]' },
+      { internalType: 'uint256[]', name: 'shares', type: 'uint256[]' },
+      { internalType: 'uint256', name: 'totalShare', type: 'uint256' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    name: 'feeRecipients',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    name: 'feeShares',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'totalFeeShare',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
   // Events
   {
     anonymous: false,
@@ -129,6 +171,26 @@ export const GAME_MATCH_ABI = [
       { indexed: false, internalType: 'uint256', name: 'winnerAmount', type: 'uint256' },
     ],
     name: 'MatchFinalized',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: false, internalType: 'address[]', name: 'recipients', type: 'address[]' },
+      { indexed: false, internalType: 'uint256[]', name: 'shares', type: 'uint256[]' },
+      { indexed: false, internalType: 'uint256', name: 'totalShare', type: 'uint256' },
+    ],
+    name: 'FeesConfigured',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      { indexed: true, internalType: 'address', name: 'recipient', type: 'address' },
+      { indexed: false, internalType: 'address', name: 'token', type: 'address' },
+      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    ],
+    name: 'FeeDistributed',
     type: 'event',
   },
 ] as const

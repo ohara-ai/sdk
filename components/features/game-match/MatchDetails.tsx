@@ -9,7 +9,7 @@ import { useAccount, useReadContract, useWriteContract, useWaitForTransactionRec
 import { formatEther, zeroAddress, parseEther } from 'viem'
 import { GAME_MATCH_ABI, MatchStatus } from '@/lib/contracts/gameMatch'
 import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
-import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { ContractType } from '@/sdk/src/types/contracts'
 
 interface MatchDetailsProps {

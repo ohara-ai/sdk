@@ -10,8 +10,7 @@ import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId 
 import { GAME_MATCH_ABI } from '@/lib/contracts/gameMatch'
 import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
-import { useOharaAi } from '@/sdk/src/context/OnchainContext'
-import { ContractType } from '@/sdk/src/types/contracts'
+import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 
 interface CreateMatchFormProps {
   onMatchCreated?: (matchId: number) => void
@@ -23,12 +22,12 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const [tokenAddress, setTokenAddress] = useState('')
   const { address } = useAccount()
   const chainId = useChainId()
-  const { getContractAddress } = useOharaAi()
+  const { game } = useOharaAi()
   
   const { data: hash, writeContract, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash })
 
-  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
+  const contractAddress = game.match.contractAddress
 
   // Parse token and stake for approval hook
   const token = tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress

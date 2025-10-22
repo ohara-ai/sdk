@@ -16,7 +16,8 @@ interface DeploymentResult {
 }
 
 interface DeployFactoryContractProps {
-  factoryAddress: `0x${string}` | undefined
+  /** @deprecated Factory addresses are now managed server-side */
+  factoryAddress?: `0x${string}` | undefined
   factoryEnvVar: string
   contractName: string
   contractDescription?: string
@@ -53,8 +54,6 @@ export function DeployFactoryContract({
   const controllerAddress = process.env.NEXT_PUBLIC_CONTROLLER_ADDRESS || 'Not configured'
 
   const handleDeploy = async () => {
-    if (!factoryAddress) return
-
     setIsDeploying(true)
     setError(null)
 
@@ -64,20 +63,15 @@ export function DeployFactoryContract({
       
       // Use deployFunction if provided (from OharaAiProvider), otherwise fall back to apiRoute
       if (deployFunction) {
-        data = await deployFunction({
-          factoryAddress,
-          ...body,
-        })
+        // Factory address is now managed server-side, only pass body params
+        data = await deployFunction(body)
       } else if (apiRoute) {
         const response = await fetch(apiRoute, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            factoryAddress,
-            ...body,
-          }),
+          body: JSON.stringify(body),
         })
 
         if (!response.ok) {
@@ -116,23 +110,6 @@ export function DeployFactoryContract({
 
   const currentAddress = externalDeployedAddress || deployedAddress
   const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
-
-  if (!factoryAddress) {
-    return (
-      <Card className="border-2 border-red-200 bg-red-50">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-red-900">{contractName}</CardTitle>
-          {contractDescription && (
-            <CardDescription className="mt-2 text-sm text-red-700">{contractDescription}</CardDescription>
-          )}
-          <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded-lg">
-            <p className="text-xs font-semibold text-red-900">Factory Not Configured</p>
-            <p className="text-xs text-red-800 mt-1">Please set {factoryEnvVar} in your .env file</p>
-          </div>
-        </CardHeader>
-      </Card>
-    )
-  }
 
   return (
     <TooltipProvider>

@@ -36,6 +36,7 @@ yarn-error.log*
 
 # Runtime data
 data/
+ohara-ai-data/
 
 # Vercel
 .vercel

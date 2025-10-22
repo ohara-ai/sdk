@@ -1,0 +1,132 @@
+# Contract ABIs
+
+This directory contains TypeScript ABI definitions for all contracts used in the Ohara AI SDK.
+
+## Available ABIs
+
+### Factory Contracts
+
+#### `gameMatchFactory.ts`
+**Export:** `GAME_MATCH_FACTORY_ABI`
+
+ABI for the GameMatchFactory contract, which deploys GameMatch instances.
+
+**Key Functions:**
+- `deployGameMatch(address _controller, address _gameScore)` - Deploy a new GameMatch instance
+- `setDefaultFees(address[] _recipients, uint256[] _shares)` - Set default fee configuration
+- `setDefaultMaxActiveMatches(uint256)` - Set default max active matches limit
+- `getDefaultFees()` - Get default fee configuration
+
+**Key Events:**
+- `GameMatchDeployed(address instance, address owner, address controller, address gameScore)`
+- `DefaultFeesUpdated(address[] recipients, uint256[] shares)`
+
+#### `gameScoreFactory.ts`
+**Export:** `GAME_SCORE_FACTORY_ABI`
+
+ABI for the GameScoreFactory contract, which deploys GameScore instances.
+
+**Key Functions:**
+- `deployGameScore()` - Deploy a new GameScore instance
+- `setDeploymentLimits(uint256 _maxLosersPerMatch, uint256 _maxTotalPlayers, uint256 _maxTotalMatches)` - Set limits
+
+**Key Events:**
+- `GameScoreDeployed(address instance, address owner)`
+- `DeploymentLimitsUpdated(uint256, uint256, uint256)`
+
+### Feature Contracts
+
+#### `gameMatch.ts`
+**Exports:** `GAME_MATCH_ABI`, `MatchStatus` (enum)
+
+ABI for the GameMatch contract, which manages game matches with stakes.
+
+**Key Functions:**
+- `createMatch(address token, uint256 stakeAmount, uint256 maxPlayers)` - Create a new match
+- `joinMatch(uint256 matchId)` - Join an existing match
+- `withdrawStake(uint256 matchId)` - Withdraw stake from a match
+- `configureFees(address[] _recipients, uint256[] _shares)` - Configure fee distribution
+- `getMatch(uint256 matchId)` - Get match details
+- `getActiveMatchIds(uint256 offset, uint256 limit)` - Get list of active match IDs
+
+**Key Events:**
+- `MatchCreated(uint256 matchId, address creator, address token, uint256 stakeAmount, uint256 maxPlayers)`
+- `PlayerJoined(uint256 matchId, address player, uint256 stakeAmount)`
+- `MatchFinalized(uint256 matchId, address winner, uint256 totalPrize, uint256 winnerAmount)`
+- `FeesConfigured(address[] recipients, uint256[] shares, uint256 totalShare)`
+
+**MatchStatus Enum:**
+```typescript
+enum MatchStatus {
+  Open = 0,      // Match is open for players to join
+  Active = 1,    // Match is active with full players
+  Finalized = 2, // Match has been completed
+  Cancelled = 3, // Match was cancelled
+}
+```
+
+#### `gameScore.ts`
+**Export:** `GAME_SCORE_ABI`
+
+ABI for the GameScore contract, which tracks player scores and leaderboards.
+
+**Key Functions:**
+- `recordMatchResult(uint256 matchId, address winner, address[] losers, uint256 prize)` - Record match result
+- `getPlayerScore(address player)` - Get player's score details
+- `getTopPlayersByWins(uint256 limit)` - Get top players by wins
+- `getTopPlayersByPrize(uint256 limit)` - Get top players by prize amount
+- `setRecorderAuthorization(address recorder, bool authorized)` - Authorize recorders
+
+**Key Events:**
+- `ScoreRecorded(uint256 matchId, address winner, uint256 totalWins, uint256 totalPrize)`
+- `RecorderAuthorized(address recorder, bool authorized)`
+
+## Usage
+
+### In Your Code
+
+```typescript
+// Import individual ABIs
+import { GAME_MATCH_ABI, MatchStatus } from '@/sdk/src/abis/gameMatch'
+import { GAME_SCORE_ABI } from '@/sdk/src/abis/gameScore'
+import { GAME_MATCH_FACTORY_ABI } from '@/sdk/src/abis/gameMatchFactory'
+import { GAME_SCORE_FACTORY_ABI } from '@/sdk/src/abis/gameScoreFactory'
+
+// Or import from the main SDK index
+import { 
+  GAME_MATCH_ABI, 
+  GAME_SCORE_ABI,
+  GAME_MATCH_FACTORY_ABI,
+  GAME_SCORE_FACTORY_ABI
+} from '@/sdk'
+
+// Use with viem
+import { useReadContract } from 'wagmi'
+
+const { data: match } = useReadContract({
+  address: matchAddress,
+  abi: GAME_MATCH_ABI,
+  functionName: 'getMatch',
+  args: [matchId],
+})
+```
+
+## ABI Generation
+
+ABIs are extracted from compiled Solidity contracts in `/contracts/out/`.
+
+To regenerate ABIs from contracts:
+```bash
+# Build contracts
+cd contracts
+forge build
+
+# Extract ABI (example)
+node -e "const fs = require('fs'); \
+  const data = JSON.parse(fs.readFileSync('contracts/out/GameMatch.sol/GameMatch.json')); \
+  console.log(JSON.stringify(data.abi, null, 2));"
+```
+
+## Type Safety
+
+All ABIs are exported with `as const` to ensure TypeScript can infer exact types for function names, arguments, and return values when used with libraries like viem and wagmi.

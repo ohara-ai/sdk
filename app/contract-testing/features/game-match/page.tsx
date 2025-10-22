@@ -10,43 +10,20 @@ import { MatchDetails } from '@/components/features/game-match/MatchDetails'
 import { ContractInformation } from '@/components/features/ContractInformation'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
-import { useAccount, useReadContract } from 'wagmi'
-import { useOharaAi } from '@/sdk/src/context/OnchainContext'
-import { ContractType } from '@/sdk/src/types/contracts'
+import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { GAME_MATCH_ABI } from '@/lib/contracts/gameMatch'
+import { ContractType } from '@/sdk/src'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
-  const { getContractAddress } = useOharaAi()
-  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
-  const factoryAddress = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}` | undefined
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState('matches')
-  const [showDetails, setShowDetails] = useState(false)
   const [showContractInfo, setShowContractInfo] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const { data: maxActiveMatches } = useReadContract({
-    address: contractAddress,
-    abi: GAME_MATCH_ABI,
-    functionName: 'maxActiveMatches',
-  })
-
-  const { data: currentActiveMatches } = useReadContract({
-    address: contractAddress,
-    abi: GAME_MATCH_ABI,
-    functionName: 'getActiveMatchCount',
-  })
-
-  const limits = contractAddress ? {
-    maxActiveMatches,
-    currentActiveMatches,
-  } : undefined
 
   return (
     <main className="min-h-screen bg-white">
@@ -75,17 +52,8 @@ export default function GameMatchPage() {
                 onClick={() => setShowContractInfo(!showContractInfo)}
                 className="flex items-center gap-1.5"
               >
-                Info
+                Contract Info
                 {showContractInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowDetails(!showDetails)}
-                className="flex items-center gap-1.5"
-              >
-                Details
-                {showDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </div>
           </div>
@@ -93,67 +61,9 @@ export default function GameMatchPage() {
           {/* Contract Information */}
           {showContractInfo && (
             <div className="mt-6 animate-in slide-in-from-top duration-200">
-              <ContractInformation 
-                factoryAddress={factoryAddress}
-                contractAddress={contractAddress}
-                limits={limits}
+              <ContractInformation
+                type={ContractType.GAME_MATCH}
               />
-            </div>
-          )}
-
-          {showDetails && (
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top duration-200">
-              <Card className="border-2 border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold text-gray-900">How It Works</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-gray-600 space-y-2.5">
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-gray-900 min-w-[20px]">1.</span>
-                    <p>Create a match by specifying stake amount and max players, optionally using any ERC20 token</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-gray-900 min-w-[20px]">2.</span>
-                    <p>Other players join by staking the same amount used to create the match</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-gray-900 min-w-[20px]">3.</span>
-                    <p>App activates the match, locking all stakes</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-gray-900 min-w-[20px]">4.</span>
-                    <p>Players play the game following the rules set out by the app</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="font-semibold text-gray-900 min-w-[20px]">5.</span>
-                    <p>App finalizes match (deciding who wins) and winner receives all stakes</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-gray-200">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold text-gray-900">Features</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-gray-600 space-y-2.5">
-                  <div className="flex gap-3">
-                    <span className="text-blue-500">•</span>
-                    <p>Create/join matches with any ERC20 or native token</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="text-blue-500">•</span>
-                    <p>Withdraw stakes before match activation</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="text-blue-500">•</span>
-                    <p>Optional scoreboard integration</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <span className="text-blue-500">•</span>
-                    <p>Optional fee distribution to recipients</p>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           )}
         </div>

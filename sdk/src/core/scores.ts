@@ -1,5 +1,5 @@
 import { PublicClient, Address } from 'viem'
-import { SCOREBOARD_ABI } from '../abis/scoreboard'
+import { GAME_SCORE_ABI } from '../abis/gameScore'
 
 /**
  * Scores primitive - Core on-chain score tracking operations
@@ -66,7 +66,7 @@ export function createScoreOperations(
     async getPlayerScore(player: Address): Promise<PlayerScore> {
       const result = await publicClient.readContract({
         address: contractAddress,
-        abi: SCOREBOARD_ABI,
+        abi: GAME_SCORE_ABI,
         functionName: 'getPlayerScore',
         args: [player],
       })
@@ -83,7 +83,7 @@ export function createScoreOperations(
     async getTopPlayersByWins(limit: number): Promise<TopPlayersResult> {
       const result = await publicClient.readContract({
         address: contractAddress,
-        abi: SCOREBOARD_ABI,
+        abi: GAME_SCORE_ABI,
         functionName: 'getTopPlayersByWins',
         args: [BigInt(limit)],
       })
@@ -98,7 +98,7 @@ export function createScoreOperations(
     async getTopPlayersByPrize(limit: number): Promise<TopPlayersResult> {
       const result = await publicClient.readContract({
         address: contractAddress,
-        abi: SCOREBOARD_ABI,
+        abi: GAME_SCORE_ABI,
         functionName: 'getTopPlayersByPrize',
         args: [BigInt(limit)],
       })
@@ -113,7 +113,7 @@ export function createScoreOperations(
     async getTotalPlayers(): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
-        abi: SCOREBOARD_ABI,
+        abi: GAME_SCORE_ABI,
         functionName: 'getTotalPlayers',
         args: [],
       })
@@ -122,7 +122,7 @@ export function createScoreOperations(
     async getTotalMatches(): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
-        abi: SCOREBOARD_ABI,
+        abi: GAME_SCORE_ABI,
         functionName: 'getTotalMatches',
         args: [],
       })

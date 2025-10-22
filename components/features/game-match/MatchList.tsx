@@ -8,7 +8,7 @@ import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
 import { useAccount, useReadContract, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { GAME_MATCH_ABI, MatchStatus } from '@/sdk/src/abis/gameMatch'
-import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { ContractType } from '@/sdk/src/types/contracts'
 
 interface MatchListProps {

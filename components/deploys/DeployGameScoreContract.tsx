@@ -1,7 +1,7 @@
 'use client'
 
 import { DeployFactoryContract } from '../DeployFactoryContract'
-import { useOharaAi } from '@/sdk/src/context/OnchainContext'
+import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { ContractType } from '@/sdk/src/types/contracts'
 
 interface DeployContractProps {
@@ -9,13 +9,12 @@ interface DeployContractProps {
 }
 
 export function DeployContract({ onDeployed }: DeployContractProps) {
-  const { getContractAddress, factoryAddresses, deployGameScore } = useOharaAi()
-  const gameScoreAddress = getContractAddress(ContractType.GAMESCORE)
+  const { getContractAddress, deployGameScore } = useOharaAi()
+  const gameScoreAddress = getContractAddress(ContractType.GAME_SCORE)
 
   return (
     <DeployFactoryContract
-      factoryAddress={factoryAddresses.gameScoreFactory}
-      factoryEnvVar="NEXT_PUBLIC_GAMESCORE_FACTORY"
+      factoryEnvVar="NEXT_PUBLIC_GAME_SCORE_FACTORY"
       contractName="Game Score"
       contractDescription="Track player scores, wins, and match history across all games"
       deployFunction={deployGameScore}
