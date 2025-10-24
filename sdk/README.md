@@ -12,6 +12,8 @@ npm install @ohara-ai/game-sdk viem wagmi
 
 ### 1. Setup Provider
 
+
+
 ```tsx
 import { OharaAiProvider } from '@ohara-ai/game-sdk'
 import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
@@ -40,11 +42,11 @@ import { useOharaAi } from '@ohara-ai/game-sdk'
 import { parseEther } from 'viem'
 
 function GameComponent() {
-  const { app } = useOharaAi()
+  const { game } = useOharaAi()
   
   // Create a match
   const createMatch = async () => {
-    await app.match?.create({
+    await game.match?.create({
       token: '0x0000000000000000000000000000000000000000',
       stakeAmount: parseEther('0.1'),
       maxPlayers: 2
@@ -53,7 +55,7 @@ function GameComponent() {
   
   // Get leaderboard
   const getTopPlayers = async () => {
-    const result = await app.scores?.getTopPlayersByWins(10)
+    const result = await game.scores?.getTopPlayersByWins(10)
     return result
   }
   

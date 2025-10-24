@@ -9,12 +9,11 @@ interface DeployContractProps {
 }
 
 export function DeployContract({ onDeployed }: DeployContractProps) {
-  const { getContractAddress, deployGameScore } = useOharaAi()
-  const gameScoreAddress = getContractAddress(ContractType.GAME_SCORE)
+  const { game, deployGameScore } = useOharaAi()
+  const gameScoreAddress = game.scores?.address
 
   return (
     <DeployFactoryContract
-      factoryEnvVar="NEXT_PUBLIC_GAME_SCORE_FACTORY"
       contractName="Game Score"
       contractDescription="Track player scores, wins, and match history across all games"
       deployFunction={deployGameScore}

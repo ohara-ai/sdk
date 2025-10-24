@@ -378,7 +378,7 @@ contract GameMatchTest is Test {
     }
 
     function test_FinalizeWithGameScore() public {
-        vm.prank(owner);
+        vm.prank(controller);
         gameMatch.setGameScore(address(gameScore));
 
         vm.prank(player1);

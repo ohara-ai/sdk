@@ -16,13 +16,8 @@ interface DeploymentResult {
 }
 
 interface DeployFactoryContractProps {
-  /** @deprecated Factory addresses are now managed server-side */
-  factoryAddress?: `0x${string}` | undefined
-  factoryEnvVar: string
   contractName: string
   contractDescription?: string
-  /** @deprecated Use deployFunction instead */
-  apiRoute?: string
   /** Deployment function from OharaAiProvider (preferred over apiRoute) */
   deployFunction?: (params: any) => Promise<DeploymentResult>
   onDeployed: (address: `0x${string}`) => void
@@ -33,11 +28,8 @@ interface DeployFactoryContractProps {
 }
 
 export function DeployFactoryContract({ 
-  factoryAddress,
-  factoryEnvVar,
   contractName,
   contractDescription,
-  apiRoute,
   deployFunction,
   onDeployed,
   configSection,
@@ -50,8 +42,6 @@ export function DeployFactoryContract({
   const [error, setError] = useState<string | null>(null)
   const [deployedAddress, setDeployedAddress] = useState<`0x${string}` | null>(null)
   const [authWarning, setAuthWarning] = useState<string | null>(null)
-  
-  const controllerAddress = process.env.NEXT_PUBLIC_CONTROLLER_ADDRESS || 'Not configured'
 
   const handleDeploy = async () => {
     setIsDeploying(true)
@@ -65,21 +55,6 @@ export function DeployFactoryContract({
       if (deployFunction) {
         // Factory address is now managed server-side, only pass body params
         data = await deployFunction(body)
-      } else if (apiRoute) {
-        const response = await fetch(apiRoute, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(body),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Deployment failed')
-        }
-
-        data = await response.json()
       } else {
         throw new Error('No deployment method configured (deployFunction or apiRoute required)')
       }
@@ -156,17 +131,6 @@ export function DeployFactoryContract({
 
             <div className="flex items-center justify-between pt-2">
               <p className="text-xs font-medium text-gray-700">Deploy New Instance</p>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1">
-                    <Info className="w-3.5 h-3.5" />
-                    <span className="font-mono">CONTROLLER</span>
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="font-mono text-xs">{controllerAddress}</p>
-                </TooltipContent>
-              </Tooltip>
             </div>
 
             {configSection}

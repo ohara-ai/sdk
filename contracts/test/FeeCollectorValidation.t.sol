@@ -17,7 +17,7 @@ contract FeeCollectorValidationTest is Test {
 
     function test_DeployWithExactAPIParams() public {
         // Deploy first
-        address instance = factory.deployGameMatch(controller, address(0));
+        address instance = factory.deployGameMatch(address(0));
         
         assertTrue(instance != address(0));
         console.log("Deployed successfully at:", instance);
@@ -48,7 +48,7 @@ contract FeeCollectorValidationTest is Test {
     
     function test_DeployWithZeroAddressRecipient() public {
         // Deploy first
-        address instance = factory.deployGameMatch(controller, address(0));
+        address instance = factory.deployGameMatch(address(0));
         
         assertTrue(instance != address(0));
         console.log("Deployed with zero recipient at:", instance);

@@ -1,16 +1,17 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react'
 import { PublicClient, WalletClient, Address } from 'viem'
-import { createMatchOperations } from '../core/match'
+import { createClientMatchOperations } from '../core/match'
 import { createScoreOperations } from '../core/scores'
 import { OharaAiContext, GameContext, AppContext, OharaContext, InternalContext } from './OharaAiContext'
 import type { DeployGameMatchParams, DeploymentResult } from './OharaAiContext'
+import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
 
 const OharaAiContextInstance = createContext<OharaAiContext | undefined>(undefined)
 
 interface OharaAiProviderProps {
   children: ReactNode
   /** Public client for reading blockchain data */
-  publicClient: PublicClient
+  publicClient?: PublicClient
   /** Wallet client for write operations (optional) */
   walletClient?: WalletClient
   /** Environment variables to use for address resolution (defaults to process.env) */
@@ -37,18 +38,33 @@ export function OharaAiProvider({
   publicClient,
   walletClient,
   env = process.env, 
-  chainId: chainIdProp 
+  chainId 
 }: OharaAiProviderProps) {
   const [gameMatchAddress, setGameMatchAddress] = useState<Address | undefined>()
   const [gameScoreAddress, setGameScoreAddress] = useState<Address | undefined>()
   const [controllerAddress, setControllerAddress] = useState<Address | undefined>()
+  const [gameMatchFactory, setGameMatchFactory] = useState<Address | undefined>()
+  const [gameScoreFactory, setGameScoreFactory] = useState<Address | undefined>()
   
   // Detect chain ID from wagmi if available
-  const [detectedChainId, setDetectedChainId] = useState<number | undefined>(chainIdProp)
+  const [detectedChainId, setDetectedChainId] = useState<number | undefined>(chainId)
+
+  if (!publicClient) {
+    publicClient = usePublicClient()
+  }
+  
+  if (!walletClient) {
+    const { data: wagmiWalletClient } = useWalletClient()
+    walletClient = wagmiWalletClient
+  }
+
+  if (!chainId) {
+    chainId = useChainId()
+  }
   
   useEffect(() => {
     // Try to get chainId from wagmi config if available
-    if (typeof window !== 'undefined' && !chainIdProp) {
+    if (typeof window !== 'undefined' && !chainId) {
       try {
         // @ts-ignore - wagmi might be available globally
         const wagmiChainId = window.__wagmi_chainId
@@ -59,9 +75,9 @@ export function OharaAiProvider({
         // Ignore if wagmi not available
       }
     }
-  }, [chainIdProp])
+  }, [chainId])
   
-  const chainId = chainIdProp || detectedChainId
+  chainId = chainId || detectedChainId
   
   // Function to load addresses from backend
   const loadAddresses = async () => {
@@ -85,6 +101,8 @@ export function OharaAiProvider({
       const matchAddr = data.addresses?.game?.match
       const scoreAddr = data.addresses?.game?.score
       const ctrlAddr = data.addresses?.app?.controller
+      const matchFactory = data.factories?.gameMatch
+      const scoreFactory = data.factories?.gameScore
       
       if (matchAddr && matchAddr !== '0x0000000000000000000000000000000000000000') {
         setGameMatchAddress(matchAddr as Address)
@@ -96,6 +114,14 @@ export function OharaAiProvider({
       
       if (ctrlAddr) {
         setControllerAddress(ctrlAddr as Address)
+      }
+      
+      if (matchFactory) {
+        setGameMatchFactory(matchFactory as Address)
+      }
+      
+      if (scoreFactory) {
+        setGameScoreFactory(scoreFactory as Address)
       }
     } catch (error) {
       console.error('Error loading contract addresses from backend:', error)
@@ -135,13 +161,13 @@ export function OharaAiProvider({
     match: {
       address: gameMatchAddress,
       operations: gameMatchAddress 
-        ? createMatchOperations(gameMatchAddress, publicClient, walletClient)
+        ? createClientMatchOperations(gameMatchAddress, publicClient!, walletClient)
         : undefined,
     },
     scores: {
       address: gameScoreAddress,
       operations: gameScoreAddress
-        ? createScoreOperations(gameScoreAddress, publicClient)
+        ? createScoreOperations(gameScoreAddress, publicClient!)
         : undefined,
     },
   }), [gameMatchAddress, gameScoreAddress, publicClient, walletClient])
@@ -159,7 +185,11 @@ export function OharaAiProvider({
   
   const internal = useMemo<InternalContext>(() => ({
     chainId,
-  }), [chainId])
+    factories: {
+      gameMatch: gameMatchFactory,
+      gameScore: gameScoreFactory,
+    },
+  }), [chainId, gameMatchFactory, gameScoreFactory])
   
   // Deployment methods
   const deployGameScore = async (): Promise<DeploymentResult> => {

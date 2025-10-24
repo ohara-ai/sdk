@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import {IFeature} from "../../interfaces/IFeature.sol";
 import {IGameScore} from "../../interfaces/IGameScore.sol";
-import {Owned} from "../../base/Owned.sol";
+import {FeatureController} from "../../base/FeatureController.sol";
 
 /**
  * @title GameScore
  * @notice Tracks and stores player scores from completed matches
  * @dev Implements IGameScore for recording results and provides query functions
  */
-contract GameScore is IGameScore, Owned {
+contract GameScore is IGameScore, IFeature, FeatureController {
     struct PlayerScore {
         address player;
         uint256 totalWins;
@@ -66,10 +67,11 @@ contract GameScore is IGameScore, Owned {
 
     constructor(
         address _owner,
+        address _controller,
         uint256 _maxLosersPerMatch,
         uint256 _maxTotalPlayers,
         uint256 _maxTotalMatches
-    ) Owned(_owner) {
+    ) FeatureController(_owner, _controller) {
         maxLosersPerMatch = _maxLosersPerMatch;
         maxTotalPlayers = _maxTotalPlayers;
         maxTotalMatches = _maxTotalMatches;
@@ -80,7 +82,7 @@ contract GameScore is IGameScore, Owned {
      * @param recorder Address of the recorder contract
      * @param authorized Whether to authorize or revoke
      */
-    function setRecorderAuthorization(address recorder, bool authorized) external onlyOwner {
+    function setRecorderAuthorization(address recorder, bool authorized) external onlyController {
         authorizedRecorders[recorder] = authorized;
         emit RecorderAuthorized(recorder, authorized);
     }
@@ -430,5 +432,15 @@ contract GameScore is IGameScore, Owned {
     function getRemainingMatchCapacity() external view returns (uint256) {
         if (_matchIds.length >= maxTotalMatches) return 0;
         return maxTotalMatches - _matchIds.length;
+    }
+
+    /// @inheritdoc IFeature
+    function version() external pure returns (string memory) {
+        return "1.0.0";
+    }
+
+    /// @inheritdoc IFeature
+    function featureName() external pure returns (string memory) {
+        return "GameScore - OCI-002";
     }
 }

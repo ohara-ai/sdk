@@ -1,5 +1,5 @@
 import { Address } from 'viem'
-import { MatchOperations } from '../core/match'
+import { MatchOperations, ServerMatchOperations } from '../core/match'
 import { ScoreOperations } from '../core/scores'
 
 /**
@@ -15,13 +15,29 @@ export interface OharaContext {
   }
 }
 
-// Game-related contracts and operations
+// Game-related contracts and operations (client-side)
 export interface GameContext {
   match: {
     /** GameMatch contract address */
     address?: Address
-    /** Match operations (create, join, activate, finalize) */
+    /** Match operations (create, join, withdraw, get) */
     operations?: MatchOperations
+  }
+  scores: {
+    /** GameScore contract address */
+    address?: Address
+    /** Score operations (byWins, byPrize) */
+    operations?: ScoreOperations
+  }
+}
+
+// Game-related contracts and operations (server-side)
+export interface ServerGameContext {
+  match: {
+    /** GameMatch contract address */
+    address?: Address
+    /** Server match operations (includes activate, finalize) */
+    operations?: ServerMatchOperations
   }
   scores: {
     /** GameScore contract address */

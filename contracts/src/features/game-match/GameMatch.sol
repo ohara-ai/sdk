@@ -66,7 +66,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
      * @notice Set the gamescore contract
      * @param _gameScore Address of the gamescore contract
      */
-    function setGameScore(address _gameScore) external onlyOwner {
+    function setGameScore(address _gameScore) external onlyController {
         gameScore = IGameScore(_gameScore);
     }
 

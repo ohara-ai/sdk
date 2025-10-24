@@ -21,6 +21,15 @@ export {
   type ServerOharaAiContext,
 } from './server/createServerContext'
 
+// Server-only types
+export {
+  type ServerMatchOperations,
+} from './core/match'
+
+export {
+  type ServerGameContext,
+} from './context/OharaAiContext'
+
 // Deployment (server-side only)
 export {
   deployGameMatch,

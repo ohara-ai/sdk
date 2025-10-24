@@ -16,7 +16,9 @@
     "forge:coverage": "forge coverage",
     "sdk:build": "cd sdk && npm run build",
     "sdk:dev": "cd sdk && npm run dev",
-    "sdk:install": "cd sdk && npm install"
+    "sdk:install": "cd sdk && npm install",
+    "fund-controller": "./scripts/fund-controller.sh",
+    "deploy-contracts": "./scripts/deploy-contracts.sh"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",

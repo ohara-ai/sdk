@@ -82,7 +82,7 @@ function createDeploymentClients(config: DeploymentConfig): {
  * Deploy a GameScore contract instance
  */
 export async function deployGameScore(
-  params: GameScoreDeployParams
+  _params: GameScoreDeployParams
 ): Promise<DeploymentResult> {
   const config = await getDeploymentConfig()
   const { walletClient, publicClient, account } = createDeploymentClients(config)
@@ -154,7 +154,6 @@ export async function deployGameMatch(
     abi: GAME_MATCH_FACTORY_ABI,
     functionName: 'deployGameMatch',
     args: [
-      config.controllerAddress as `0x${string}`,
       gameScoreAddress as `0x${string}`,
     ],
     chain: null,

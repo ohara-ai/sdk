@@ -7,10 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
-import { GAME_MATCH_ABI } from '@/lib/contracts/gameMatch'
-import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
+import { useOharaAi, useTokenApproval, GAME_MATCH_ABI } from '@/sdk/src'
 
 interface CreateMatchFormProps {
   onMatchCreated?: (matchId: number) => void
@@ -23,11 +21,10 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const { address } = useAccount()
   const chainId = useChainId()
   const { game } = useOharaAi()
+  const contractAddress = game.match.address
   
   const { data: hash, writeContract, isPending, error } = useWriteContract()
   const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash })
-
-  const contractAddress = game.match.contractAddress
 
   // Parse token and stake for approval hook
   const token = tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress
@@ -55,7 +52,7 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
       try {
         // Find the MatchCreated event in the logs from our contract
         const matchCreatedLog = receipt.logs.find(log => 
-          log.address.toLowerCase() === contractAddress.toLowerCase() &&
+          log.address.toLowerCase() === contractAddress!.toLowerCase() &&
           log.topics && 
           log.topics.length > 1
         )

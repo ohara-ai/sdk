@@ -60,11 +60,6 @@ export const GAME_MATCH_FACTORY_ABI = [
     name: 'deployGameMatch',
     inputs: [
       {
-        name: '_controller',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
         name: '_gameScore',
         type: 'address',
         internalType: 'address',

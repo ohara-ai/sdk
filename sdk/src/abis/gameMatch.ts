@@ -33,6 +33,13 @@ export const GAME_MATCH_ABI = [
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'maxActiveMatches',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [
       { internalType: 'uint256', name: 'offset', type: 'uint256' },
       { internalType: 'uint256', name: 'limit', type: 'uint256' },
@@ -64,6 +71,23 @@ export const GAME_MATCH_ABI = [
   {
     inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
     name: 'withdrawStake',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
+    name: 'activateMatch',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'matchId', type: 'uint256' },
+      { internalType: 'address', name: 'winner', type: 'address' },
+    ],
+    name: 'finalizeMatch',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',

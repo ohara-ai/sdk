@@ -74,13 +74,12 @@ contract GameMatchFactory is OwnedFactory {
 
     /**
      * @notice Deploy a new GameMatch contract
-     * @param _controller Controller of the new contract
      * @param _gameScore GameScore contract address (address(0) if not used)
      * @return instance Address of the deployed contract
+     * @dev The caller (msg.sender) will be set as the controller of the deployed contract
      * @dev Fees can be configured after deployment using the configureFees function
      */
     function deployGameMatch(
-        address _controller,
         address _gameScore
     ) external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
@@ -88,13 +87,13 @@ contract GameMatchFactory is OwnedFactory {
         instance = address(
             new GameMatch(
                 instanceOwnerAddress,
-                _controller,
+                msg.sender,
                 _gameScore,
                 defaultMaxActiveMatches,
                 defaultFeeRecipients,
                 defaultFeeShares
             )
         );
-        emit GameMatchDeployed(instance, instanceOwnerAddress, _controller, _gameScore);
+        emit GameMatchDeployed(instance, instanceOwnerAddress, msg.sender, _gameScore);
     }
 }

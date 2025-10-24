@@ -30,6 +30,7 @@ contract GameScoreFactoryTest is Test {
         
         GameScore gameScore = GameScore(instance);
         assertEq(gameScore.owner(), factoryOwner); // Should use factory owner by default
+        assertEq(gameScore.controller(), address(this)); // Caller is the controller
         assertEq(gameScore.getTotalMatches(), 0);
         assertEq(gameScore.getTotalPlayers(), 0);
     }
@@ -106,9 +107,12 @@ contract GameScoreFactoryTest is Test {
         assertEq(gameScore1.owner(), instanceOwner);
         assertEq(gameScore2.owner(), instanceOwner);
         
-        // Authorize recorder on first instance only
+        // Both should have the test contract as controller (since it called deployGameScore)
+        assertEq(gameScore1.controller(), address(this));
+        assertEq(gameScore2.controller(), address(this));
+        
+        // Authorize recorder on first instance only (as controller)
         address recorder = address(0x999);
-        vm.prank(instanceOwner);
         gameScore1.setRecorderAuthorization(recorder, true);
         
         // First instance should have authorized recorder
@@ -169,9 +173,8 @@ contract GameScoreFactoryTest is Test {
         address instance = factory.deployGameScore();
         GameScore gameScore = GameScore(instance);
         
-        // Authorize a recorder
+        // Authorize a recorder (as controller, which is the test contract)
         address recorder = address(0x888);
-        vm.prank(factoryOwner);
         gameScore.setRecorderAuthorization(recorder, true);
         
         // Record a match result

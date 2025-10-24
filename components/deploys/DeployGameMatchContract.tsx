@@ -10,8 +10,7 @@ import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { ContractType } from '@/sdk/src/types/contracts'
 
 interface DeployContractProps {
-  onDeployed: (address: `0x${string}`) => void
-  deployedGameScoreAddress?: `0x${string}` | null
+  onDeployed: (address: `0x${string}`) => void 
 }
 
 interface FeeRecipient {
@@ -24,8 +23,9 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
-  const { game } = useOharaAi()
-  const hookGameScoreAddress = game.score.contractAddress
+  const { game, deployGameMatch } = useOharaAi()
+  const deployedGameScoreAddress: `0x${string}` | null = game.scores?.address || null
+  const gameMatchAddress = game.match?.address
   
   
   // Reset toggle when scoreboard address changes (e.g., new deployment)
@@ -74,7 +74,6 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
   const configSection = (
     <>
       <div>
-        <Label htmlFor="scoreboard" className="text-sm font-medium text-gray-900">GameScore Integration</Label>
         <div className="mt-1.5 space-y-2">
           <Button
             type="button"
@@ -165,11 +164,8 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
     </>
   )
 
-  const gameMatchAddress = getContractAddress(ContractType.GAME_MATCH)
-
   return (
     <DeployFactoryContract
-      factoryEnvVar="NEXT_PUBLIC_GAME_MATCH_FACTORY"
       contractName="Game Match"
       contractDescription="Escrow-based match system with stake management and winner selection"
       deployFunction={deployGameMatch}

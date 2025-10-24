@@ -7,10 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, Clock, CheckCircle2, AlertCircle, Play, Flag } from 'lucide-react'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress, parseEther } from 'viem'
-import { GAME_MATCH_ABI, MatchStatus } from '@/lib/contracts/gameMatch'
-import { useTokenApproval } from '@/lib/hooks/useTokenApproval'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
-import { ContractType } from '@/sdk/src/types/contracts'
+import { useOharaAi, useTokenApproval, GAME_MATCH_ABI, MatchStatus } from '@/sdk/src'
 
 interface MatchDetailsProps {
   matchId: number | null
@@ -18,19 +15,19 @@ interface MatchDetailsProps {
 }
 
 interface MatchData {
-  token: string
+  token: `0x${string}`
   stakeAmount: bigint
   maxPlayers: bigint
-  players: string[]
+  players: `0x${string}`[]
   status: number
-  winner: string
+  winner: `0x${string}`
 }
 
 export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { address } = useAccount()
   const chainId = useChainId()
-  const { getContractAddress } = useOharaAi()
-  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
+  const { game } = useOharaAi()
+  const contractAddress = game.match?.address
   const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -125,12 +122,12 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         }
 
         setMatchData({
-          token: token as string,
+          token,
           stakeAmount,
           maxPlayers,
-          players: Array.from(players) as string[],
+          players: Array.from(players),
           status,
-          winner: winner as string,
+          winner,
         })
         setFetchError(null)
       } catch (error) {

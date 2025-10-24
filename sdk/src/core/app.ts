@@ -1,5 +1,5 @@
 import { PublicClient, WalletClient, Address } from 'viem'
-import { createMatchOperations, MatchOperations } from './match'
+import { createClientMatchOperations, MatchOperations } from './match'
 import { createScoreOperations, ScoreOperations } from './scores'
 
 /**
@@ -70,7 +70,7 @@ export function createAppOperations(config: AppConfig): AppOperations {
 
   // Initialize match operations if address is provided
   const match = gameMatchAddress
-    ? createMatchOperations(gameMatchAddress, publicClient, walletClient)
+    ? createClientMatchOperations(gameMatchAddress, publicClient, walletClient)
     : undefined
 
   // Initialize score operations if address is provided

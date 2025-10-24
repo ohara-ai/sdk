@@ -7,9 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
 import { useAccount, useReadContract, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
-import { GAME_MATCH_ABI, MatchStatus } from '@/sdk/src/abis/gameMatch'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
-import { ContractType } from '@/sdk/src/types/contracts'
+import { useOharaAi, GAME_MATCH_ABI, MatchStatus } from '@/sdk/src'
 
 interface MatchListProps {
   onSelectMatch: (matchId: number) => void
@@ -30,8 +28,8 @@ interface MatchData {
 
 export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
   const chainId = useChainId()
-  const { getContractAddress } = useOharaAi()
-  const contractAddress = getContractAddress(ContractType.GAME_MATCH)
+  const { game } = useOharaAi()
+  const contractAddress = game.match?.address
   const [matches, setMatches] = useState<MatchData[]>([])
   const [isLoading, setIsLoading] = useState(false)
   

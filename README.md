@@ -166,17 +166,7 @@ The application includes an internal contract testing interface for validating o
 
 2. **Deploy contracts**:
    ```bash
-    # Deploy DEVWORLD token (for testing ERC20 features)
-    forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
-      --rpc-url http://localhost:8545 --broadcast
-
-    # Deploy GameMatchFactory
-    forge script contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
-      --rpc-url http://localhost:8545 --broadcast
-
-    # Deploy GameScoreFactory
-    forge script contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
-      --rpc-url http://localhost:8545 --broadcast
+   npm run deploy-contracts
    ```
 
 3. **Configure environment**:
@@ -186,16 +176,27 @@ The application includes an internal contract testing interface for validating o
    
    # Edit .env.local and set the addresses from deployment output
    # Example:
-   # NEXT_PUBLIC_GAME_MATCH_FACTORY=0x5FbDB2315678afecb367f032d93F642f64180aa3
-   # NEXT_PUBLIC_GAMESCORE_ADDRESS=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+   # NEXT_PUBLIC_GAME_MATCH_FACTORY=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
+   # NEXT_PUBLIC_GAME_SCORE_FACTORY=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+   # NEXT_PUBLIC_HELLOWORLD_TOKEN=0x5FbDB2315678afecb367f032d93F642f64180aa3
    ```
 
-4. **Run the app**:
+4. **Setup controller** (first-time setup):
+   ```bash
+   # The SDK generates a controller account for deployments
+   # It needs ETH to deploy contracts
+   npm run dev  # Start app first to generate controller key
+   
+   # In a separate terminal, fund the controller
+   npm run fund-controller
+   ```
+
+5. **Run the app**:
    ```bash
    npm run dev
    ```
 
-5. **Explore the contract testing interface**:
+6. **Explore the contract testing interface**:
    - Open http://localhost:3000/contract-testing
    - Deploy GameMatch and GameScore contracts
    - Test contract interactions directly
@@ -220,6 +221,29 @@ npm run build
 # Start production server
 npm run start
 ```
+
+## Troubleshooting
+
+### "Out of gas" error when deploying contracts
+
+**Error**: `Out of gas: gas required exceeds allowance: 0`
+
+**Cause**: The SDK's controller account doesn't have ETH on your local blockchain.
+
+**Solution**: Fund the controller account:
+```bash
+npm run fund-controller
+```
+
+Or manually:
+```bash
+# Get controller address from ohara-ai-data/keys.json
+cast send <CONTROLLER_ADDRESS> --value 10ether \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+  --rpc-url http://localhost:8545
+```
+
+**Note**: You'll need to fund the controller again if you restart Anvil, as the local blockchain state is reset.
 
 ## License
 

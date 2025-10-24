@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Shield, FileCode, Factory, Percent, Coins, BarChart3, Database } from 'lucide-react'
 import { ContractType } from '@/sdk/src/types/contracts'
+import { useOharaAi, GAME_MATCH_ABI, GAME_SCORE_ABI } from '@/sdk/src'
+import { useReadContract, useBlockNumber } from 'wagmi'
 
 /**
  * Reusable contract information component that displays system addresses
@@ -11,16 +13,136 @@ import { ContractType } from '@/sdk/src/types/contracts'
  */
 export function ContractInformation({ type }: { type: ContractType }) {
   const [mounted, setMounted] = useState(false)
+  const { game, app } = useOharaAi()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const formatLimitDisplay = (current?: bigint | number, max?: bigint | number) => {
-    if (current === undefined || max === undefined) return 'Loading...'
-    const currentNum = typeof current === 'bigint' ? Number(current) : current
-    const maxNum = typeof max === 'bigint' ? Number(max) : max
-    return `${currentNum.toLocaleString()} / ${maxNum.toLocaleString()}`
+  // Get contract address based on type
+  const contractAddress = type === ContractType.GAME_MATCH 
+    ? game.match?.address 
+    : game.scores?.address
+  
+  const controllerAddress = app.controller?.address
+
+  // GameMatch specific configuration
+  const { data: feeConfig } = useReadContract({
+    address: contractAddress,
+    abi: GAME_MATCH_ABI,
+    functionName: 'getFeeConfiguration',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_MATCH,
+      refetchInterval: 10000,
+    },
+  })
+
+  const { data: activeMatchCount } = useReadContract({
+    address: contractAddress,
+    abi: GAME_MATCH_ABI,
+    functionName: 'getActiveMatchCount',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_MATCH,
+      refetchInterval: 10000,
+    },
+  })
+
+  const { data: maxActiveMatches } = useReadContract({
+    address: contractAddress,
+    abi: GAME_MATCH_ABI,
+    functionName: 'maxActiveMatches',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_MATCH,
+      refetchInterval: 10000,
+    },
+  })
+
+  // GameScore specific configuration
+  const { data: maxLosersPerMatch } = useReadContract({
+    address: contractAddress,
+    abi: GAME_SCORE_ABI,
+    functionName: 'maxLosersPerMatch',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
+      refetchInterval: 10000,
+    },
+  })
+
+  const { data: maxTotalPlayers } = useReadContract({
+    address: contractAddress,
+    abi: GAME_SCORE_ABI,
+    functionName: 'maxTotalPlayers',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
+      refetchInterval: 10000,
+    },
+  })
+
+  const { data: maxTotalMatches } = useReadContract({
+    address: contractAddress,
+    abi: GAME_SCORE_ABI,
+    functionName: 'maxTotalMatches',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
+      refetchInterval: 10000,
+    },
+  })
+
+  const { data: totalPlayers } = useReadContract({
+    address: contractAddress,
+    abi: GAME_SCORE_ABI,
+    functionName: 'getTotalPlayers',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
+      refetchInterval: 10000,
+    },
+  })
+
+  const { data: totalMatches } = useReadContract({
+    address: contractAddress,
+    abi: GAME_SCORE_ABI,
+    functionName: 'getTotalMatches',
+    query: {
+      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
+      refetchInterval: 10000,
+    },
+  })
+
+  // Format configuration display
+  const getConfigDisplay = () => {
+    if (!contractAddress) return 'Contract not deployed'
+    
+    if (type === ContractType.GAME_MATCH) {
+      if (!feeConfig) {
+        console.log('[ContractInformation] Fee config not loaded yet')
+        return 'Loading...'
+      }
+      console.log('[ContractInformation] Fee config:', feeConfig)
+      const [recipients, shares, totalShare] = feeConfig as readonly [readonly `0x${string}`[], readonly bigint[], bigint]
+      const feePercentage = totalShare ? Number((totalShare * 100n) / 10000n) : 0
+      console.log('[ContractInformation] Fee percentage:', feePercentage, 'Recipients:', recipients.length)
+      return `Fee: ${feePercentage}%, ${recipients.length} recipient(s)`
+    } else {
+      if (maxLosersPerMatch === undefined) return 'Loading...'
+      return `Max ${maxLosersPerMatch} losers/match`
+    }
+  }
+
+  const getStatsDisplay = () => {
+    if (!contractAddress) return 'N/A'
+    
+    if (type === ContractType.GAME_MATCH) {
+      if (activeMatchCount === undefined || maxActiveMatches === undefined) return 'Loading...'
+      const maxDisplay = maxActiveMatches === 0n ? '∞' : maxActiveMatches.toString()
+      return `Active: ${activeMatchCount}/${maxDisplay}`
+    } else {
+      if (totalPlayers === undefined || totalMatches === undefined || 
+          maxTotalPlayers === undefined || maxTotalMatches === undefined) {
+        return 'Loading...'
+      }
+      return `Players: ${totalPlayers}/${maxTotalPlayers}, Matches: ${totalMatches}/${maxTotalMatches}`
+    }
   }
 
   return (
@@ -54,24 +176,24 @@ export function ContractInformation({ type }: { type: ContractType }) {
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-amber-50 rounded-lg flex-shrink-0">
-              <Percent className="w-4 h-4 text-amber-600" />
+            <div className="p-2 bg-purple-50 rounded-lg flex-shrink-0">
+              <Percent className="w-4 h-4 text-purple-600" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 mb-1.5">Configuration</p>
               <p className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                {!mounted || isConfigLoading ? 'Loading...' : configLines || 'Not configured'}
+                {!mounted ? 'Loading...' : getConfigDisplay()}
               </p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-amber-50 rounded-lg flex-shrink-0">
-              <Percent className="w-4 h-4 text-amber-600" />
+            <div className="p-2 bg-cyan-50 rounded-lg flex-shrink-0">
+              <BarChart3 className="w-4 h-4 text-cyan-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 mb-1.5">Data stats</p>
+              <p className="text-sm font-medium text-gray-900 mb-1.5">Capacity Stats</p>
               <p className="text-xs text-gray-600 bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
-                {!mounted || isStatsLoading ? 'Loading...' : statsLines || 'Not configured'}
+                {!mounted ? 'Loading...' : getStatsDisplay()}
               </p>
             </div>
           </div>

@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { createMatchOperations } from '../core/match'
 import { createScoreOperations } from '../core/scores'
 import { getContracts, getControllerKey, getControllerAddress } from '../storage/contractStorage'
-import type { GameContext, AppContext, OharaContext, InternalContext } from '../context/OharaAiContext'
+import type { ServerGameContext, AppContext, OharaContext, InternalContext } from '../context/OharaAiContext'
 
 /**
  * Server-side OharaAi Context
@@ -20,8 +20,8 @@ export interface ServerOharaAiContext {
   /** Ohara-managed contracts */
   ohara: OharaContext
   
-  /** Game contracts and operations */
-  game: GameContext
+  /** Game contracts and operations (with server-only operations) */
+  game: ServerGameContext
   
   /** Application contracts */
   app: AppContext
@@ -80,10 +80,12 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
     },
   }
   
-  const game: GameContext = {
+  // Server game context with controller wallet operations
+  const game: ServerGameContext = {
     match: {
       address: addresses.game?.match as Address | undefined,
-      operations: addresses.game?.match
+      // When walletClient is provided, createMatchOperations returns ServerMatchOperations
+      operations: addresses.game?.match && walletClient
         ? createMatchOperations(addresses.game.match as Address, publicClient, walletClient)
         : undefined,
     },

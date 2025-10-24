@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     // Get controller address (derived from stored private key)
     const controllerAddress = await getControllerAddress()
     
-    // Merge controller address into app context
+    // Merge controller address into app context and include factory addresses
     const responseData = {
       addresses: {
         ...addresses,
@@ -40,6 +40,10 @@ export async function GET(request: NextRequest) {
           ...addresses.app,
           controller: controllerAddress,
         },
+      },
+      factories: {
+        gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY,
+        gameScore: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY,
       },
     }
     

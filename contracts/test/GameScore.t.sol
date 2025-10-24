@@ -26,7 +26,7 @@ contract GameScoreTest is Test {
     function setUp() public {
         vm.prank(owner);
         // Initialize with test limits matching factory defaults: 50 losers, 1000 players, 100 matches
-        gameScore = new GameScore(owner, 50, 1000, 100);
+        gameScore = new GameScore(owner, owner, 50, 1000, 100);
     }
     
     function test_InitialState() public view {
@@ -514,6 +514,11 @@ contract GameScoreTest is Test {
         assertEq(gameScore.maxTotalMatches(), 200000);
     }
 
+    function test_FeatureMetadata() public view {
+        assertEq(gameScore.version(), "1.0.0");
+        assertEq(gameScore.featureName(), "GameScore - OCI-002");
+    }
+
     function test_OnlyOwnerCanUpdateLimits() public {
         vm.prank(recorder);
         vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
@@ -626,7 +631,7 @@ contract GameScoreTest is Test {
     function test_MatchEvictionWhenAtCapacity() public {
         // Create scoreboard with small match limit
         vm.prank(owner);
-        GameScore smallGameScore = new GameScore(owner, 50, 1000, 3); // Only 3 matches
+        GameScore smallGameScore = new GameScore(owner, owner, 50, 1000, 3); // Only 3 matches
         
         vm.prank(owner);
         smallGameScore.setRecorderAuthorization(recorder, true);
@@ -663,7 +668,7 @@ contract GameScoreTest is Test {
     function test_PlayerEvictionWhenAtCapacity() public {
         // Create scoreboard with small player limit
         vm.prank(owner);
-        GameScore smallGameScore = new GameScore(owner, 50, 3, 1000); // Only 3 players
+        GameScore smallGameScore = new GameScore(owner, owner, 50, 3, 1000); // Only 3 players
         
         vm.prank(owner);
         smallGameScore.setRecorderAuthorization(recorder, true);
@@ -708,7 +713,7 @@ contract GameScoreTest is Test {
     function test_PlayerEvictionTieBreaker() public {
         // Create scoreboard with small player limit
         vm.prank(owner);
-        GameScore smallGameScore = new GameScore(owner, 50, 3, 1000);
+        GameScore smallGameScore = new GameScore(owner, owner, 50, 3, 1000);
         
         vm.prank(owner);
         smallGameScore.setRecorderAuthorization(recorder, true);

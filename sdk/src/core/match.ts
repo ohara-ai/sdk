@@ -29,6 +29,9 @@ export enum MatchStatus {
   Finalized = 2,
 }
 
+/**
+ * Client-side match operations (safe for user wallet)
+ */
 export interface MatchOperations {
   /**
    * Create a new match with specified configuration
@@ -62,13 +65,69 @@ export interface MatchOperations {
 }
 
 /**
- * Create Match operations for a specific GameMatch contract
+ * Server-only match operations (requires controller wallet)
+ * These operations should only be called from API routes using createServerOharaAi()
  */
-export function createMatchOperations(
+export interface ServerMatchOperations extends MatchOperations {
+  /**
+   * Activate an open match (controller only - server-side only)
+   */
+  activate(matchId: bigint): Promise<Hash>
+  
+  /**
+   * Finalize an active match with a winner (controller only - server-side only)
+   */
+  finalize(matchId: bigint, winner: Address): Promise<Hash>
+}
+
+/**
+ * Create client-side Match operations (excludes server-only operations)
+ * This should be used in client components and providers
+ */
+export function createClientMatchOperations(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient?: WalletClient
 ): MatchOperations {
+  return createMatchOperationsInternal(contractAddress, publicClient, walletClient, false) as MatchOperations
+}
+
+/**
+ * Create Match operations for a specific GameMatch contract
+ * For server-side (controller wallet): returns ServerMatchOperations
+ */
+// Overload: without wallet client, returns base operations
+export function createMatchOperations(
+  contractAddress: Address,
+  publicClient: PublicClient,
+  walletClient?: undefined
+): MatchOperations
+
+// Overload: with wallet client, returns server operations (includes activate/finalize)
+export function createMatchOperations(
+  contractAddress: Address,
+  publicClient: PublicClient,
+  walletClient: WalletClient
+): ServerMatchOperations
+
+// Implementation
+export function createMatchOperations(
+  contractAddress: Address,
+  publicClient: PublicClient,
+  walletClient?: WalletClient
+): MatchOperations | ServerMatchOperations {
+  return createMatchOperationsInternal(contractAddress, publicClient, walletClient, true)
+}
+
+/**
+ * Internal function to create match operations
+ */
+function createMatchOperationsInternal(
+  contractAddress: Address,
+  publicClient: PublicClient,
+  walletClient?: WalletClient,
+  includeServerOps: boolean = true
+): MatchOperations | ServerMatchOperations {
   if (!publicClient) {
     throw new Error('PublicClient is required for match operations')
   }
@@ -80,7 +139,7 @@ export function createMatchOperations(
     return walletClient
   }
 
-  return {
+  const baseOperations: MatchOperations = {
     async create(config: MatchConfig) {
       const wallet = requireWallet()
       const account = wallet.account
@@ -177,4 +236,46 @@ export function createMatchOperations(
       })
     },
   }
+
+  // If no wallet client provided or client-only mode, return base operations only
+  if (!walletClient || !includeServerOps) {
+    return baseOperations
+  }
+
+  // Server operations include activate and finalize (controller wallet only)
+  const serverOperations: ServerMatchOperations = {
+    ...baseOperations,
+
+    async activate(matchId: bigint) {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'activateMatch',
+        args: [matchId],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async finalize(matchId: bigint, winner: Address) {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'finalizeMatch',
+        args: [matchId, winner],
+        account,
+        chain: undefined,
+      })
+    },
+  }
+
+  return serverOperations
 }

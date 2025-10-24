@@ -51,12 +51,13 @@ contract GameScoreFactory is OwnedFactory {
     /**
      * @notice Deploy a new GameScore contract
      * @return instance Address of the deployed contract
+     * @dev The caller (msg.sender) will be set as the controller of the deployed contract
      */
     function deployGameScore() external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
         
         instance = address(
-            new GameScore(instanceOwnerAddress, maxLosersPerMatch, maxTotalPlayers, maxTotalMatches)
+            new GameScore(instanceOwnerAddress, msg.sender, maxLosersPerMatch, maxTotalPlayers, maxTotalMatches)
         );
         emit GameScoreDeployed(instance, instanceOwnerAddress);
     }

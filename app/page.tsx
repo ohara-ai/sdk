@@ -6,9 +6,15 @@ import { DeployContract as DeployGameMatch } from '@/components/deploys/DeployGa
 import { DeployContract as DeployGameScore } from '@/components/deploys/DeployGameScoreContract'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { Button } from '@/components/ui/button'
+import { AddressesInfo } from '@/components/AddressesInfo'
 
 export default function Home() {
   const [showFactoryInfo, setShowFactoryDetails] = useState(false)
+
+  const handleContractDeployed = (address: `0x${string}`) => {
+    console.log('Contract deployed at:', address)
+    // The OharaAiProvider will automatically refresh addresses
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -30,27 +36,28 @@ export default function Home() {
                 onClick={() => setShowFactoryDetails(!showFactoryInfo)}
                 className="flex items-center gap-1.5"
               >
-                Contract Factories
+                Addresses
                 {showFactoryInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </div>
           </div>
           
-          <div className="mt-6 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 border border-blue-200">
-            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
-            <p className="text-sm text-blue-900">
-              <span className="font-semibold">SDK Testing:</span> Deploy contracts and validate primitives
-            </p>
-          </div>
+          {/* Contract Addresses Info */}
+          {showFactoryInfo && (
+            <div className="mt-8">
+              <AddressesInfo />
+            </div>
+          )}
         </div>
       </div>
 
       {/* Content Section */}
       <div className="max-w-6xl mx-auto px-6 py-12">
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <DeployGameMatch />
+          <DeployGameMatch onDeployed={handleContractDeployed} />
           
-          <DeployGameScore />
+          <DeployGameScore onDeployed={handleContractDeployed} />
         </div>
       </div>
     </main>
