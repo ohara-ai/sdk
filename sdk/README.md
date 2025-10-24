@@ -66,6 +66,88 @@ function GameComponent() {
 }
 ```
 
+## Server-Side Usage
+
+The SDK has separate entry points for client and server code to prevent Node.js-specific modules (like `fs`) from being bundled in client-side code.
+
+### Entry Points
+
+#### Client Entry Point: `@/sdk/src`
+Use this in client components and browser code:
+```typescript
+import { 
+  OharaAiProvider, 
+  useOharaAi,
+  ContractType,
+  // ... other client-safe exports
+} from '@/sdk/src'
+```
+
+#### Server Entry Point: `@/sdk/src/server`
+Use this in API routes, server actions, and server components:
+```typescript
+import { 
+  getContracts,
+  updateContracts,
+  setContractAddress,
+  getControllerKey,
+  getControllerAddress,
+  deployGameMatch,
+  deployGameScore,
+  createServerOharaAi,
+  // ... other server-only exports
+} from '@/sdk/src/server'
+```
+
+### Examples
+
+**Client Component:**
+```typescript
+'use client'
+import { useOharaAi } from '@/sdk/src'
+
+export function MyComponent() {
+  const { game } = useOharaAi()
+  // ...
+}
+```
+
+**API Route:**
+```typescript
+import { deployGameMatch } from '@/sdk/src/server'
+
+export async function POST(request: Request) {
+  const result = await deployGameMatch({ /* ... */ })
+  return Response.json(result)
+}
+```
+
+**❌ Don't import server-only exports in client components:**
+```typescript
+'use client'
+// This will cause "Module not found: Can't resolve 'fs/promises'" error
+import { getContracts } from '@/sdk/src/server'
+```
+
+### Migration Guide
+
+If you see errors like:
+```
+Module not found: Can't resolve 'fs/promises'
+```
+
+Change:
+```typescript
+import { getContracts, deployGameMatch } from '@/sdk/src'
+```
+
+To:
+```typescript
+import { getContracts, deployGameMatch } from '@/sdk/src/server'
+```
+
+(Only in server-side files like API routes)
+
 ## Core Primitives
 
 ### Match Operations

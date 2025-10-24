@@ -76,6 +76,36 @@ export async function updateContracts(
   }
 }
 
+export async function setContractAddress(
+  chainId: number,
+  context: keyof ContractAddresses,
+  contractType: string,
+  address: string
+): Promise<void> {
+  const storage = await readContracts()
+  const chainKey = chainId.toString()
+  
+  if (!storage[chainKey]) {
+    storage[chainKey] = {}
+  }
+  
+  if (!storage[chainKey][context]) {
+    storage[chainKey][context] = {}
+  }
+  
+  // @ts-ignore - dynamic property assignment
+  storage[chainKey][context][contractType] = address
+  
+  await ensureStorageExists()
+  
+  try {
+    await fs.writeFile(CONTRACTS_PATH, JSON.stringify(storage, null, 2))
+  } catch (error) {
+    console.error('Error writing contract address:', error)
+    throw error
+  }
+}
+
 // Keys accessors and storage
 
 export async function getControllerKey(): Promise<string> {

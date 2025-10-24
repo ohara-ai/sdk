@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deployGameScore } from '@/sdk/src'
+import { deployGameScore } from '@/sdk/src/server'
 
 export async function POST(request: NextRequest) {
   try {

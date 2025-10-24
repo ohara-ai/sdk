@@ -1,4 +1,4 @@
-import { deployGameMatch } from '@/sdk/src'
+import { deployGameMatch } from '@/sdk/src/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {

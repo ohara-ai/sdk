@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getContracts, getControllerAddress } from '@/sdk/src/storage/contractStorage'
+import { getContracts, getControllerAddress } from '@/sdk/src/server'
 
 /**
  * GET /api/addresses
