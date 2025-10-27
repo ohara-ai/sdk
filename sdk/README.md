@@ -4,6 +4,15 @@ Functional primitives for building on-chain gaming applications. Simple async fu
 
 ## Installation
 
+This SDK is used locally in the monorepo via path imports:
+
+```tsx
+import { OharaAiProvider, useOharaAi } from '@/sdk/src'
+import { createServerOharaAi } from '@/sdk/src/server'
+```
+
+For external projects, install via npm (coming soon):
+
 ```bash
 npm install @ohara-ai/game-sdk viem wagmi
 ```
@@ -12,33 +21,40 @@ npm install @ohara-ai/game-sdk viem wagmi
 
 ### 1. Setup Provider
 
-
+The provider auto-detects wagmi hooks and chain configuration:
 
 ```tsx
-import { OharaAiProvider } from '@ohara-ai/game-sdk'
-import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
+import { WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { OharaAiProvider } from '@/sdk/src'
+import { config } from '@/lib/wagmi'
 
-function AppProviders({ children }) {
-  const publicClient = usePublicClient()
-  const { data: walletClient } = useWalletClient()
-  const chainId = useChainId()
+function Providers({ children }) {
+  const queryClient = new QueryClient()
   
   return (
-    <OharaAiProvider 
-      publicClient={publicClient}
-      walletClient={walletClient}
-      chainId={chainId}
-    >
-      {children}
-    </OharaAiProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <OharaAiProvider>
+          {children}
+        </OharaAiProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   )
 }
 ```
 
-### 2. Use Primitives
+**Note:** The provider automatically:
+- Detects wallet client and public client from wagmi
+- Fetches contract addresses from `/api/addresses` backend
+- Manages chain-specific contract instances
+
+### 2. Use the SDK
+
+Access operations through the hierarchical context structure:
 
 ```tsx
-import { useOharaAi } from '@ohara-ai/game-sdk'
+import { useOharaAi } from '@/sdk/src'
 import { parseEther } from 'viem'
 
 function GameComponent() {
@@ -46,16 +62,26 @@ function GameComponent() {
   
   // Create a match
   const createMatch = async () => {
-    await game.match?.create({
+    if (!game.match.operations) {
+      throw new Error('Match operations not available')
+    }
+    
+    const hash = await game.match.operations.create({
       token: '0x0000000000000000000000000000000000000000',
       stakeAmount: parseEther('0.1'),
       maxPlayers: 2
     })
+    
+    return hash
   }
   
   // Get leaderboard
   const getTopPlayers = async () => {
-    const result = await game.scores?.getTopPlayersByWins(10)
+    if (!game.scores.operations) {
+      throw new Error('Score operations not available')
+    }
+    
+    const result = await game.scores.operations.getTopPlayersByWins(10)
     return result
   }
   
@@ -79,9 +105,7 @@ Use this in client components and browser code:
 ```typescript
 import { 
   OharaAiProvider, 
-  useOharaAi,
-  ContractType,
-  // ... other client-safe exports
+  useOharaAi
 } from '@/sdk/src'
 ```
 
@@ -116,10 +140,19 @@ export function MyComponent() {
 
 **API Route:**
 ```typescript
-import { deployGameMatch } from '@/sdk/src/server'
+import { createServerOharaAi, deployGameMatch } from '@/sdk/src/server'
 
 export async function POST(request: Request) {
-  const result = await deployGameMatch({ /* ... */ })
+  // Create server context with controller wallet
+  const { game } = await createServerOharaAi()
+  
+  // Access server-only operations (activate, finalize)
+  if (game.match.operations) {
+    const hash = await game.match.operations.activate(matchId)
+  }
+  
+  // Or deploy new contracts
+  const result = await deployGameMatch({ gameScoreAddress: '0x...' })
   return Response.json(result)
 }
 ```
@@ -131,37 +164,40 @@ export async function POST(request: Request) {
 import { getContracts } from '@/sdk/src/server'
 ```
 
-### Migration Guide
-
-If you see errors like:
-```
-Module not found: Can't resolve 'fs/promises'
-```
-
-Change:
-```typescript
-import { getContracts, deployGameMatch } from '@/sdk/src'
-```
-
-To:
-```typescript
-import { getContracts, deployGameMatch } from '@/sdk/src/server'
-```
-
-(Only in server-side files like API routes)
-
 ## Core Primitives
 
 ### Match Operations
 
+**Client-side operations** (available via `useOharaAi()`):
+
 ```typescript
 interface MatchOperations {
+  // Write operations (require user wallet)
   create(config: MatchConfig): Promise<Hash>
   join(matchId: bigint): Promise<Hash>
   withdraw(matchId: bigint): Promise<Hash>
+  
+  // Read operations
   get(matchId: bigint): Promise<Match>
   getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]>
+  getActiveMatchCount(): Promise<bigint>
+  getMaxActiveMatches(): Promise<bigint>
   getPlayerStake(matchId: bigint, player: Address): Promise<bigint>
+  getFeeConfiguration(): Promise<{
+    recipients: readonly Address[]
+    shares: readonly bigint[]
+    totalShare: bigint
+  }>
+}
+```
+
+**Server-only operations** (available via `createServerOharaAi()`):
+
+```typescript
+interface ServerMatchOperations extends MatchOperations {
+  // Controller-only operations (require controller wallet)
+  activate(matchId: bigint): Promise<Hash>
+  finalize(matchId: bigint, winner: Address): Promise<Hash>
 }
 ```
 
@@ -169,33 +205,73 @@ interface MatchOperations {
 
 ```typescript
 interface ScoreOperations {
+  // Player and leaderboard queries
   getPlayerScore(player: Address): Promise<PlayerScore>
   getTopPlayersByWins(limit: number): Promise<TopPlayersResult>
   getTopPlayersByPrize(limit: number): Promise<TopPlayersResult>
+  
+  // System stats
   getTotalPlayers(): Promise<bigint>
   getTotalMatches(): Promise<bigint>
+  getMaxLosersPerMatch(): Promise<bigint>
+  getMaxTotalPlayers(): Promise<bigint>
+  getMaxTotalMatches(): Promise<bigint>
 }
 ```
 
-### App Operations
+### Context Structure
+
+The SDK uses a hierarchical context structure:
 
 ```typescript
-interface AppOperations {
-  match?: MatchOperations
-  scores?: ScoreOperations
-  hasMatchSupport(): boolean
-  hasScoreSupport(): boolean
+interface OharaAiContext {
+  // Game contracts and operations
+  game: {
+    match: {
+      address?: Address
+      operations?: MatchOperations
+    }
+    scores: {
+      address?: Address
+      operations?: ScoreOperations
+    }
+  }
+  
+  // Ohara-managed contracts
+  ohara: {
+    contracts: {
+      token?: Address
+    }
+  }
+  
+  // Application-level contracts
+  app: {
+    coin: { address?: Address }
+    controller: { address?: Address }
+  }
+  
+  // Internal config (factories, chainId)
+  internal: {
+    chainId?: number
+    factories?: {
+      gameMatch?: Address
+      gameScore?: Address
+    }
+  }
+  
+  // Manually refresh addresses from backend
+  loadAddresses(): Promise<void>
 }
 ```
 
 ## Environment Variables
 
 ```bash
-# GameMatch contract address
-NEXT_PUBLIC_GAME_MATCH_INSTANCE=0x...
+# GameMatchFactory contract address
+NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
-# GameScore contract address
-NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...
+# GameScoreFactory contract address
+NEXT_PUBLIC_GAME_SCORE_FACTORY=0x...
 ```
 
 ## Key Features
@@ -206,42 +282,35 @@ NEXT_PUBLIC_GAMESCORE_ADDRESS=0x...
 ✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
 ✅ **Fee Enforcement** - SDK coordinates on-chain requirements  
 
-## Direct Usage
+## Direct Usage (Advanced)
 
-You can also use primitives directly without the provider:
+You can create operations directly without the provider:
 
 ```tsx
-import { createMatchOperations, createScoreOperations } from '@ohara-ai/game-sdk'
+import { createClientMatchOperations } from '@/sdk/src/core/match'
+import { createScoreOperations } from '@/sdk/src/core/scores'
 import { usePublicClient, useWalletClient } from 'wagmi'
 
 function Component() {
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   
-  const match = createMatchOperations(
+  const matchOps = createClientMatchOperations(
     '0x...', // GameMatch address
     publicClient,
     walletClient
   )
   
-  const scores = createScoreOperations(
+  const scoreOps = createScoreOperations(
     '0x...', // GameScore address
     publicClient
   )
   
-  // Use match.create(), scores.getTopPlayersByWins(), etc.
+  // Use matchOps.create(), scoreOps.getTopPlayersByWins(), etc.
 }
 ```
 
-## Development
-
-```bash
-# Build the SDK
-npm run build
-
-# Watch mode
-npm run dev
-```
+**Note:** Using the provider is recommended as it handles address management, chain detection, and contract coordination automatically.
 
 ## License
 

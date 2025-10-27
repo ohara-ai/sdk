@@ -4,46 +4,44 @@ A comprehensive repository for modular on-chain gaming features with Solidity sm
 
 ## SDK
 
-The **OharaAI SDK** provides functional primitives for building on-chain gaming applications without dealing with blockchain complexity directly. The SDK exposes three main interfaces:
+The **OharaAI SDK** provides functional primitives for building on-chain gaming applications without dealing with blockchain complexity directly. The SDK uses a hierarchical context structure:
 
-- **Match** - Create, join, and manage wagered game matches
-- **Scores** - Query player statistics and leaderboards
-- **App** - High-level interface combining Match + Scores operations
-
-### Quick Start
-
-```bash
-# Install SDK dependencies
-npm run sdk:install
-
-# Build the SDK
-npm run sdk:build
-
-# Or run in watch mode for development
-npm run sdk:dev
-```
+- **`game.match`** - Create, join, withdraw from matches, and query match data
+- **`game.scores`** - Query player statistics and leaderboards
+- **`internal.factories`** - Access to factory contract addresses
+- **`app.controller`** - Controller address for server-side operations
 
 ### Example Usage
 
 ```tsx
-import { useOharaAi } from '@ohara-ai/game-sdk'
+import { useOharaAi } from '@/sdk/src'
 import { parseEther } from 'viem'
 
 function GameComponent() {
-  const { app } = useOharaAi()
+  const { game } = useOharaAi()
   
   const createMatch = async () => {
+    if (!game.match.operations) {
+      throw new Error('Match operations not available')
+    }
+    
     // Create a 2-player match with 0.1 ETH stake
-    const hash = await app.match?.create({
+    const hash = await game.match.operations.create({
       token: '0x0000000000000000000000000000000000000000',
       stakeAmount: parseEther('0.1'),
       maxPlayers: 2
     })
+    
+    return hash
   }
   
   const getLeaderboard = async () => {
+    if (!game.scores.operations) {
+      throw new Error('Score operations not available')
+    }
+    
     // Get top 10 players by wins
-    const result = await app.scores?.getTopPlayersByWins(10)
+    const result = await game.scores.operations.getTopPlayersByWins(10)
     return result
   }
   
@@ -59,12 +57,12 @@ function GameComponent() {
 ### Key Features
 
 ✅ **Functional Primitives** - Simple async functions instead of raw contract calls  
-✅ **Type-Safe** - Full TypeScript support  
-✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
+✅ **Type-Safe** - Full TypeScript support with hierarchical context  
+✅ **Automatic Address Management** - Fetches contract addresses from backend  
 ✅ **No UI Lock-in** - Build your own interface on top of primitives  
-✅ **Fee Enforcement** - SDK coordinates on-chain fee requirements  
+✅ **Server-Side Operations** - Separate entry point for controller operations  
 
-See [`SDK_QUICKSTART.md`](./SDK_QUICKSTART.md) for a quick start guide and [`sdk/README.md`](./sdk/README.md) for detailed documentation.
+See [`sdk/README.md`](./sdk/README.md) for detailed documentation.
 
 ## Development
 
@@ -143,8 +141,6 @@ The app supports **dynamic contract deployment** with graceful handling of chain
 - **Automatic validation**: On app load, validates that saved addresses still exist on-chain
 - **Graceful reset handling**: Automatically clears invalid addresses when local chain resets
 
-See [DEPLOYMENT_FLOW.md](./DEPLOYMENT_FLOW.md) for detailed documentation.
-
 #### Other Commands
 
 ```bash
@@ -154,29 +150,6 @@ npm run build
 # Start production server
 npm run start
 ```
-
-## Troubleshooting
-
-### "Out of gas" error when deploying contracts
-
-**Error**: `Out of gas: gas required exceeds allowance: 0`
-
-**Cause**: The SDK's controller account doesn't have ETH on your local blockchain.
-
-**Solution**: Fund the controller account:
-```bash
-npm run fund-controller
-```
-
-Or manually:
-```bash
-# Get controller address from ohara-ai-data/keys.json
-cast send <CONTROLLER_ADDRESS> --value 10ether \
-  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
-  --rpc-url http://localhost:8545
-```
-
-**Note**: You'll need to fund the controller again if you restart Anvil, as the local blockchain state is reset.
 
 ## License
 
