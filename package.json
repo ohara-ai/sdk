@@ -20,7 +20,7 @@
     "update-abis": "node scripts/update-abis.js",
     "build-and-update-abis": "./scripts/build-and-update-abis.sh",
     "fund-controller": "./scripts/fund-controller.sh",
-    "deploy-contracts": "./scripts/deploy-contracts.sh"
+    "deploy-factories": "./scripts/deploy-factories.sh"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",

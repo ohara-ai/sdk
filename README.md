@@ -112,19 +112,18 @@ The application includes an internal contract testing interface for validating o
    ```bash
    anvil
    ```
-
-2. **Deploy contracts and fund the controller**:
+2. **Configure environment**:
    ```bash
-   npm run deploy-contracts
+   # Copy the example env file
+   cp .env.example .env
+   ```
+
+3. **Deploy factories and fund the controller**:
+   ```bash
+   npm run deploy-factories
 
    npm run fund-controller
    ```   
-
-3. **Configure environment**:
-   ```bash
-   # Copy the example env file
-   cp .env.example .env.local
-   ```
 
 4. **Run the app**:
    ```bash

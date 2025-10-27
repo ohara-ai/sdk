@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Deploy all contracts to the local Anvil node
+# Deploy all factory contracts to the local Anvil node
 # Deploys DEVWORLD token, GameMatchFactory, and GameScoreFactory
 
 set -e
