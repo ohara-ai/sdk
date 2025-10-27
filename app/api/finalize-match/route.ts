@@ -30,9 +30,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get match data before finalization to calculate prizes
+    // Get match data and fee configuration before finalization
     const matchData = await game.match.operations.get(BigInt(matchId))
+    const feeConfig = await game.match.operations.getFeeConfiguration()
+    
     const totalPrize = matchData.totalPrize
+    
+    // Calculate actual fees based on contract configuration
+    // totalShare is in basis points (100 = 1%)
+    const feeAmount = (totalPrize * feeConfig.totalShare) / 10000n
+    const winnerAmount = totalPrize - feeAmount
     
     // Call finalize operation from SDK
     const hash = await game.match.operations.finalize(
@@ -40,19 +47,15 @@ export async function POST(request: NextRequest) {
       winner as `0x${string}`
     )
 
-    // Calculate winner amount (total prize minus fees)
-    // Note: The actual amount is calculated on-chain, this is an estimate
-    // Fees are typically 5-10% based on the contract configuration
-    const estimatedFees = totalPrize / 20n // 5% estimate
-    const estimatedWinnerAmount = totalPrize - estimatedFees
-
     return NextResponse.json({
       success: true,
       transactionHash: hash,
       matchId,
       winner,
       totalPrize: totalPrize.toString(),
-      winnerAmount: estimatedWinnerAmount.toString(),
+      winnerAmount: winnerAmount.toString(),
+      feeAmount: feeAmount.toString(),
+      feePercentage: (Number(feeConfig.totalShare) / 100).toString(), // Convert basis points to percentage
     })
   } catch (error) {
     console.error('Match finalization error:', error)
