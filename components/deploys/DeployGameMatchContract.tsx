@@ -7,9 +7,8 @@ import { Label } from '@/components/ui/label'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
-import { ContractType } from '@/sdk/src/types/contracts'
 
-interface DeployContractProps {
+interface DeployGameMatchContractProps {
   onDeployed: (address: `0x${string}`) => void 
 }
 
@@ -18,7 +17,7 @@ interface FeeRecipient {
   share: string
 }
 
-export function DeployContract({ onDeployed }: DeployContractProps) {
+export function DeployGameMatchContract({ onDeployed }: DeployGameMatchContractProps) {
   // Configuration state
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])

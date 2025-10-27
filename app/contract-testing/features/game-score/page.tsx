@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ContractInformation } from '@/components/features/ContractInformation'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { ContractStats, PlayerStats, Leaderboard } from '@/components/features/game-score'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'

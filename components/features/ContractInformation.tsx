@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { User, Shield, FileCode, Factory, Percent, Coins, BarChart3, Database } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Shield, FileCode, Percent, BarChart3 } from 'lucide-react'
 import { ContractType } from '@/sdk/src/types/contracts'
-import { useOharaAi, GAME_MATCH_ABI, GAME_SCORE_ABI } from '@/sdk/src'
-import { useReadContract, useBlockNumber } from 'wagmi'
+import { useOharaAi } from '@/sdk/src'
+import { useBlockNumber } from 'wagmi'
 
 /**
  * Reusable contract information component that displays system addresses
@@ -15,6 +15,22 @@ export function ContractInformation({ type }: { type: ContractType }) {
   const [mounted, setMounted] = useState(false)
   const { game, app } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
+
+  // GameMatch state
+  const [feeConfig, setFeeConfig] = useState<{
+    recipients: readonly `0x${string}`[]
+    shares: readonly bigint[]
+    totalShare: bigint
+  } | null>(null)
+  const [activeMatchCount, setActiveMatchCount] = useState<bigint | undefined>()
+  const [maxActiveMatches, setMaxActiveMatches] = useState<bigint | undefined>()
+
+  // GameScore state
+  const [maxLosersPerMatch, setMaxLosersPerMatch] = useState<bigint | undefined>()
+  const [maxTotalPlayers, setMaxTotalPlayers] = useState<bigint | undefined>()
+  const [maxTotalMatches, setMaxTotalMatches] = useState<bigint | undefined>()
+  const [totalPlayers, setTotalPlayers] = useState<bigint | undefined>()
+  const [totalMatches, setTotalMatches] = useState<bigint | undefined>()
 
   useEffect(() => {
     setMounted(true)
@@ -27,87 +43,63 @@ export function ContractInformation({ type }: { type: ContractType }) {
   
   const controllerAddress = app.controller?.address
 
-  // GameMatch specific configuration
-  const { data: feeConfig } = useReadContract({
-    address: contractAddress,
-    abi: GAME_MATCH_ABI,
-    functionName: 'getFeeConfiguration',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_MATCH,
-      refetchInterval: 10000,
-    },
-  })
+  // Fetch GameMatch data
+  useEffect(() => {
+    if (type !== ContractType.GAME_MATCH || !game.match?.operations) {
+      return
+    }
 
-  const { data: activeMatchCount } = useReadContract({
-    address: contractAddress,
-    abi: GAME_MATCH_ABI,
-    functionName: 'getActiveMatchCount',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_MATCH,
-      refetchInterval: 10000,
-    },
-  })
+    const fetchMatchData = async () => {
+      try {
+        const [feeConfigData, activeCount, maxActive] = await Promise.all([
+          game.match.operations!.getFeeConfiguration(),
+          game.match.operations!.getActiveMatchCount(),
+          game.match.operations!.getMaxActiveMatches(),
+        ])
+        
+        setFeeConfig(feeConfigData)
+        setActiveMatchCount(activeCount)
+        setMaxActiveMatches(maxActive)
+      } catch (error) {
+        console.error('[ContractInformation] Error fetching match data:', error)
+      }
+    }
 
-  const { data: maxActiveMatches } = useReadContract({
-    address: contractAddress,
-    abi: GAME_MATCH_ABI,
-    functionName: 'maxActiveMatches',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_MATCH,
-      refetchInterval: 10000,
-    },
-  })
+    fetchMatchData()
+    const interval = setInterval(fetchMatchData, 10000)
+    return () => clearInterval(interval)
+  }, [type, game.match?.operations, blockNumber])
 
-  // GameScore specific configuration
-  const { data: maxLosersPerMatch } = useReadContract({
-    address: contractAddress,
-    abi: GAME_SCORE_ABI,
-    functionName: 'maxLosersPerMatch',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
-      refetchInterval: 10000,
-    },
-  })
+  // Fetch GameScore data
+  useEffect(() => {
+    if (type !== ContractType.GAME_SCORE || !game.scores?.operations) {
+      return
+    }
 
-  const { data: maxTotalPlayers } = useReadContract({
-    address: contractAddress,
-    abi: GAME_SCORE_ABI,
-    functionName: 'maxTotalPlayers',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
-      refetchInterval: 10000,
-    },
-  })
+    const fetchScoreData = async () => {
+      try {
+        const [maxLosers, maxPlayers, maxMatches, players, matches] = await Promise.all([
+          game.scores.operations!.getMaxLosersPerMatch(),
+          game.scores.operations!.getMaxTotalPlayers(),
+          game.scores.operations!.getMaxTotalMatches(),
+          game.scores.operations!.getTotalPlayers(),
+          game.scores.operations!.getTotalMatches(),
+        ])
+        
+        setMaxLosersPerMatch(maxLosers)
+        setMaxTotalPlayers(maxPlayers)
+        setMaxTotalMatches(maxMatches)
+        setTotalPlayers(players)
+        setTotalMatches(matches)
+      } catch (error) {
+        console.error('[ContractInformation] Error fetching score data:', error)
+      }
+    }
 
-  const { data: maxTotalMatches } = useReadContract({
-    address: contractAddress,
-    abi: GAME_SCORE_ABI,
-    functionName: 'maxTotalMatches',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
-      refetchInterval: 10000,
-    },
-  })
-
-  const { data: totalPlayers } = useReadContract({
-    address: contractAddress,
-    abi: GAME_SCORE_ABI,
-    functionName: 'getTotalPlayers',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
-      refetchInterval: 10000,
-    },
-  })
-
-  const { data: totalMatches } = useReadContract({
-    address: contractAddress,
-    abi: GAME_SCORE_ABI,
-    functionName: 'getTotalMatches',
-    query: {
-      enabled: !!contractAddress && type === ContractType.GAME_SCORE,
-      refetchInterval: 10000,
-    },
-  })
+    fetchScoreData()
+    const interval = setInterval(fetchScoreData, 10000)
+    return () => clearInterval(interval)
+  }, [type, game.scores?.operations, blockNumber])
 
   // Format configuration display
   const getConfigDisplay = () => {
@@ -119,10 +111,9 @@ export function ContractInformation({ type }: { type: ContractType }) {
         return 'Loading...'
       }
       console.log('[ContractInformation] Fee config:', feeConfig)
-      const [recipients, shares, totalShare] = feeConfig as readonly [readonly `0x${string}`[], readonly bigint[], bigint]
-      const feePercentage = totalShare ? Number((totalShare * 100n) / 10000n) : 0
-      console.log('[ContractInformation] Fee percentage:', feePercentage, 'Recipients:', recipients.length)
-      return `Fee: ${feePercentage}%, ${recipients.length} recipient(s)`
+      const feePercentage = feeConfig.totalShare ? Number((feeConfig.totalShare * 100n) / 10000n) : 0
+      console.log('[ContractInformation] Fee percentage:', feePercentage, 'Recipients:', feeConfig.recipients.length)
+      return `Fee: ${feePercentage}%, ${feeConfig.recipients.length} recipient(s)`
     } else {
       if (maxLosersPerMatch === undefined) return 'Loading...'
       return `Max ${maxLosersPerMatch} losers/match`

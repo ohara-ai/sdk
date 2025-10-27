@@ -21,6 +21,7 @@ export interface Match {
   status: MatchStatus
   winner: Address
   createdAt: bigint
+  totalPrize: bigint
 }
 
 export enum MatchStatus {
@@ -57,6 +58,25 @@ export interface MatchOperations {
    * Get active matches (paginated)
    */
   getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]>
+  
+  /**
+   * Get the total count of active matches
+   */
+  getActiveMatchCount(): Promise<bigint>
+  
+  /**
+   * Get the maximum number of active matches allowed
+   */
+  getMaxActiveMatches(): Promise<bigint>
+  
+  /**
+   * Get fee configuration (recipients, shares, totalShare)
+   */
+  getFeeConfiguration(): Promise<{
+    recipients: readonly Address[]
+    shares: readonly bigint[]
+    totalShare: bigint
+  }>
   
   /**
    * Get player's stake in a match
@@ -206,28 +226,69 @@ function createMatchOperationsInternal(
         args: [matchId],
       })
 
+      const stakeAmount = result[1]
+      const players = result[3]
+      const totalPrize = stakeAmount * BigInt(players.length)
+
       return {
         id: matchId,
         token: result[0],
-        stakeAmount: result[1],
+        stakeAmount,
         maxPlayers: Number(result[2]),
-        players: result[3],
+        players,
         status: result[4],
         winner: result[5],
         createdAt: result[6],
+        totalPrize,
       }
     },
 
-    async getActiveMatches(offset = 0, limit = 10): Promise<readonly bigint[]> {
+    async getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]> {
+      // If no limit specified, fetch all active matches
+      if (limit === undefined) {
+        const count = await this.getActiveMatchCount()
+        limit = Number(count)
+      }
+      
       return publicClient.readContract({
         address: contractAddress,
         abi: GAME_MATCH_ABI,
         functionName: 'getActiveMatchIds',
-        args: [BigInt(offset), BigInt(limit)],
+        args: [BigInt(offset ?? 0), BigInt(limit)],
       })
     },
 
-    async getPlayerStake(matchId: bigint, player: Address) {
+    async getActiveMatchCount(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'getActiveMatchCount',
+      })
+    },
+
+    async getMaxActiveMatches(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'maxActiveMatches',
+      })
+    },
+
+    async getFeeConfiguration() {
+      const result = await publicClient.readContract({
+        address: contractAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'getFeeConfiguration',
+      })
+
+      return {
+        recipients: result[0],
+        shares: result[1],
+        totalShare: result[2],
+      }
+    },
+
+    async getPlayerStake(matchId: bigint, player: Address): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
         abi: GAME_MATCH_ABI,

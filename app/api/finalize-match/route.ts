@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { matchId, winner, contractAddress } = body
+    const { matchId, winner } = body
 
     if (matchId === undefined || matchId === null) {
       return NextResponse.json(
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     // Get match data before finalization to calculate prizes
     const matchData = await game.match.operations.get(BigInt(matchId))
-    const totalPrize = matchData.stakeAmount * BigInt(matchData.players.length)
+    const totalPrize = matchData.totalPrize
     
     // Call finalize operation from SDK
     const hash = await game.match.operations.finalize(

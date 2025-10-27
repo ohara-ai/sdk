@@ -48,6 +48,21 @@ export interface ScoreOperations {
    * Get total number of matches played
    */
   getTotalMatches(): Promise<bigint>
+  
+  /**
+   * Get maximum losers allowed per match
+   */
+  getMaxLosersPerMatch(): Promise<bigint>
+  
+  /**
+   * Get maximum total players allowed
+   */
+  getMaxTotalPlayers(): Promise<bigint>
+  
+  /**
+   * Get maximum total matches allowed
+   */
+  getMaxTotalMatches(): Promise<bigint>
 }
 
 /**
@@ -125,6 +140,30 @@ export function createScoreOperations(
         abi: GAME_SCORE_ABI,
         functionName: 'getTotalMatches',
         args: [],
+      })
+    },
+
+    async getMaxLosersPerMatch(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: GAME_SCORE_ABI,
+        functionName: 'maxLosersPerMatch',
+      })
+    },
+
+    async getMaxTotalPlayers(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: GAME_SCORE_ABI,
+        functionName: 'maxTotalPlayers',
+      })
+    },
+
+    async getMaxTotalMatches(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: GAME_SCORE_ABI,
+        functionName: 'maxTotalMatches',
       })
     },
   }

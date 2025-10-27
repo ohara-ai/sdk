@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi'
+import { useAccount, useWaitForTransactionReceipt, useChainId } from 'wagmi'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
-import { useOharaAi, useTokenApproval, GAME_MATCH_ABI } from '@/sdk/src'
+import { useOharaAi, useTokenApproval } from '@/sdk/src'
 
 interface CreateMatchFormProps {
   onMatchCreated?: (matchId: number) => void
@@ -18,12 +18,12 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const [stakeAmount, setStakeAmount] = useState('')
   const [maxPlayers, setMaxPlayers] = useState('2')
   const [tokenAddress, setTokenAddress] = useState('')
-  const { address } = useAccount()
-  const chainId = useChainId()
   const { game } = useOharaAi()
   const contractAddress = game.match.address
   
-  const { data: hash, writeContract, isPending, error } = useWriteContract()
+  const [hash, setHash] = useState<`0x${string}` | undefined>()
+  const [isPending, setIsPending] = useState(false)
+  const [error, setError] = useState<Error | null>(null)
   const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash })
 
   // Parse token and stake for approval hook
@@ -75,18 +75,28 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
       return
     }
 
-    try {
-      const maxPlayersNum = BigInt(maxPlayers)
+    if (!game.match.operations) {
+      alert('Match operations not available')
+      return
+    }
 
-      writeContract({
-        address: contractAddress,
-        abi: GAME_MATCH_ABI,
-        functionName: 'createMatch',
-        args: [token, stake, maxPlayersNum],
-        value: token === zeroAddress ? stake : 0n,
+    try {
+      setIsPending(true)
+      setError(null)
+      const maxPlayersNum = Number(maxPlayers)
+
+      const txHash = await game.match.operations.create({
+        token,
+        stakeAmount: stake,
+        maxPlayers: maxPlayersNum,
       })
-    } catch (error) {
-      console.error('Error creating match:', error)
+      
+      setHash(txHash)
+    } catch (err) {
+      console.error('Error creating match:', err)
+      setError(err instanceof Error ? err : new Error('Unknown error'))
+    } finally {
+      setIsPending(false)
     }
   }
 
@@ -198,7 +208,7 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
         {error && (
           <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
             <p className="text-sm text-red-500">
-              Error: {error.message}
+              Error: {error?.message || 'Failed to create match'}
             </p>
           </div>
         )}

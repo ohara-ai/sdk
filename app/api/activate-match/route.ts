@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { matchId, contractAddress } = body
+    const { matchId } = body
 
     if (matchId === undefined || matchId === null) {
       return NextResponse.json(

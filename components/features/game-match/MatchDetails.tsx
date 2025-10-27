@@ -4,10 +4,10 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Users, Trophy, Clock, CheckCircle2, AlertCircle, Play, Flag } from 'lucide-react'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
-import { formatEther, zeroAddress, parseEther } from 'viem'
-import { useOharaAi, useTokenApproval, GAME_MATCH_ABI, MatchStatus } from '@/sdk/src'
+import { Trophy, Clock, CheckCircle2, AlertCircle, Play, Flag } from 'lucide-react'
+import { useAccount, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
+import { formatEther, zeroAddress } from 'viem'
+import { useOharaAi, useTokenApproval, MatchStatus } from '@/sdk/src'
 
 interface MatchDetailsProps {
   matchId: number | null
@@ -27,7 +27,6 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { address } = useAccount()
   const chainId = useChainId()
   const { game } = useOharaAi()
-  const contractAddress = game.match?.address
   const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
@@ -47,17 +46,24 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
 
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
-  // Write hooks for actions
-  const { data: joinHash, writeContract: joinMatch, isPending: isJoining, error: joinError, reset: resetJoin } = useWriteContract()
+  // State for join action
+  const [joinHash, setJoinHash] = useState<`0x${string}` | undefined>()
+  const [isJoining, setIsJoining] = useState(false)
+  const [joinError, setJoinError] = useState<Error | null>(null)
   const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } = useWaitForTransactionReceipt({ hash: joinHash })
 
-  const { data: withdrawHash, writeContract: withdrawStake, isPending: isWithdrawing, error: withdrawError, reset: resetWithdraw } = useWriteContract()
+  // State for withdraw action
+  const [withdrawHash, setWithdrawHash] = useState<`0x${string}` | undefined>()
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [withdrawError, setWithdrawError] = useState<Error | null>(null)
   const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawHash })
 
   // Reset transaction states when matchId changes to clear success/error messages
   useEffect(() => {
-    resetJoin()
-    resetWithdraw()
+    setJoinHash(undefined)
+    setJoinError(null)
+    setWithdrawHash(undefined)
+    setWithdrawError(null)
     setActivateSuccess(false)
     setActivateError(null)
     setFinalizeSuccess(false)
@@ -65,11 +71,11 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     setShowWinnerPicker(false)
     setSelectedWinner(null)
     setFinalizeResult(null)
-  }, [matchId, resetJoin, resetWithdraw])
+  }, [matchId])
 
   // Fetch match data
   useEffect(() => {
-    if (matchId === null || !contractAddress) {
+    if (matchId === null) {
       setMatchData(null)
       return
     }
@@ -78,38 +84,24 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
       setIsLoadingMatch(true)
       setFetchError(null)
       try {
-        const { readContract } = await import('wagmi/actions')
-        const { config } = await import('@/lib/wagmi')
+        if (!game.match.operations) {
+          throw new Error('Match operations not available')
+        }
 
-        console.log(`[MatchDetails] Fetching match ${matchId} from ${contractAddress}`)
+        console.log(`[MatchDetails] Fetching match ${matchId} from SDK`)
 
-        const result = await readContract(config, {
-          address: contractAddress,
-          abi: GAME_MATCH_ABI,
-          functionName: 'getMatch',
-          args: [BigInt(matchId)],
-        })
-
-        const [token, stakeAmount, maxPlayers, players, status, winner, createdAt] = result as readonly [
-          `0x${string}`,
-          bigint,
-          bigint,
-          readonly `0x${string}`[],
-          number,
-          `0x${string}`,
-          bigint
-        ]
+        const match = await game.match.operations.get(BigInt(matchId))
 
         console.log(`[MatchDetails] Fetched match ${matchId}:`, {
-          token,
-          stakeAmount: stakeAmount.toString(),
-          maxPlayers: maxPlayers.toString(),
-          playersCount: players.length,
-          status,
+          token: match.token,
+          stakeAmount: match.stakeAmount.toString(),
+          maxPlayers: match.maxPlayers,
+          playersCount: match.players.length,
+          status: match.status,
         })
 
         // Check if match actually exists (has players)
-        if (!players || players.length === 0) {
+        if (!match.players || match.players.length === 0) {
           console.warn(`[MatchDetails] Match ${matchId} has no players`)
           setFetchError('This match does not exist or has been deleted')
           setMatchData(null)
@@ -122,12 +114,12 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         }
 
         setMatchData({
-          token,
-          stakeAmount,
-          maxPlayers,
-          players: Array.from(players),
-          status,
-          winner,
+          token: match.token,
+          stakeAmount: match.stakeAmount,
+          maxPlayers: BigInt(match.maxPlayers),
+          players: Array.from(match.players),
+          status: match.status,
+          winner: match.winner,
         })
         setFetchError(null)
       } catch (error) {
@@ -141,7 +133,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     }
 
     fetchMatchData()
-  }, [matchId, contractAddress, blockNumber, isJoinSuccess, isWithdrawSuccess, activateSuccess, finalizeSuccess])
+  }, [matchId, blockNumber, isJoinSuccess, isWithdrawSuccess, activateSuccess, finalizeSuccess])
 
   // Token approval for joining matches with custom tokens
   const {
@@ -154,36 +146,55 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     approveError,
   } = useTokenApproval({
     tokenAddress: matchData?.token || zeroAddress,
-    spenderAddress: contractAddress || zeroAddress,
+    spenderAddress: game.match?.address || zeroAddress,
     amount: matchData?.stakeAmount || 0n,
-    enabled: !!matchData && !!contractAddress && matchData.status === MatchStatus.Open,
+    enabled: !!matchData && !!game.match?.address && matchData.status === MatchStatus.Open,
   })
 
-  const handleJoinMatch = () => {
-    if (!contractAddress || matchId === null || !matchData) return
+  const handleJoinMatch = async () => {
+    if (!game.match?.address || matchId === null || !matchData) return
 
-    joinMatch({
-      address: contractAddress,
-      abi: GAME_MATCH_ABI,
-      functionName: 'joinMatch',
-      args: [BigInt(matchId)],
-      value: matchData.token === zeroAddress ? matchData.stakeAmount : 0n,
-    })
+    if (!game.match.operations) {
+      setJoinError(new Error('Match operations not available'))
+      return
+    }
+
+    try {
+      setIsJoining(true)
+      setJoinError(null)
+      const txHash = await game.match.operations.join(BigInt(matchId))
+      setJoinHash(txHash)
+    } catch (err) {
+      console.error('Error joining match:', err)
+      setJoinError(err instanceof Error ? err : new Error('Unknown error'))
+    } finally {
+      setIsJoining(false)
+    }
   }
 
-  const handleWithdrawStake = () => {
-    if (!contractAddress || matchId === null) return
+  const handleWithdrawStake = async () => {
+    if (!game.match?.address || matchId === null) return
 
-    withdrawStake({
-      address: contractAddress,
-      abi: GAME_MATCH_ABI,
-      functionName: 'withdrawStake',
-      args: [BigInt(matchId)],
-    })
+    if (!game.match.operations) {
+      setWithdrawError(new Error('Match operations not available'))
+      return
+    }
+
+    try {
+      setIsWithdrawing(true)
+      setWithdrawError(null)
+      const txHash = await game.match.operations.withdraw(BigInt(matchId))
+      setWithdrawHash(txHash)
+    } catch (err) {
+      console.error('Error withdrawing stake:', err)
+      setWithdrawError(err instanceof Error ? err : new Error('Unknown error'))
+    } finally {
+      setIsWithdrawing(false)
+    }
   }
 
   const handleActivateMatch = async () => {
-    if (!contractAddress || matchId === null) return
+    if (!game.match?.address || matchId === null) return
 
     setIsActivating(true)
     setActivateError(null)
@@ -194,8 +205,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matchId,
-          contractAddress,
+          matchId
         }),
       })
 
@@ -217,7 +227,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   }
 
   const handleFinalizeMatch = async () => {
-    if (!contractAddress || matchId === null || !selectedWinner) return
+    if (!game.match?.address || matchId === null || !selectedWinner) return
 
     setIsFinalizing(true)
     setFinalizeError(null)
@@ -229,8 +239,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           matchId,
-          winner: selectedWinner,
-          contractAddress,
+          winner: selectedWinner
         }),
       })
 
@@ -650,7 +659,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           {joinError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
               <p className="text-sm text-red-500">
-                Error: {joinError.message}
+                Error: {joinError?.message || 'Failed to join match'}
               </p>
             </div>
           )}
@@ -672,7 +681,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           {withdrawError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
               <p className="text-sm text-red-500">
-                Error: {withdrawError.message}
+                Error: {withdrawError?.message || 'Failed to withdraw stake'}
               </p>
             </div>
           )}

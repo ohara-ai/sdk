@@ -1,8 +1,8 @@
 {
   "name": "on-chain-features",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "Repository for on-chain gaming features with Solidity contracts and demo apps",
+  "description": "Repository for on-chain gaming features formed as sdk with Solidity contracts and demo apps",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

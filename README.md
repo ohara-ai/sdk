@@ -2,57 +2,6 @@
 
 A comprehensive repository for modular on-chain gaming features with Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building gaming applications.
 
-## Adding New Features
-
-We use a lightweight proposal process to ensure features are well-designed before implementation:
-
-1. **Create Proposal**: Use the template in `proposals/TEMPLATE.md` to document:
-   - Problem statement and user needs
-   - Interface specification
-   - Integration requirements and dependencies
-   - Security considerations
-   
-2. **Review**: Share proposal for feedback and iterate on design
-
-3. **Implement**: Once approved:
-   - Create directory under `contracts/src/features/[feature-name]/`
-   - Implement the feature contract following the interface
-   - Add comprehensive tests in `contracts/test/`
-   - Create demo UI in `app/features/[feature-name]/`
-   - Update documentation
-
-See [`proposals/README.md`](./proposals/README.md) for detailed guidance on the proposal process.
-
-## Structure
-
-```
-├── proposals/          # Feature proposals and design documents
-├── contracts/          # Solidity smart contracts
-│   ├── src/
-│   │   ├── base/       # Base contracts and utilities
-│   │   ├── factories/  # Contract factories for efficient deployment
-│   │   ├── features/   # Individual on-chain features
-│   │   └── interfaces/ # Contract interfaces
-│   ├── test/           # Solidity tests
-│   └── script/         # Deployment scripts
-├── sdk/                # OharaAI SDK - Functional primitives for on-chain gaming
-│   ├── src/
-│   │   ├── core/       # Core primitives (Match, Scores, App)
-│   │   ├── context/    # OharaAiProvider for dependency coordination
-│   │   ├── abis/       # Contract ABIs
-│   │   └── types/      # TypeScript types
-│   ├── package.json    # SDK package configuration
-│   └── README.md       # SDK documentation
-├── app/                # Next.js application
-│   └── contract-testing/    # Contract testing interface for validation
-├── components/         # Shared React components
-└── lib/                # Utilities and helpers
-```
-
-## Features
-
-For detailed information about implemented and proposed features, see the [`proposals/`](./proposals/) directory. Each feature has its own design document with specifications, use cases, and implementation details.
-
 ## SDK
 
 The **OharaAI SDK** provides functional primitives for building on-chain gaming applications without dealing with blockchain complexity directly. The SDK exposes three main interfaces:

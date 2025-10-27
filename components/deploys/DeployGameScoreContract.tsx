@@ -4,11 +4,11 @@ import { DeployFactoryContract } from '../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { ContractType } from '@/sdk/src/types/contracts'
 
-interface DeployContractProps {
+interface DeployGameScoreContractProps {
   onDeployed: (address: `0x${string}`) => void
 }
 
-export function DeployContract({ onDeployed }: DeployContractProps) {
+export function DeployGameScoreContract({ onDeployed }: DeployGameScoreContractProps) {
   const { game, deployGameScore } = useOharaAi()
   const gameScoreAddress = game.scores?.address
 

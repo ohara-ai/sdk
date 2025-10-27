@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
-import { useAccount, useReadContract, useBlockNumber, useChainId } from 'wagmi'
+import { useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
-import { useOharaAi, GAME_MATCH_ABI, MatchStatus } from '@/sdk/src'
+import { useOharaAi } from '@/sdk/src'
 
 interface MatchListProps {
   onSelectMatch: (matchId: number) => void
@@ -27,28 +27,16 @@ interface MatchData {
 }
 
 export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
-  const chainId = useChainId()
   const { game } = useOharaAi()
-  const contractAddress = game.match?.address
   const [matches, setMatches] = useState<MatchData[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
   
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
-  // Fetch active match IDs from the contract
-  const { data: activeMatchIds, refetch: refetchMatchIds } = useReadContract({
-    address: contractAddress,
-    abi: GAME_MATCH_ABI,
-    functionName: 'getActiveMatchIds',
-    args: [0n, 100n], // Fetch up to 100 active matches
-    query: {
-      enabled: !!contractAddress,
-    },
-  })
-
-  // Fetch match details for all active match IDs
+  // Fetch match details using SDK
   useEffect(() => {
-    if (!contractAddress || !activeMatchIds) {
+    if (!game.match.operations) {
       setMatches([])
       return
     }
@@ -57,61 +45,58 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
       setIsLoading(true)
       const fetchedMatches: MatchData[] = []
 
-      // Import viem's readContract for client-side reads
-      const { readContract } = await import('wagmi/actions')
-      const { config } = await import('@/lib/wagmi')
-
-      console.log('[MatchList] Fetching matches for IDs:', activeMatchIds)
-
-      for (const matchId of (activeMatchIds as readonly bigint[] | undefined) || []) {
-        try {
-          const result = await readContract(config, {
-            address: contractAddress,
-            abi: GAME_MATCH_ABI,
-            functionName: 'getMatch',
-            args: [matchId],
-          })
-
-          const [token, stakeAmount, maxPlayers, players, status, winner, createdAt] = result as readonly [
-            `0x${string}`,
-            bigint,
-            bigint,
-            readonly `0x${string}`[],
-            number,
-            `0x${string}`,
-            bigint
-          ]
-
-          console.log(`[MatchList] Found match ${matchId.toString()} with ${players.length} players, status: ${status}`)
-          const isNativeToken = token === zeroAddress
-          fetchedMatches.push({
-            id: Number(matchId),
-            stakeAmount: formatEther(stakeAmount),
-            maxPlayers: Number(maxPlayers),
-            currentPlayers: players.length,
-            status: ['Open', 'Active', 'Finalized'][status] || 'Unknown',
-            token: isNativeToken ? 'ETH' : `${token.slice(0, 6)}...${token.slice(-4)}`,
-            tokenAddress: token,
-            isNativeToken,
-            winner: winner !== zeroAddress ? `${winner.slice(0, 6)}...${winner.slice(-4)}` : undefined,
-          })
-        } catch (err) {
-          // Match read error, skip
-          console.error(`[MatchList] Error reading match ${matchId.toString()}:`, err)
-          continue
+      try {
+        if (!game.match.operations) {
+          throw new Error('Match operations not available')
         }
-      }
-      
-      console.log(`[MatchList] Total matches found: ${fetchedMatches.length}`)
 
-      setMatches(fetchedMatches)
-      setIsLoading(false)
+        console.log('[MatchList] Fetching active match IDs from SDK')
+        
+        // Get all active match IDs from SDK (no pagination)
+        const activeMatchIds = await game.match.operations.getActiveMatches()
+        
+        console.log('[MatchList] Fetching matches for IDs:', activeMatchIds)
+
+        // Fetch details for each match
+        for (const matchId of activeMatchIds) {
+          try {
+            const match = await game.match.operations.get(matchId)
+
+            console.log(`[MatchList] Found match ${matchId.toString()} with ${match.players.length} players, status: ${match.status}`)
+            const isNativeToken = match.token === zeroAddress
+            fetchedMatches.push({
+              id: Number(matchId),
+              stakeAmount: formatEther(match.stakeAmount),
+              maxPlayers: match.maxPlayers,
+              currentPlayers: match.players.length,
+              status: ['Open', 'Active', 'Finalized'][match.status] || 'Unknown',
+              token: isNativeToken ? 'ETH' : `${match.token.slice(0, 6)}...${match.token.slice(-4)}`,
+              tokenAddress: match.token,
+              isNativeToken,
+              winner: match.winner !== zeroAddress ? `${match.winner.slice(0, 6)}...${match.winner.slice(-4)}` : undefined,
+            })
+          } catch (err) {
+            // Match read error, skip
+            console.error(`[MatchList] Error reading match ${matchId.toString()}:`, err)
+            continue
+          }
+        }
+        
+        console.log(`[MatchList] Total matches found: ${fetchedMatches.length}`)
+
+        setMatches(fetchedMatches)
+      } catch (error) {
+        console.error('[MatchList] Error fetching matches:', error)
+        setMatches([])
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     fetchMatches()
-  }, [contractAddress, activeMatchIds, blockNumber])
+  }, [game.match.operations, blockNumber, refreshTrigger])
 
-  if (!contractAddress) {
+  if (!game.match?.address) {
     return (
       <Card>
         <CardHeader>
@@ -154,7 +139,7 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
               variant="outline"
               size="sm"
               onClick={() => {
-                refetchMatchIds()
+                setRefreshTrigger(prev => prev + 1)
               }}
               disabled={isLoading}
             >
