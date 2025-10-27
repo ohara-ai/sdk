@@ -30,11 +30,34 @@ export async function register() {
       const chainId = await publicClient.getChainId()
       console.log(`🔗 Connected to chain ID: ${chainId}`)
       
+      // Helper function to check if contract exists on-chain
+      const contractExistsOnChain = async (address: string | undefined): Promise<boolean> => {
+        if (!address) return false
+        try {
+          const code = await publicClient.getCode({ address: address as `0x${string}` })
+          return !!code && code !== '0x'
+        } catch {
+          return false
+        }
+      }
+      
       // Check if contracts are already deployed
       const contracts = await getContracts(chainId)
       
-      const hasGameScore = !!contracts.game?.score
-      const hasGameMatch = !!contracts.game?.match
+      // Verify stored contracts actually exist on-chain
+      const gameScoreExistsOnChain = await contractExistsOnChain(contracts.game?.score)
+      const gameMatchExistsOnChain = await contractExistsOnChain(contracts.game?.match)
+      
+      const hasGameScore = !!contracts.game?.score && gameScoreExistsOnChain
+      const hasGameMatch = !!contracts.game?.match && gameMatchExistsOnChain
+      
+      // Log warnings for stored addresses that don't exist on-chain
+      if (contracts.game?.score && !gameScoreExistsOnChain) {
+        console.log(`⚠️  Stored GameScore address ${contracts.game.score} not found on-chain (redeploying)`)
+      }
+      if (contracts.game?.match && !gameMatchExistsOnChain) {
+        console.log(`⚠️  Stored GameMatch address ${contracts.game.match} not found on-chain (redeploying)`)
+      }
       
       // Deploy contracts if needed
       if (!hasGameScore || !hasGameMatch) {
