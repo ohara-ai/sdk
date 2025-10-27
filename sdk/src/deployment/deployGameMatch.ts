@@ -1,0 +1,117 @@
+import { setContractAddress } from '../storage/contractStorage'
+import { GAME_MATCH_FACTORY_ABI } from '../abis/gameMatchFactory'
+import { GAME_MATCH_ABI } from '../abis/gameMatch'
+import { GAME_SCORE_ABI } from '../abis/gameScore'
+import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
+import type { DeploymentResult } from './deploymentService'
+
+export interface GameMatchDeployParams {
+  gameScoreAddress?: `0x${string}`
+  feeRecipients?: string[]
+  feeShares?: string[]
+}
+
+
+/**
+ * Deploy a GameMatch contract instance
+ */
+export async function deployGameMatch(
+  params: GameMatchDeployParams
+): Promise<DeploymentResult> {
+  const config = await getDeploymentConfig()
+  const { walletClient, publicClient, account } = createDeploymentClients(config)
+
+  // Use provided gameScoreAddress or default to zero address
+  const gameScoreAddress = params.gameScoreAddress || '0x0000000000000000000000000000000000000000'
+
+  // Parse fee configuration
+  let feeRecipients: string[] = []
+  let feeShares: bigint[] = []
+
+  if (params.feeRecipients && params.feeShares && params.feeRecipients.length > 0) {
+    feeRecipients = params.feeRecipients
+    feeShares = params.feeShares.map((s: string) => BigInt(s))
+  } else {
+    // Fall back to environment
+    const feeRecipientsStr = process.env.NEXT_PUBLIC_FEE_RECIPIENTS || ''
+    const feeSharesStr = process.env.NEXT_PUBLIC_FEE_SHARES || ''
+    feeRecipients = feeRecipientsStr ? feeRecipientsStr.split(',') : []
+    feeShares = feeSharesStr ? feeSharesStr.split(',').map(s => BigInt(s.trim())) : []
+  }
+
+  // Deploy the contract
+  const hash = await walletClient.writeContract({
+    address: config.game.match.factoryAddress,
+    abi: GAME_MATCH_FACTORY_ABI,
+    functionName: 'deployGameMatch',
+    args: [
+      gameScoreAddress as `0x${string}`,
+    ],
+    chain: null,
+    account,
+  })
+
+  // Wait for transaction receipt
+  const receipt = await publicClient.waitForTransactionReceipt({ hash })
+
+  // Extract deployed address
+  const deployedAddress = extractDeployedAddress(receipt, config.game.match.factoryAddress)
+  if (!deployedAddress) {
+    throw new Error('Could not extract deployed address from transaction receipt')
+  }
+
+  // Configure fees if provided
+  if (feeRecipients.length > 0 && feeShares.length > 0) {
+    try {
+      const feeHash = await walletClient.writeContract({
+        address: deployedAddress,
+        abi: GAME_MATCH_ABI,
+        functionName: 'configureFees',
+        args: [feeRecipients as `0x${string}`[], feeShares],
+        chain: null,
+        account,
+      })
+      await publicClient.waitForTransactionReceipt({ hash: feeHash })
+    } catch (feeError) {
+      console.error('Fee configuration override error:', feeError)
+    }
+  }
+
+  // Authorize GameMatch to record scores if GameScore is configured
+  let authWarning: string | undefined
+  let authError: string | undefined
+
+  if (gameScoreAddress !== '0x0000000000000000000000000000000000000000') {
+    try {
+      const authHash = await walletClient.writeContract({
+        address: gameScoreAddress as `0x${string}`,
+        abi: GAME_SCORE_ABI,
+        functionName: 'setRecorderAuthorization',
+        args: [deployedAddress, true],
+        chain: null,
+        account,
+      })
+      await publicClient.waitForTransactionReceipt({ hash: authHash })
+    } catch (authError_) {
+      console.error('Authorization error:', authError_)
+      authWarning = 'GameMatch deployed but GameScore authorization failed. You may need to manually authorize the contract.'
+      authError = authError_ instanceof Error ? authError_.message : 'Unknown error'
+    }
+  }
+
+  // Get chain ID and save to storage
+  const chainId = await publicClient.getChainId()
+  try {
+    await setContractAddress(chainId, 'game', 'match', deployedAddress)
+  } catch (storageError) {
+    console.error('Failed to save address to backend storage:', storageError)
+  }
+
+  return {
+    success: true,
+    address: deployedAddress,
+    transactionHash: hash,
+    authorizationWarning: authWarning,
+    authorizationError: authError,
+  }
+}

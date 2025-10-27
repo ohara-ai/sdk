@@ -10,13 +10,10 @@ export type {
   GameContext,
   AppContext,
   InternalContext,
-  DeployGameMatchParams,
-  DeploymentResult,
 } from './context/OharaAiContext'
 
 // Core Primitives
-export { 
-  createClientMatchOperations,
+export {
   type MatchOperations,
   type MatchConfig,
   type Match,
@@ -24,21 +21,15 @@ export {
 } from './core/match'
 
 export {
-  createScoreOperations,
   type ScoreOperations,
   type PlayerScore,
   type TopPlayersResult,
 } from './core/scores'
 
 export {
-  createAppOperations,
-  resolveContractAddresses,
   type AppOperations,
   type AppConfig,
 } from './core/app'
-
-// Contract Types
-export { ContractType } from './types/contracts'
 
 // Hooks
 export {
@@ -53,7 +44,6 @@ export {
   GAME_SCORE_ABI,
   GAME_MATCH_FACTORY_ABI,
   GAME_SCORE_FACTORY_ABI,
-  ERC20_ABI,
-  MatchStatus as AbiMatchStatus,
+  ERC20_ABI
 } from './abis'
 

@@ -3,7 +3,6 @@ import { PublicClient, WalletClient, Address } from 'viem'
 import { createClientMatchOperations } from '../core/match'
 import { createScoreOperations } from '../core/scores'
 import { OharaAiContext, GameContext, AppContext, OharaContext, InternalContext } from './OharaAiContext'
-import type { DeployGameMatchParams, DeploymentResult } from './OharaAiContext'
 import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
 
 const OharaAiContextInstance = createContext<OharaAiContext | undefined>(undefined)
@@ -135,15 +134,11 @@ export function OharaAiProvider({
   useEffect(() => {
     loadAddresses()
     
-    // Poll for changes every 10 seconds to keep all clients in sync
-    const pollInterval = setInterval(loadAddresses, 10000)
-    
-    // Also listen for custom events (for immediate updates after deployment)
+    // Listen for custom events (for immediate updates after deployment)
     const handleCustomEvent = () => loadAddresses()
     window.addEventListener('contractDeployed', handleCustomEvent)
     
     return () => {
-      clearInterval(pollInterval)
       window.removeEventListener('contractDeployed', handleCustomEvent)
     }
   }, [chainId])
@@ -190,76 +185,13 @@ export function OharaAiProvider({
       gameScore: gameScoreFactory,
     },
   }), [chainId, gameMatchFactory, gameScoreFactory])
-  
-  // Deployment methods
-  const deployGameScore = async (): Promise<DeploymentResult> => {
-    if (typeof window === 'undefined') {
-      throw new Error('Deployment can only be called from the browser')
-    }
-    
-    const response = await fetch('/api/deploy-game-score', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
-    
-    const data = await response.json()
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Deployment failed')
-    }
-    
-    // Refresh addresses after successful deployment
-    await loadAddresses()
-    
-    // Dispatch event for other components
-    window.dispatchEvent(new CustomEvent('contractDeployed'))
-    
-    return data
-  }
-  
-  const deployGameMatch = async (params: DeployGameMatchParams): Promise<DeploymentResult> => {
-    if (typeof window === 'undefined') {
-      throw new Error('Deployment can only be called from the browser')
-    }
-    
-    const response = await fetch('/api/deploy-game-match', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        gameScoreAddress: params.gameScoreAddress,
-        feeRecipients: params.feeRecipients,
-        feeShares: params.feeShares,
-      }),
-    })
-    
-    const data = await response.json()
-    
-    if (!response.ok) {
-      throw new Error(data.error || 'Deployment failed')
-    }
-    
-    // Refresh addresses after successful deployment
-    await loadAddresses()
-    
-    // Dispatch event for other components
-    window.dispatchEvent(new CustomEvent('contractDeployed'))
-    
-    return data
-  }
-  
-  const refreshAddresses = async () => {
-    await loadAddresses()
-  }
-  
+ 
   const value: OharaAiContext = {
     ohara,
     game,
     app,
     internal,
-    deployGameScore,
-    deployGameMatch,
-    refreshAddresses,
+    loadAddresses,
   }
   
   return (

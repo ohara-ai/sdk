@@ -4,8 +4,6 @@ import 'server-only'
 // Storage (server-side only)
 export {
   getContracts,
-  updateContracts,
-  setContractAddress,
   getControllerKey,
   getControllerAddress,
   type ContractAddresses,
@@ -37,6 +35,4 @@ export {
   getDeploymentConfig,
   getFactoryAddresses,
   type DeploymentConfig,
-  type GameMatchDeployParams,
-  type GameScoreDeployParams,
 } from './deployment/deploymentService'

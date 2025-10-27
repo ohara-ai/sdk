@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getContracts, getControllerAddress } from '@/sdk/src/server'
 
+// Mark this route as dynamic since it depends on query parameters
+export const dynamic = 'force-dynamic'
+
 /**
  * GET /api/addresses
  * Returns contract addresses for a specific chain
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const chainIdParam = searchParams.get('chainId')
+    const chainIdParam = request.nextUrl.searchParams.get('chainId')
     
     if (!chainIdParam) {
       return NextResponse.json(

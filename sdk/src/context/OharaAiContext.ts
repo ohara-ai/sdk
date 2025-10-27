@@ -86,24 +86,6 @@ export interface OharaAiContext {
   /** Internal configuration */
   internal: InternalContext
   
-  /** Deployment methods */
-  deployGameScore: () => Promise<DeploymentResult>
-  deployGameMatch: (params: DeployGameMatchParams) => Promise<DeploymentResult>
-  
   /** Manually refresh contract addresses from backend */
-  refreshAddresses: () => Promise<void>
-}
-
-export interface DeployGameMatchParams {
-  gameScoreAddress?: Address
-  feeRecipients?: string[]
-  feeShares?: string[]
-}
-
-export interface DeploymentResult {
-  success: true
-  address: Address
-  transactionHash: Address
-  authorizationWarning?: string
-  authorizationError?: string
+  loadAddresses: () => Promise<void>
 }

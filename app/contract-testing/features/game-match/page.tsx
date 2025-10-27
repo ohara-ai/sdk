@@ -12,7 +12,7 @@ import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { ContractType } from '@/sdk/src'
+import { ContractType } from '@/sdk/src/types/contracts'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()

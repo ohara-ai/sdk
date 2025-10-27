@@ -1,16 +1,42 @@
 'use client'
 
+import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
 import { DeployFactoryContract } from '../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
-import { ContractType } from '@/sdk/src/types/contracts'
 
 interface DeployGameScoreContractProps {
   onDeployed: (address: `0x${string}`) => void
 }
 
 export function DeployGameScoreContract({ onDeployed }: DeployGameScoreContractProps) {
-  const { game, deployGameScore } = useOharaAi()
+  const { game, loadAddresses } = useOharaAi()
   const gameScoreAddress = game.scores?.address
+
+  const deployGameScore = async (): Promise<DeploymentResult> => {
+    if (typeof window === 'undefined') {
+      throw new Error('Deployment can only be called from the browser')
+    }
+    
+    const response = await fetch('/api/deploy-game-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Deployment failed')
+    }
+    
+    // Refresh addresses after successful deployment
+    await loadAddresses()
+    
+    // Dispatch event for other components
+    window.dispatchEvent(new CustomEvent('contractDeployed'))
+    
+    return data
+  }
 
   return (
     <DeployFactoryContract

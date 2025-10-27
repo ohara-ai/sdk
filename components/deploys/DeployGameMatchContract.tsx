@@ -7,9 +7,17 @@ import { Label } from '@/components/ui/label'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
+import { Address } from 'viem'
+import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
 
 interface DeployGameMatchContractProps {
   onDeployed: (address: `0x${string}`) => void 
+}
+
+export interface DeployGameMatchParams {
+  gameScoreAddress?: Address
+  feeRecipients?: string[]
+  feeShares?: string[]
 }
 
 interface FeeRecipient {
@@ -22,10 +30,41 @@ export function DeployGameMatchContract({ onDeployed }: DeployGameMatchContractP
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
   
-  const { game, deployGameMatch } = useOharaAi()
+  const { game, loadAddresses } = useOharaAi()
   const deployedGameScoreAddress: `0x${string}` | null = game.scores?.address || null
   const gameMatchAddress = game.match?.address
   
+ const deployGameMatch = async (params: DeployGameMatchParams): Promise<DeploymentResult> => {
+    if (typeof window === 'undefined') {
+      throw new Error('Deployment can only be called from the browser')
+    }
+    
+    const response = await fetch('/api/deploy-game-match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gameScoreAddress: params.gameScoreAddress,
+        feeRecipients: params.feeRecipients,
+        feeShares: params.feeShares,
+      }),
+    })
+    
+    const data = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(data.error || 'Deployment failed')
+    }
+    
+    // Refresh addresses after successful deployment
+    await loadAddresses()
+    
+    // Dispatch event for other components
+    window.dispatchEvent(new CustomEvent('contractDeployed'))
+    
+    return data
+  }
+  
+
   
   // Reset toggle when scoreboard address changes (e.g., new deployment)
   useEffect(() => {

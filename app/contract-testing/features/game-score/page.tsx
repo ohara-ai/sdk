@@ -10,7 +10,7 @@ import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
-import { ContractType } from '@/sdk/src'
+import { ContractType } from '@/sdk/src/types/contracts'
 
 export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()

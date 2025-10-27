@@ -6,14 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { CheckCircle2, Loader2, Rocket, Info, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-
-interface DeploymentResult {
-  success: true
-  address: `0x${string}`
-  transactionHash: `0x${string}`
-  authorizationWarning?: string
-  authorizationError?: string
-}
+import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
 
 interface DeployFactoryContractProps {
   contractName: string
