@@ -46,14 +46,14 @@ contract FeeCollectorValidationTest is Test {
         assertEq(totalShare, 1000);
     }
     
-    function test_DeployWithZeroAddressRecipient() public {
+    function test_DeployWithZeroAddressRecipient_Reverts() public {
         // Deploy first
         address instance = factory.deployGameMatch(address(0));
         
         assertTrue(instance != address(0));
         console.log("Deployed with zero recipient at:", instance);
         
-        // Configure fees with zero address recipient after deployment
+        // Configure fees with zero address recipient should revert
         GameMatch gameMatch = GameMatch(instance);
         
         address[] memory feeRecipients = new address[](1);
@@ -62,18 +62,8 @@ contract FeeCollectorValidationTest is Test {
         uint256[] memory feeShares = new uint256[](1);
         feeShares[0] = 1000;
         
+        // Should revert with InvalidFeeRecipient error
+        vm.expectRevert(abi.encodeWithSignature("InvalidFeeRecipient()"));
         gameMatch.configureFees(feeRecipients, feeShares);
-        
-        // Verify fee configuration
-        (
-            address[] memory recipients,
-            uint256[] memory shares,
-            uint256 totalShare
-        ) = gameMatch.getFeeConfiguration();
-        
-        assertEq(recipients.length, 1);
-        assertEq(recipients[0], address(0));
-        assertEq(shares[0], 1000);
-        assertEq(totalShare, 1000);
     }
 }

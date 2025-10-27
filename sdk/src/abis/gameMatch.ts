@@ -778,6 +778,11 @@ export const GAME_MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidFeeRecipient",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidMatchId",
     "inputs": []
   },

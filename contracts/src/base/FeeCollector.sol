@@ -17,6 +17,7 @@ abstract contract FeeCollector is Owned {
     event FeeDistributed(address indexed recipient, address token, uint256 amount);
 
     error InvalidFeeConfiguration();
+    error InvalidFeeRecipient();
     error TransferFailed();
 
     constructor(address _owner) Owned(_owner) {}
@@ -46,6 +47,7 @@ abstract contract FeeCollector is Owned {
 
         uint256 total = 0;
         for (uint256 i = 0; i < _shares.length; i++) {
+            if (_recipients[i] == address(0)) revert InvalidFeeRecipient();
             total += _shares[i];
         }
         if (total > 5000) revert InvalidFeeConfiguration(); // Max 50% fee
@@ -72,10 +74,15 @@ abstract contract FeeCollector is Owned {
         }
 
         for (uint256 i = 0; i < feeRecipients.length; i++) {
+            address recipient = feeRecipients[i];
+            if (recipient == address(0)) revert InvalidFeeRecipient();
+            
             uint256 fee = (totalAmount * feeShares[i]) / 10000;
+            if (fee == 0) continue; // Skip zero-amount transfers
+            
             feeAmount += fee;
-            _transfer(token, feeRecipients[i], fee);
-            emit FeeDistributed(feeRecipients[i], token, fee);
+            _transfer(token, recipient, fee);
+            emit FeeDistributed(recipient, token, fee);
         }
     }
 

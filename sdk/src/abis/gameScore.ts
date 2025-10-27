@@ -724,6 +724,11 @@ export const GAME_SCORE_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidFeeRecipient",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidLimit",
     "inputs": []
   },

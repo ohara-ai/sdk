@@ -310,7 +310,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
                     losers[loserIndex++] = m.players[i];
                 }
             }
-            gameScore.recordMatchResult(matchId, winner, losers, totalPrize);
+            gameScore.recordMatchResult(matchId, winner, losers, winnerAmount);
         }
 
         emit MatchFinalized(matchId, winner, totalPrize, winnerAmount);

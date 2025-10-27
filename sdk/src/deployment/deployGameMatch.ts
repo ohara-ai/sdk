@@ -4,6 +4,8 @@ import { GAME_MATCH_ABI } from '../abis/gameMatch'
 import { GAME_SCORE_ABI } from '../abis/gameScore'
 import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
+import { privateKeyToAccount } from 'viem/accounts'
+import { createWalletClient, http } from 'viem'
 
 export interface GameMatchDeployParams {
   gameScoreAddress?: `0x${string}`
@@ -29,14 +31,9 @@ export async function deployGameMatch(
   let feeShares: bigint[] = []
 
   if (params.feeRecipients && params.feeShares && params.feeRecipients.length > 0) {
+    console.log('Fee configuration:', params.feeRecipients, params.feeShares)
     feeRecipients = params.feeRecipients
     feeShares = params.feeShares.map((s: string) => BigInt(s))
-  } else {
-    // Fall back to environment
-    const feeRecipientsStr = process.env.NEXT_PUBLIC_FEE_RECIPIENTS || ''
-    const feeSharesStr = process.env.NEXT_PUBLIC_FEE_SHARES || ''
-    feeRecipients = feeRecipientsStr ? feeRecipientsStr.split(',') : []
-    feeShares = feeSharesStr ? feeSharesStr.split(',').map(s => BigInt(s.trim())) : []
   }
 
   // Deploy the contract
@@ -63,13 +60,25 @@ export async function deployGameMatch(
   // Configure fees if provided
   if (feeRecipients.length > 0 && feeShares.length > 0) {
     try {
-      const feeHash = await walletClient.writeContract({
+      // Use PRIVATE_KEY from environment variables for fee configuration
+      const privateKey = process.env.PRIVATE_KEY
+      if (!privateKey) {
+        throw new Error('PRIVATE_KEY environment variable not set')
+      }
+      
+      const feeAccount = privateKeyToAccount(privateKey as `0x${string}`)
+      const feeWalletClient = createWalletClient({
+        account: feeAccount,
+        transport: http(config.rpcUrl),
+      })
+      
+      const feeHash = await feeWalletClient.writeContract({
         address: deployedAddress,
         abi: GAME_MATCH_ABI,
         functionName: 'configureFees',
         args: [feeRecipients as `0x${string}`[], feeShares],
         chain: null,
-        account,
+        account: feeAccount,
       })
       await publicClient.waitForTransactionReceipt({ hash: feeHash })
     } catch (feeError) {
