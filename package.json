@@ -17,6 +17,8 @@
     "sdk:build": "cd sdk && npm run build",
     "sdk:dev": "cd sdk && npm run dev",
     "sdk:install": "cd sdk && npm install",
+    "update-abis": "node scripts/update-abis.js",
+    "build-and-update-abis": "./scripts/build-and-update-abis.sh",
     "fund-controller": "./scripts/fund-controller.sh",
     "deploy-contracts": "./scripts/deploy-contracts.sh"
   },

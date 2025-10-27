@@ -1,302 +1,302 @@
 export const GAME_MATCH_FACTORY_ABI = [
   {
-    type: 'constructor',
-    inputs: [],
-    stateMutability: 'nonpayable',
+    "type": "constructor",
+    "inputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'defaultFeeRecipients',
-    inputs: [
+    "type": "function",
+    "name": "defaultFeeRecipients",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'defaultFeeShares',
-    inputs: [
+    "type": "function",
+    "name": "defaultFeeShares",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'defaultMaxActiveMatches',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "defaultMaxActiveMatches",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'deployGameMatch',
-    inputs: [
+    "type": "function",
+    "name": "deployGameMatch",
+    "inputs": [
       {
-        name: '_gameScore',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "_gameScore",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: 'instance',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "instance",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'nonpayable',
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'getDefaultFees',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getDefaultFees",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'recipients',
-        type: 'address[]',
-        internalType: 'address[]',
+        "name": "recipients",
+        "type": "address[]",
+        "internalType": "address[]"
       },
       {
-        name: 'shares',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
+        "name": "shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'getInstanceOwner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getInstanceOwner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'instanceOwner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "instanceOwner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'owner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'setDefaultFees',
-    inputs: [
+    "type": "function",
+    "name": "setDefaultFees",
+    "inputs": [
       {
-        name: '_recipients',
-        type: 'address[]',
-        internalType: 'address[]',
+        "name": "_recipients",
+        "type": "address[]",
+        "internalType": "address[]"
       },
       {
-        name: '_shares',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
+        "name": "_shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'setDefaultMaxActiveMatches',
-    inputs: [
+    "type": "function",
+    "name": "setDefaultMaxActiveMatches",
+    "inputs": [
       {
-        name: '_defaultMaxActiveMatches',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "_defaultMaxActiveMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'setInstanceOwner',
-    inputs: [
+    "type": "function",
+    "name": "setInstanceOwner",
+    "inputs": [
       {
-        name: '_newInstanceOwner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "_newInstanceOwner",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'transferOwnership',
-    inputs: [
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
       {
-        name: 'newOwner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'DefaultFeesUpdated',
-    inputs: [
+    "type": "event",
+    "name": "DefaultFeesUpdated",
+    "inputs": [
       {
-        name: 'recipients',
-        type: 'address[]',
-        indexed: false,
-        internalType: 'address[]',
+        "name": "recipients",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
       },
       {
-        name: 'shares',
-        type: 'uint256[]',
-        indexed: false,
-        internalType: 'uint256[]',
-      },
+        "name": "shares",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'DefaultMaxActiveMatchesUpdated',
-    inputs: [
+    "type": "event",
+    "name": "DefaultMaxActiveMatchesUpdated",
+    "inputs": [
       {
-        name: 'newDefault',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "newDefault",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'GameMatchDeployed',
-    inputs: [
+    "type": "event",
+    "name": "GameMatchDeployed",
+    "inputs": [
       {
-        name: 'instance',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "instance",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'owner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'controller',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'gameScore',
-        type: 'address',
-        indexed: false,
-        internalType: 'address',
-      },
+        "name": "gameScore",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'InstanceOwnerUpdated',
-    inputs: [
+    "type": "event",
+    "name": "InstanceOwnerUpdated",
+    "inputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'OwnershipTransferred',
-    inputs: [
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'InvalidOwner',
-    inputs: [],
+    "type": "error",
+    "name": "InvalidOwner",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'Unauthorized',
-    inputs: [],
-  },
-] as const
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  }
+] as const;

@@ -6,6 +6,9 @@ This directory contains TypeScript ABI definitions for all contracts used in the
 
 ### Factory Contracts
 
+These contracts are used to deploy instances of the feature contracts. To effectively gain control over the deployed contracts, the factory contracts deploy functions should be called by the app controller.
+It is also possible for the owner to call the setController function on the deployed feature contracts to transfer control to the app controller.
+
 #### `gameMatchFactory.ts`
 **Export:** `GAME_MATCH_FACTORY_ABI`
 
@@ -117,15 +120,19 @@ ABIs are extracted from compiled Solidity contracts in `/contracts/out/`.
 
 To regenerate ABIs from contracts:
 ```bash
-# Build contracts
-cd contracts
-forge build
+# Option 1: Build and update in one command
+npm run build-and-update-abis
 
-# Extract ABI (example)
-node -e "const fs = require('fs'); \
-  const data = JSON.parse(fs.readFileSync('contracts/out/GameMatch.sol/GameMatch.json')); \
-  console.log(JSON.stringify(data.abi, null, 2));"
+# Option 2: Update ABIs only (if contracts already built)
+npm run update-abis
 ```
+
+The update script (`scripts/update-abis.js`) automatically:
+- Extracts ABIs from all compiled contracts in `contracts/out/`
+- Generates TypeScript files in `sdk/src/abis/`
+- Updates the index file with all exports
+
+To add a new contract to the ABI generation, edit `CONTRACT_MAPPINGS` in `scripts/update-abis.js`.
 
 ## Type Safety
 

@@ -1,467 +1,755 @@
 export const GAME_SCORE_ABI = [
   {
-    type: 'constructor',
-    inputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'authorizedRecorders',
-    inputs: [
+    "type": "constructor",
+    "inputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
       },
+      {
+        "name": "_controller",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_maxLosersPerMatch",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_maxTotalPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_maxTotalMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "authorizedRecorders",
+    "inputs": [
       {
-        name: '',
-        type: 'bool',
-        internalType: 'bool',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'getPlayerScore',
-    inputs: [
+    "outputs": [
       {
-        name: 'player',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
     ],
-    outputs: [
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "configureFees",
+    "inputs": [
       {
-        name: 'totalWins',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "_recipients",
+        "type": "address[]",
+        "internalType": "address[]"
       },
       {
-        name: 'totalPrize',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'lastMatchId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'lastWinTimestamp',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "_shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    stateMutability: 'view',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'getRemainingMatchCapacity',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "controller",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'getRemainingPlayerCapacity',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "featureName",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "pure"
   },
   {
-    type: 'function',
-    name: 'getTopPlayersByPrize',
-    inputs: [
+    "type": "function",
+    "name": "feeRecipients",
+    "inputs": [
       {
-        name: 'limit',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: 'players',
-        type: 'address[]',
-        internalType: 'address[]',
-      },
-      {
-        name: 'wins',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: 'prizes',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'getTopPlayersByWins',
-    inputs: [
+    "type": "function",
+    "name": "feeShares",
+    "inputs": [
       {
-        name: 'limit',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [
+    "outputs": [
       {
-        name: 'players',
-        type: 'address[]',
-        internalType: 'address[]',
-      },
-      {
-        name: 'wins',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
-      {
-        name: 'prizes',
-        type: 'uint256[]',
-        internalType: 'uint256[]',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'getTotalMatches',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getFeeConfiguration",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "recipients",
+        "type": "address[]",
+        "internalType": "address[]"
       },
+      {
+        "name": "shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "totalShare",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'getTotalPlayers',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getMatchRecord",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'maxLosersPerMatch',
-    inputs: [],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "winner",
+        "type": "address",
+        "internalType": "address"
       },
+      {
+        "name": "losers",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "prize",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'maxTotalMatches',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getPlayerScore",
+    "inputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
-  },
-  {
-    type: 'function',
-    name: 'maxTotalPlayers',
-    inputs: [],
-    outputs: [
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "totalWins",
+        "type": "uint256",
+        "internalType": "uint256"
       },
+      {
+        "name": "totalPrize",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "lastMatchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "lastWinTimestamp",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'owner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getRemainingMatchCapacity",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'recordMatchResult',
-    inputs: [
+    "type": "function",
+    "name": "getRemainingPlayerCapacity",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'matchId',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: 'winner',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'losers',
-        type: 'address[]',
-        internalType: 'address[]',
-      },
-      {
-        name: 'prize',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'setRecorderAuthorization',
-    inputs: [
+    "type": "function",
+    "name": "getTopPlayersByPrize",
+    "inputs": [
       {
-        name: 'recorder',
-        type: 'address',
-        internalType: 'address',
-      },
-      {
-        name: 'authorized',
-        type: 'bool',
-        internalType: 'bool',
-      },
+        "name": "limit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'function',
-    name: 'transferOwnership',
-    inputs: [
+    "outputs": [
       {
-        name: 'newOwner',
-        type: 'address',
-        internalType: 'address',
+        "name": "players",
+        "type": "address[]",
+        "internalType": "address[]"
       },
+      {
+        "name": "wins",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "prizes",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'updateLimits',
-    inputs: [
+    "type": "function",
+    "name": "getTopPlayersByWins",
+    "inputs": [
       {
-        name: '_maxLosersPerMatch',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxTotalPlayers',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
-      {
-        name: '_maxTotalMatches',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "limit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
-  },
-  {
-    type: 'event',
-    name: 'LimitsUpdated',
-    inputs: [
+    "outputs": [
       {
-        name: 'maxLosersPerMatch',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
+        "name": "players",
+        "type": "address[]",
+        "internalType": "address[]"
       },
       {
-        name: 'maxTotalPlayers',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
+        "name": "wins",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
-        name: 'maxTotalMatches',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "prizes",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'MatchEvicted',
-    inputs: [
+    "type": "function",
+    "name": "getTotalMatches",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'matchId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
-      {
-        name: 'timestamp',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'OwnershipTransferred',
-    inputs: [
+    "type": "function",
+    "name": "getTotalPlayers",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'PlayerEvicted',
-    inputs: [
+    "type": "function",
+    "name": "maxLosersPerMatch",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'player',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'totalWins',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'totalPrize',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'RecorderAuthorized',
-    inputs: [
+    "type": "function",
+    "name": "maxTotalMatches",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'recorder',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'authorized',
-        type: 'bool',
-        indexed: false,
-        internalType: 'bool',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'event',
-    name: 'ScoreRecorded',
-    inputs: [
+    "type": "function",
+    "name": "maxTotalPlayers",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'matchId',
-        type: 'uint256',
-        indexed: true,
-        internalType: 'uint256',
-      },
-      {
-        name: 'winner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
-      {
-        name: 'totalWins',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
-      {
-        name: 'totalPrize',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "stateMutability": "view"
   },
   {
-    type: 'error',
-    name: 'InvalidLimit',
-    inputs: [],
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    type: 'error',
-    name: 'InvalidOwner',
-    inputs: [],
+    "type": "function",
+    "name": "recordMatchResult",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "losers",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "prize",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'error',
-    name: 'MatchAlreadyRecorded',
-    inputs: [],
+    "type": "function",
+    "name": "setController",
+    "inputs": [
+      {
+        "name": "newController",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'error',
-    name: 'Unauthorized',
-    inputs: [],
+    "type": "function",
+    "name": "setRecorderAuthorization",
+    "inputs": [
+      {
+        "name": "recorder",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "authorized",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'error',
-    name: 'UnauthorizedRecorder',
-    inputs: [],
+    "type": "function",
+    "name": "totalFeeShare",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
-] as const
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateLimits",
+    "inputs": [
+      {
+        "name": "_maxLosersPerMatch",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_maxTotalPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_maxTotalMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "version",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "event",
+    "name": "ControllerUpdated",
+    "inputs": [
+      {
+        "name": "previousController",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newController",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeeDistributed",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeesConfigured",
+    "inputs": [
+      {
+        "name": "recipients",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
+      },
+      {
+        "name": "shares",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "totalShare",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "LimitsUpdated",
+    "inputs": [
+      {
+        "name": "maxLosersPerMatch",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxTotalPlayers",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxTotalMatches",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MatchEvicted",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "timestamp",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PlayerEvicted",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "totalWins",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalPrize",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RecorderAuthorized",
+    "inputs": [
+      {
+        "name": "recorder",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "authorized",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ScoreRecorded",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "totalWins",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalPrize",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "InvalidController",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidFeeConfiguration",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidLimit",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MatchAlreadyRecorded",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferFailed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UnauthorizedRecorder",
+    "inputs": []
+  }
+] as const;

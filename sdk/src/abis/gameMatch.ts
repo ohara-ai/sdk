@@ -1,227 +1,844 @@
 export const GAME_MATCH_ABI = [
-  // Read functions
   {
-    inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
-    name: 'getMatch',
-    outputs: [
-      { internalType: 'address', name: 'token', type: 'address' },
-      { internalType: 'uint256', name: 'stakeAmount', type: 'uint256' },
-      { internalType: 'uint256', name: 'maxPlayers', type: 'uint256' },
-      { internalType: 'address[]', name: 'players', type: 'address[]' },
-      { internalType: 'enum IGameMatch.MatchStatus', name: 'status', type: 'uint8' },
-      { internalType: 'address', name: 'winner', type: 'address' },
-      { internalType: 'uint256', name: 'createdAt', type: 'uint256' },
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_controller",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_gameScore",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_maxActiveMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_feeRecipients",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "_feeShares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    stateMutability: 'view',
-    type: 'function',
+    "stateMutability": "nonpayable"
   },
   {
-    inputs: [
-      { internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { internalType: 'address', name: 'player', type: 'address' },
+    "type": "function",
+    "name": "activateMatch",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'getPlayerStake',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    inputs: [],
-    name: 'getActiveMatchCount',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'maxActiveMatches',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint256', name: 'offset', type: 'uint256' },
-      { internalType: 'uint256', name: 'limit', type: 'uint256' },
+    "type": "function",
+    "name": "cancelMatch",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'getActiveMatchIds',
-    outputs: [{ internalType: 'uint256[]', name: 'matchIds', type: 'uint256[]' }],
-    stateMutability: 'view',
-    type: 'function',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
-  // Write functions
   {
-    inputs: [
-      { internalType: 'address', name: 'token', type: 'address' },
-      { internalType: 'uint256', name: 'stakeAmount', type: 'uint256' },
-      { internalType: 'uint256', name: 'maxPlayers', type: 'uint256' },
+    "type": "function",
+    "name": "cleanupInactiveMatch",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'createMatch',
-    outputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
-    stateMutability: 'payable',
-    type: 'function',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
-    name: 'joinMatch',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
-    name: 'withdrawStake',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: 'matchId', type: 'uint256' }],
-    name: 'activateMatch',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      { internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { internalType: 'address', name: 'winner', type: 'address' },
+    "type": "function",
+    "name": "configureFees",
+    "inputs": [
+      {
+        "name": "_recipients",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "_shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
     ],
-    name: 'finalizeMatch',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    inputs: [
-      { internalType: 'address[]', name: '_recipients', type: 'address[]' },
-      { internalType: 'uint256[]', name: '_shares', type: 'uint256[]' },
+    "type": "function",
+    "name": "controller",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    name: 'configureFees',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
+    "stateMutability": "view"
   },
   {
-    inputs: [],
-    name: 'getFeeConfiguration',
-    outputs: [
-      { internalType: 'address[]', name: 'recipients', type: 'address[]' },
-      { internalType: 'uint256[]', name: 'shares', type: 'uint256[]' },
-      { internalType: 'uint256', name: 'totalShare', type: 'uint256' },
+    "type": "function",
+    "name": "createMatch",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "stakeAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    name: 'feeRecipients',
-    outputs: [{ internalType: 'address', name: '', type: 'address' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    name: 'feeShares',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'totalFeeShare',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  // Events
-  {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'creator', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'token', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'stakeAmount', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'maxPlayers', type: 'uint256' },
+    "outputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'MatchCreated',
-    type: 'event',
+    "stateMutability": "payable"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'player', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'stakeAmount', type: 'uint256' },
+    "type": "function",
+    "name": "featureName",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
     ],
-    name: 'PlayerJoined',
-    type: 'event',
+    "stateMutability": "pure"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'player', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    "type": "function",
+    "name": "feeRecipients",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'PlayerWithdrew',
-    type: 'event',
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { indexed: false, internalType: 'address[]', name: 'players', type: 'address[]' },
+    "type": "function",
+    "name": "feeShares",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'MatchActivated',
-    type: 'event',
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { indexed: false, internalType: 'address[]', name: 'players', type: 'address[]' },
-      { indexed: false, internalType: 'uint256', name: 'refundAmount', type: 'uint256' },
+    "type": "function",
+    "name": "finalizeMatch",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    name: 'MatchCancelled',
-    type: 'event',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'uint256', name: 'matchId', type: 'uint256' },
-      { indexed: true, internalType: 'address', name: 'winner', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'totalPrize', type: 'uint256' },
-      { indexed: false, internalType: 'uint256', name: 'winnerAmount', type: 'uint256' },
+    "type": "function",
+    "name": "gameScore",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IGameScore"
+      }
     ],
-    name: 'MatchFinalized',
-    type: 'event',
+    "stateMutability": "view"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: false, internalType: 'address[]', name: 'recipients', type: 'address[]' },
-      { indexed: false, internalType: 'uint256[]', name: 'shares', type: 'uint256[]' },
-      { indexed: false, internalType: 'uint256', name: 'totalShare', type: 'uint256' },
+    "type": "function",
+    "name": "getActiveMatchCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'FeesConfigured',
-    type: 'event',
+    "stateMutability": "view"
   },
   {
-    anonymous: false,
-    inputs: [
-      { indexed: true, internalType: 'address', name: 'recipient', type: 'address' },
-      { indexed: false, internalType: 'address', name: 'token', type: 'address' },
-      { indexed: false, internalType: 'uint256', name: 'amount', type: 'uint256' },
+    "type": "function",
+    "name": "getActiveMatchIds",
+    "inputs": [
+      {
+        "name": "offset",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "limit",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    name: 'FeeDistributed',
-    type: 'event',
+    "outputs": [
+      {
+        "name": "matchIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
   },
-] as const
-
-export enum MatchStatus {
-  Open = 0,
-  Active = 1,
-  Finalized = 2,
-  Cancelled = 3,
-}
+  {
+    "type": "function",
+    "name": "getFeeConfiguration",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "recipients",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "totalShare",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMatch",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "stakeAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "players",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "internalType": "enum IGameMatch.MatchStatus"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "createdAt",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPlayerStake",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "joinMatch",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "maxActiveMatches",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "setController",
+    "inputs": [
+      {
+        "name": "newController",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setGameScore",
+    "inputs": [
+      {
+        "name": "_gameScore",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMaxActiveMatches",
+    "inputs": [
+      {
+        "name": "_maxActiveMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "totalFeeShare",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "version",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "pure"
+  },
+  {
+    "type": "function",
+    "name": "withdrawStake",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "ControllerUpdated",
+    "inputs": [
+      {
+        "name": "previousController",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newController",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeeDistributed",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeesConfigured",
+    "inputs": [
+      {
+        "name": "recipients",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
+      },
+      {
+        "name": "shares",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "totalShare",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "InactiveMatchCleaned",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "createdAt",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MatchActivated",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "players",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MatchCancelled",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "players",
+        "type": "address[]",
+        "indexed": false,
+        "internalType": "address[]"
+      },
+      {
+        "name": "refundAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MatchCreated",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "creator",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "stakeAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxPlayers",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MatchFinalized",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "totalPrize",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winnerAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MaxActiveMatchesUpdated",
+    "inputs": [
+      {
+        "name": "newLimit",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PlayerJoined",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "player",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "stakeAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PlayerWithdrew",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "player",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "InsufficientStake",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidController",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidFeeConfiguration",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMatchId",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMatchStatus",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMaxPlayers",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidStakeAmount",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidWinner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MatchNotInactive",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MaxActiveMatchesReached",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "MaxPlayersReached",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoStakeToWithdraw",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotAPlayer",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TransferFailed",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  }
+] as const;
