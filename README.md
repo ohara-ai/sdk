@@ -113,48 +113,33 @@ The application includes an internal contract testing interface for validating o
    anvil
    ```
 
-2. **Deploy contracts**:
+2. **Deploy contracts and fund the controller**:
    ```bash
    npm run deploy-contracts
-   ```
+
+   npm run fund-controller
+   ```   
 
 3. **Configure environment**:
    ```bash
    # Copy the example env file
    cp .env.example .env.local
-   
-   # Edit .env.local and set the addresses from deployment output
-   # Example:
-   # NEXT_PUBLIC_GAME_MATCH_FACTORY=0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512
-   # NEXT_PUBLIC_GAME_SCORE_FACTORY=0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
-   # NEXT_PUBLIC_HELLOWORLD_TOKEN=0x5FbDB2315678afecb367f032d93F642f64180aa3
    ```
 
-4. **Setup controller** (first-time setup):
-   ```bash
-   # The SDK generates a controller account for deployments
-   # It needs ETH to deploy contracts
-   npm run dev  # Start app first to generate controller key
-   
-   # In a separate terminal, fund the controller
-   npm run fund-controller
-   ```
-
-5. **Run the app**:
+4. **Run the app**:
    ```bash
    npm run dev
    ```
 
-6. **Explore the contract testing interface**:
-   - Open http://localhost:3000/contract-testing
-   - Deploy GameMatch and GameScore contracts
+5. **Explore the contract testing interface**:
+   - Open http://localhost:3000/
+   - Redeploy GameMatch and GameScore contracts
    - Test contract interactions directly
 
 #### Deployment Flow
 
 The app supports **dynamic contract deployment** with graceful handling of chain resets:
 
-- **ENV variable priority**: Set `NEXT_PUBLIC_GAME_MATCH_INSTANCE` for persistent deployments
 - **localStorage fallback**: Dynamically deployed contracts are saved per-chain in localStorage
 - **Automatic validation**: On app load, validates that saved addresses still exist on-chain
 - **Graceful reset handling**: Automatically clears invalid addresses when local chain resets

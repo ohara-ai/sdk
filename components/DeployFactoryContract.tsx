@@ -134,7 +134,9 @@ export function DeployFactoryContract({
               </div>
             )}
 
-            <Button onClick={handleDeploy} size="sm" className="w-full gap-2 h-9" disabled={isDeploying}>
+            <Button 
+              variant="outline" 
+              onClick={handleDeploy} size="sm" className="w-full gap-2 h-9" disabled={isDeploying}>
               {isDeploying ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -142,8 +144,7 @@ export function DeployFactoryContract({
                 </>
               ) : (
                 <>
-                  <Rocket className="w-4 h-4" />
-                  <span className="text-sm">Deploy Contract</span>
+                  <span className="text-sm">Redeploy Contract</span>
                 </>
               )}
             </Button>

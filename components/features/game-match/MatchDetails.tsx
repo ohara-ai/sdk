@@ -133,7 +133,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     }
 
     fetchMatchData()
-  }, [matchId, blockNumber, isJoinSuccess, isWithdrawSuccess, activateSuccess, finalizeSuccess])
+  }, [matchId, blockNumber, isJoinSuccess, isWithdrawSuccess, activateSuccess, finalizeSuccess, game.match.operations, onMatchDeleted])
 
   // Token approval for joining matches with custom tokens
   const {

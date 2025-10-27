@@ -78,5 +78,7 @@ export async function register() {
       console.log('💡 You can manually deploy contracts using: npm run deploy-contracts')
       // Don't throw - allow build to continue even if deployment fails
     }
+  } else {
+    console.log('📡 Skipping auto-deployment - not running in Node.js')
   }
 }
