@@ -1,12 +1,82 @@
 /**
  * Next.js Instrumentation
  * Runs once when the server starts
- * Used to inject .onchain-cfg.json values into environment
+ * Used to automatically deploy contracts if needed
  */
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    console.log('📡 Preparing onchain config... NOT IMPLEMENTED')
+    console.log('📡 Initializing on-chain configuration...')
     
+    try {
+      // Dynamically import server-only modules
+      const { getContracts } = await import('./sdk/src/storage/contractStorage')
+      const { deployGameScore, deployGameMatch, getFactoryAddresses } = await import('./sdk/src/deployment/deploymentService')
+      const { createPublicClient, http } = await import('viem')
+      
+      // Check if factory addresses are configured
+      const factories = getFactoryAddresses()
+      if (!factories.gameMatchFactory || !factories.gameScoreFactory) {
+        console.log('⚠️  Factory addresses not configured - skipping auto-deployment')
+        return
+      }
+      
+      // Get RPC URL and chain ID
+      const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+      const publicClient = createPublicClient({
+        transport: http(rpcUrl),
+      })
+      
+      const chainId = await publicClient.getChainId()
+      console.log(`🔗 Connected to chain ID: ${chainId}`)
+      
+      // Check if contracts are already deployed
+      const contracts = await getContracts(chainId)
+      
+      const hasGameScore = !!contracts.game?.score
+      const hasGameMatch = !!contracts.game?.match
+      
+      // Deploy contracts if needed
+      if (!hasGameScore || !hasGameMatch) {
+        console.log('🚀 Deploying missing contracts with default settings...')
+        
+        // Deploy GameScore first if needed
+        let gameScoreAddress: `0x${string}` | undefined = contracts.game?.score as `0x${string}` | undefined
+        
+        if (!hasGameScore) {
+          console.log('📦 Deploying GameScore contract...')
+          const scoreResult = await deployGameScore({})
+          gameScoreAddress = scoreResult.address
+          console.log(`✅ GameScore deployed at: ${scoreResult.address}`)
+        } else {
+          console.log(`✓ GameScore already deployed at: ${gameScoreAddress}`)
+        }
+        
+        // Deploy GameMatch if needed
+        if (!hasGameMatch) {
+          console.log('📦 Deploying GameMatch contract...')
+          const matchResult = await deployGameMatch({
+            gameScoreAddress,
+          })
+          console.log(`✅ GameMatch deployed at: ${matchResult.address}`)
+          
+          if (matchResult.authorizationWarning) {
+            console.warn(`⚠️  ${matchResult.authorizationWarning}`)
+          }
+        } else {
+          console.log(`✓ GameMatch already deployed at: ${contracts.game?.match}`)
+        }
+        
+        console.log('🎉 Contract deployment complete!')
+      } else {
+        console.log('✓ All contracts already deployed')
+        console.log(`  GameScore: ${contracts.game?.score}`)
+        console.log(`  GameMatch: ${contracts.game?.match}`)
+      }
+    } catch (error) {
+      console.error('❌ Auto-deployment failed:', error instanceof Error ? error.message : error)
+      console.log('💡 You can manually deploy contracts using: npm run deploy-contracts')
+      // Don't throw - allow build to continue even if deployment fails
+    }
   }
 }
