@@ -25,7 +25,10 @@ This directory contains reference ERC20 tokens for development and testing purpo
 ### Deployment
 
 ```bash
-# Deploy to local node
+# Deploy to local node (from e2e-test directory)
+npm run deploy-devworld-token
+
+# Or using forge directly
 forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
   --rpc-url http://localhost:8545 --broadcast
 
@@ -79,7 +82,11 @@ await writeContract({
 Run the comprehensive test suite:
 
 ```bash
+# From e2e-test directory
 forge test --match-contract DevWorldTokenTest
+
+# Or from root
+cd e2e-test && forge test --match-contract DevWorldTokenTest
 ```
 
 The test suite covers:

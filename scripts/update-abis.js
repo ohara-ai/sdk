@@ -9,7 +9,7 @@ const CONTRACT_MAPPINGS = {
   'GameMatchFactory': 'gameMatchFactory',
   'GameScore': 'gameScore',
   'GameScoreFactory': 'gameScoreFactory',
-  'DevWorldToken': 'erc20',
+  // Note: erc20.ts is maintained separately and not auto-generated
 };
 
 const CONTRACTS_OUT_DIR = path.join(__dirname, '../contracts/out');

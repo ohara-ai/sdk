@@ -11,6 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "deploy-factories": "./deploy-factories.sh",
+    "deploy-devworld-token": "./deploy-devworld-token.sh",
     "fund-controller": "./fund-controller.sh"
   },
   "dependencies": {

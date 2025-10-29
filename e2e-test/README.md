@@ -33,6 +33,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 ### Testing Scripts
 
 - `npm run deploy-factories` - Deploy factory contracts to the network
+- `npm run deploy-devworld-token` - Deploy DEVWORLD demo ERC20 token for testing
 - `npm run fund-controller` - Fund the controller address with test tokens
 - `npm run test` - Run Vitest tests
 - `npm run test:ui` - Run Vitest with UI
@@ -41,6 +42,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 - `app/` - Next.js app directory with pages and API routes
 - `components/` - React components for the UI
+- `contracts/` - Demo contracts for testing (DevWorldToken, etc.)
 - `lib/` - Utility functions and configuration (wagmi, etc.)
 - `*.sh` - Deployment and utility scripts
 
