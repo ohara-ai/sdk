@@ -120,14 +120,12 @@ ABIs are extracted from compiled Solidity contracts in `/contracts/out/`.
 
 To regenerate ABIs from contracts:
 ```bash
-# Option 1: Build and update in one command
-npm run build-and-update-abis
-
-# Option 2: Update ABIs only (if contracts already built)
-npm run update-abis
+# Build contracts and update ABIs
+npm run sdk:update-abi
 ```
 
 The update script (`scripts/update-abis.js`) automatically:
+- Builds the contracts using Forge
 - Extracts ABIs from all compiled contracts in `contracts/out/`
 - Generates TypeScript files in `sdk/src/abis/`
 - Updates the index file with all exports
