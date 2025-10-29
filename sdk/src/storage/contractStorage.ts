@@ -9,7 +9,7 @@ const KEYS_PATH = path.join(STORAGE_DIR, 'keys.json')
 
 // Contract addresses organized by context
 export interface OharaContracts {
-  token?: string // $HELLOWORLD token address
+  token?: string
 }
 
 export interface GameContracts {

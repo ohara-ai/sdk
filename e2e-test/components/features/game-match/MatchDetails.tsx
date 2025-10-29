@@ -201,7 +201,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     setActivateSuccess(false)
 
     try {
-      const response = await fetch('/api/activate-match', {
+      const response = await fetch('/api/sdk/game/activate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -234,7 +234,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     setFinalizeSuccess(false)
 
     try {
-      const response = await fetch('/api/finalize-match', {
+      const response = await fetch('/api/sdk/game/finalize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
