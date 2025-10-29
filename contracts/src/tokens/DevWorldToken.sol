@@ -7,9 +7,22 @@ pragma solidity ^0.8.23;
  * @dev A simple, mintable ERC20 token named DEVWORLD for use in development environments
  */
 contract DevWorldToken {
-    string public constant name = "DEVWORLD";
-    string public constant symbol = "DEVWORLD";
-    uint8 public constant decimals = 18;
+    string public constant NAME = "DEVWORLD";
+    string public constant SYMBOL = "DEVWORLD";
+    uint8 public constant DECIMALS = 18;
+    
+    // ERC20 standard getters
+    function name() public pure returns (string memory) {
+        return NAME;
+    }
+    
+    function symbol() public pure returns (string memory) {
+        return SYMBOL;
+    }
+    
+    function decimals() public pure returns (uint8) {
+        return DECIMALS;
+    }
     
     uint256 public totalSupply;
     

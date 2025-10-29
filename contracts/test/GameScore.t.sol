@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {GameScore} from "../src/features/scoreboard/GameScore.sol";
-import {IGameScore} from "../src/interfaces/IGameScore.sol";
 
 contract GameScoreTest is Test {
     GameScore public gameScore;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {GameMatchFactory} from "../src/factories/GameMatchFactory.sol";
 
 contract DeployGameMatchFactory is Script {
