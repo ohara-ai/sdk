@@ -1,6 +1,6 @@
 import { Address } from 'viem'
-import { MatchOperations, ServerMatchOperations } from '../core/match'
-import { ScoreOperations } from '../core/scores'
+import { MatchOperations, ServerMatchOperations } from '../core/game/match'
+import { ScoreOperations } from '../core/game/scores'
 
 /**
  * OharaAi Context Structure

@@ -1,5 +1,5 @@
 import { PublicClient, WalletClient, Address, Hash } from 'viem'
-import { GAME_MATCH_ABI } from '../abis/gameMatch'
+import { GAME_MATCH_ABI } from '../../abis/gameMatch'
 
 /**
  * Match primitive - Core on-chain match operations

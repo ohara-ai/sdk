@@ -18,13 +18,13 @@ export {
   type MatchConfig,
   type Match,
   MatchStatus,
-} from './core/match'
+} from './core/game/match'
 
 export {
   type ScoreOperations,
   type PlayerScore,
   type TopPlayersResult,
-} from './core/scores'
+} from './core/game/scores'
 
 export {
   type AppOperations,

@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, PublicClient, WalletClient, Address } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { createMatchOperations } from '../core/match'
-import { createScoreOperations } from '../core/scores'
+import { createMatchOperations } from '../core/game/match'
+import { createScoreOperations } from '../core/game/scores'
 import { getContracts, getControllerKey, getControllerAddress } from '../storage/contractStorage'
 import type { ServerGameContext, AppContext, OharaContext, InternalContext } from '../context/OharaAiContext'
 

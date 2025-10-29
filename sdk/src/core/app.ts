@@ -1,6 +1,6 @@
 import { PublicClient, WalletClient, Address } from 'viem'
-import { createClientMatchOperations, MatchOperations } from './match'
-import { createScoreOperations, ScoreOperations } from './scores'
+import { createClientMatchOperations, MatchOperations } from './game/match'
+import { createScoreOperations, ScoreOperations } from './game/scores'
 
 /**
  * App primitive - Combines Match and Scores operations

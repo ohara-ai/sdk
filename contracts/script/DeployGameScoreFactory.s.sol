@@ -2,12 +2,12 @@
 pragma solidity ^0.8.23;
 
 import {Script, console} from "forge-std/Script.sol";
-import {GameScoreFactory} from "../src/factories/GameScoreFactory.sol";
+import {GameScoreFactory} from "../src/factories/game/GameScoreFactory.sol";
 
 /**
  * @title DeployGameScoreFactory
  * @notice Deployment script for GameScoreFactory contract
- * @dev Run with: forge script script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory --rpc-url <RPC_URL> --broadcast
+ * @dev Run with: forge script script/factories/game/DeployGameScoreFactory.s.sol:DeployGameScoreFactory --rpc-url <RPC_URL> --broadcast
  */
 contract DeployGameScoreFactory is Script {
     function run() external {

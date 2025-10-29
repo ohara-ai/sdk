@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {GameMatch} from "../features/game-match/GameMatch.sol";
-import {OwnedFactory} from "../base/OwnedFactory.sol";
+import {GameMatch} from "../../features/game/GameMatch.sol";
+import {OwnedFactory} from "../../base/OwnedFactory.sol";
 
 /**
  * @title GameMatchFactory

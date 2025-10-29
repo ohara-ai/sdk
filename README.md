@@ -160,15 +160,12 @@ The `e2e-test/` directory contains a Next.js application for end-to-end testing 
 2. **Configure environment**:
    ```bash
    # Copy the example env file (if not already done)
-   cp .env.example .env
+   cp e2e-test/.env.example e2e-test/.env
    ```
 
-3. **Deploy factories and fund the controller**:
+3. **Setup dependencies - deploy factories and fund the controller**:
    ```bash
-   cd e2e-test
-   npm run deploy-factories
-   npm run fund-controller
-   cd ..
+   npm run e2e:setup
    ```
 
 4. **Run the E2E test app**:

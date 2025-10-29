@@ -12,8 +12,8 @@ import {
   createMockWalletClient,
   createMockMatchData,
   createMockFeeConfig,
-} from '../__tests__/mocks/clients'
-import { assertHasOperations, assertValidHash } from '../__tests__/utils/assertions'
+} from '../../__tests__/mocks/clients'
+import { assertHasOperations, assertValidHash } from '../../__tests__/utils/assertions'
 
 describe('Match Operations - Specification Tests', () => {
   const CONTRACT_ADDRESS = '0x1234567890123456789012345678901234567890' as const

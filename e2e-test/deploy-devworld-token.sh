@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Deploy DevWorldToken contract for e2e testing
 # This is a demo ERC20 token used for testing game features

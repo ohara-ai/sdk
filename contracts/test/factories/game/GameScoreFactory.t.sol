@@ -2,8 +2,8 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {GameScoreFactory} from "../src/factories/GameScoreFactory.sol";
-import {GameScore} from "../src/features/scoreboard/GameScore.sol";
+import {GameScoreFactory} from "../../../src/factories/game/GameScoreFactory.sol";
+import {GameScore} from "../../../src/features/game/GameScore.sol";
 
 contract GameScoreFactoryTest is Test {
     GameScoreFactory public factory;

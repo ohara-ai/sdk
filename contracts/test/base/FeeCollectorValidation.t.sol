@@ -2,8 +2,8 @@
 pragma solidity ^0.8.23;
 
 import {Test, console} from "forge-std/Test.sol";
-import {GameMatchFactory} from "../src/factories/GameMatchFactory.sol";
-import {GameMatch} from "../src/features/game-match/GameMatch.sol";
+import {GameMatchFactory} from "../../src/factories/game/GameMatchFactory.sol";
+import {GameMatch} from "../../src/features/game/GameMatch.sol";
 
 contract FeeCollectorValidationTest is Test {
     GameMatchFactory public factory;

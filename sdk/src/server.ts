@@ -22,7 +22,7 @@ export {
 // Server-only types
 export {
   type ServerMatchOperations,
-} from './core/match'
+} from './core/game/match'
 
 export {
   type ServerGameContext,

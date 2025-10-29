@@ -2,7 +2,7 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {GameScore} from "../src/features/scoreboard/GameScore.sol";
+import {GameScore} from "../../../src/features/game/GameScore.sol";
 
 contract GameScoreTest is Test {
     GameScore public gameScore;

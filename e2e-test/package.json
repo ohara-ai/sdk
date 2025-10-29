@@ -10,6 +10,7 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "setup": "npm run deploy-devworld-token && npm run deploy-factories && npm run fund-controller",
     "deploy-factories": "./deploy-factories.sh",
     "deploy-devworld-token": "./deploy-devworld-token.sh",
     "fund-controller": "./fund-controller.sh"

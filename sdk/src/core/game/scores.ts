@@ -1,5 +1,5 @@
 import { PublicClient, Address } from 'viem'
-import { GAME_SCORE_ABI } from '../abis/gameScore'
+import { GAME_SCORE_ABI } from '../../abis/gameScore'
 
 /**
  * Scores primitive - Core on-chain score tracking operations

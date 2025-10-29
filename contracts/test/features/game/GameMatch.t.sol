@@ -2,11 +2,11 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {GameMatch} from "../src/features/game-match/GameMatch.sol";
-import {IGameMatch} from "../src/interfaces/IGameMatch.sol";
-import {MockERC20} from "./mocks/MockERC20.sol";
-import {MockGameScore} from "./mocks/MockGameScore.sol";
-import {Owned} from "../src/base/Owned.sol";
+import {GameMatch} from "../../../src/features/game/GameMatch.sol";
+import {IGameMatch} from "../../../src/interfaces/IGameMatch.sol";
+import {MockERC20} from "../../mocks/MockERC20.sol";
+import {MockGameScore} from "../../mocks/MockGameScore.sol";
+import {Owned} from "../../../src/base/Owned.sol";
 
 contract GameMatchTest is Test {
     GameMatch public gameMatch;

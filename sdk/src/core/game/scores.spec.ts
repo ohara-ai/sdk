@@ -11,8 +11,8 @@ import {
   createMockPublicClient,
   createMockPlayerScore,
   createMockTopPlayers,
-} from '../__tests__/mocks/clients'
-import { assertHasOperations } from '../__tests__/utils/assertions'
+} from '../../__tests__/mocks/clients'
+import { assertHasOperations } from '../../__tests__/utils/assertions'
 
 describe('Score Operations - Specification Tests', () => {
   const CONTRACT_ADDRESS = '0x9876543210987654321098765432109876543210' as const
