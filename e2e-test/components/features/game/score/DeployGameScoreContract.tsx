@@ -1,7 +1,7 @@
 'use client'
 
 import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
-import { DeployFactoryContract } from '../DeployFactoryContract'
+import { DeployFactoryContract } from '../../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 
 interface DeployGameScoreContractProps {
@@ -17,7 +17,7 @@ export function DeployGameScoreContract({ onDeployed }: DeployGameScoreContractP
       throw new Error('Deployment can only be called from the browser')
     }
     
-    const response = await fetch('/api/deploy-game-score', {
+    const response = await fetch('/api/testing/deploy/game/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
@@ -45,7 +45,7 @@ export function DeployGameScoreContract({ onDeployed }: DeployGameScoreContractP
       deployFunction={deployGameScore}
       onDeployed={onDeployed}
       deployedAddress={gameScoreAddress}
-      featuresLink="/contract-testing/features/game-score"
+      featuresLink="/testing/features/game/score"
     />
   )
 }

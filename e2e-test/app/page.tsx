@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { DeployGameMatchContract as DeployGameMatch } from '@/components/deploys/DeployGameMatchContract'
-import { DeployGameScoreContract as DeployGameScore } from '@/components/deploys/DeployGameScoreContract'
+import { DeployGameMatchContract as DeployGameMatch } from '@/components/features/game/match/DeployGameMatchContract'
+import { DeployGameScoreContract as DeployGameScore } from '@/components/features/game/score/DeployGameScoreContract'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { Button } from '@/components/ui/button'
 import { AddressesInfo } from '@/components/AddressesInfo'

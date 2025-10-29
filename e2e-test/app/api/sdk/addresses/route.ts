@@ -5,7 +5,7 @@ import { getContracts, getControllerAddress } from '@/sdk/src/server'
 export const dynamic = 'force-dynamic'
 
 /**
- * GET /api/addresses
+ * GET /api/sdk/addresses
  * Returns contract addresses for a specific chain
  */
 export async function GET(request: NextRequest) {

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, Trash2, Link2 } from 'lucide-react'
-import { DeployFactoryContract } from '../DeployFactoryContract'
+import { DeployFactoryContract } from '../../DeployFactoryContract'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { Address } from 'viem'
 import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
@@ -39,7 +39,7 @@ export function DeployGameMatchContract({ onDeployed }: DeployGameMatchContractP
       throw new Error('Deployment can only be called from the browser')
     }
     
-    const response = await fetch('/api/deploy-game-match', {
+    const response = await fetch('/api/testing/deploy/game/match', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -211,7 +211,7 @@ export function DeployGameMatchContract({ onDeployed }: DeployGameMatchContractP
       configSection={configSection}
       getDeploymentBody={getDeploymentBody}
       deployedAddress={gameMatchAddress}
-      featuresLink="/contract-testing/features/game-match"
+      featuresLink="/testing/features/game/match"
     />
   )
 }
