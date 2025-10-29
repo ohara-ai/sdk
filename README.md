@@ -1,6 +1,17 @@
 # On-Chain Features
 
-A comprehensive repository for modular on-chain gaming features with Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building gaming applications.
+A comprehensive SDK and smart contract library for modular on-chain gaming features. This repository provides Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building gaming applications.
+
+## Repository Structure
+
+```
+on-chain-features/
+├── contracts/          # Solidity smart contracts
+├── sdk/                # TypeScript SDK for on-chain features
+├── scripts/            # Build and ABI update scripts
+├── e2e-test/           # End-to-end testing application (Next.js)
+└── README.md
+```
 
 ## SDK
 
@@ -68,13 +79,20 @@ See [`sdk/README.md`](./sdk/README.md) for detailed documentation.
 
 ### Prerequisites
 - Node.js 18+
+- npm or yarn
 - Foundry (for Solidity development)
 
 ### Installation
 
 ```bash
-# Install Node dependencies
+# Install root dependencies (minimal)
 npm install
+
+# Install SDK dependencies
+npm run sdk:install
+
+# Install E2E test app dependencies
+npm run e2e:install
 
 # Install Foundry (if not already installed)
 curl -L https://foundry.paradigm.xyz | bash
@@ -82,6 +100,8 @@ foundryup
 ```
 
 ### Smart Contracts
+
+Build and test Solidity contracts:
 
 ```bash
 # Build contracts
@@ -97,58 +117,95 @@ npm run forge:test:verbose
 npm run forge:coverage
 ```
 
-### Contract Testing Application
+### SDK Development
 
-The application includes an internal contract testing interface for validating on-chain features:
+Work with the TypeScript SDK:
+
+```bash
+# Build the SDK
+npm run sdk:build
+
+# Watch mode for development
+npm run sdk:dev
+
+# Run SDK tests
+npm run sdk:test
+```
+
+### Update ABIs
+
+After making changes to contracts, update the SDK's ABIs:
+
+```bash
+# Build contracts and update ABIs in one command
+npm run build-and-update-abis
+
+# Or run steps separately
+npm run forge:build
+npm run update-abis
+```
+
+## E2E Testing Application
+
+The `e2e-test/` directory contains a Next.js application for end-to-end testing and demonstration of the SDK features:
+
 - Deploy and interact with GameMatch contracts
 - Deploy and query GameScore contracts
-- Test end-to-end workflows
+- Test complete workflows with a web UI
+- Validate SDK functionality in a real environment
 
-#### Quick Start with Anvil (Local Development)
+### Quick Start with Anvil (Local Development)
 
 1. **Start local Anvil node**:
    ```bash
    anvil
    ```
+
 2. **Configure environment**:
    ```bash
-   # Copy the example env file
+   # Copy the example env file (if not already done)
    cp .env.example .env
    ```
 
 3. **Deploy factories and fund the controller**:
    ```bash
+   cd e2e-test
    npm run deploy-factories
-
    npm run fund-controller
-   ```   
-
-4. **Run the app**:
-   ```bash
-   npm run dev
+   cd ..
    ```
 
-5. **Explore the contract testing interface**:
+4. **Run the E2E test app**:
+   ```bash
+   npm run e2e:dev
+   ```
+
+5. **Explore the testing interface**:
    - Open http://localhost:3000/
-   - Redeploy GameMatch and GameScore contracts
-   - Test contract interactions directly
+   - Connect your wallet
+   - Deploy and test GameMatch contracts
+   - Query GameScore statistics and leaderboards
+   - Test end-to-end workflows
 
-#### Deployment Flow
+### E2E Test App Features
 
-The app supports **dynamic contract deployment** with graceful handling of chain resets:
+The test application demonstrates:
 
-- **localStorage fallback**: Dynamically deployed contracts are saved per-chain in localStorage
-- **Automatic validation**: On app load, validates that saved addresses still exist on-chain
-- **Graceful reset handling**: Automatically clears invalid addresses when local chain resets
+- **Dynamic contract deployment** with graceful chain reset handling
+- **localStorage persistence** for contract addresses per-chain
+- **Automatic validation** of saved addresses on app load
+- **Complete SDK integration** showcasing all functional primitives
 
-#### Other Commands
+See [`e2e-test/README.md`](./e2e-test/README.md) for detailed documentation.
+
+### Other E2E Commands
 
 ```bash
-# Build for production
-npm run build
+# Build E2E app for production
+npm run e2e:build
 
-# Start production server
-npm run start
+# Run E2E tests
+npm run e2e:test
 ```
 
 ## License
