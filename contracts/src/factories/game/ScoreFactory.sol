@@ -5,10 +5,10 @@ import {GameScore} from "../../features/game/GameScore.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
 
 /**
- * @title GameScoreFactory
- * @notice Factory for deploying GameScore contracts
+ * @title ScoreFactory
+ * @notice Factory for deploying Score contracts
  */
-contract GameScoreFactory is OwnedFactory {
+contract ScoreFactory is OwnedFactory {
     // Deployment limits
     uint256 public maxLosersPerMatch;
     uint256 public maxTotalPlayers;

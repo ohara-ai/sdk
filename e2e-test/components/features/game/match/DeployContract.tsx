@@ -25,7 +25,7 @@ interface FeeRecipient {
   share: string
 }
 
-export function DeployGameMatchContract({ onDeployed }: DeployGameMatchContractProps) {
+export function DeployContract({ onDeployed }: DeployGameMatchContractProps) {
   // Configuration state
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])

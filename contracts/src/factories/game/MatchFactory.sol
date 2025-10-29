@@ -5,10 +5,10 @@ import {GameMatch} from "../../features/game/GameMatch.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
 
 /**
- * @title GameMatchFactory
- * @notice Factory for deploying GameMatch contracts
+ * @title MatchFactory
+ * @notice Factory for deploying Match contracts
  */
-contract GameMatchFactory is OwnedFactory {
+contract MatchFactory is OwnedFactory {
     // Default capacity limit for new deployments
     uint256 public defaultMaxActiveMatches;
     

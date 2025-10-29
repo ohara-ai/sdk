@@ -2,10 +2,10 @@
 pragma solidity ^0.8.23;
 
 /**
- * @title IGameMatch
+ * @title IMatch
  * @notice Interface for the GameMatch escrow feature
  */
-interface IGameMatch {
+interface IMatch {
     /// @notice Emitted when a new match is created
     event MatchCreated(
         uint256 indexed matchId,

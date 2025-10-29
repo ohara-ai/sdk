@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Deploy factory contracts to the network
-# Deploys GameMatchFactory and GameScoreFactory
+# Deploys game.MatchFactory and game.ScoreFactory
 # Note: Use npm run deploy-devworld-token to deploy the demo ERC20 token
 
 set -e
@@ -12,15 +12,15 @@ echo "🚀 Deploying factory contracts..."
 echo "   RPC URL: $RPC_URL"
 echo ""
 
-# Deploy GameMatchFactory
-echo "🏭 Deploying GameMatchFactory..."
+# Deploy game.MatchFactory
+echo "🏭 Deploying game.MatchFactory..."
 forge script ../contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
   --rpc-url "$RPC_URL" --broadcast
 
 echo ""
 
-# Deploy GameScoreFactory
-echo "🏭 Deploying GameScoreFactory..."
+# Deploy game.ScoreFactory
+echo "🏭 Deploying game.ScoreFactory..."
 forge script ../contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
   --rpc-url "$RPC_URL" --broadcast
 

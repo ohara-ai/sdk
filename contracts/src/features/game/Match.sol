@@ -2,8 +2,8 @@
 pragma solidity ^0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
-import {IGameMatch} from "../../interfaces/IGameMatch.sol";
-import {IGameScore} from "../../interfaces/IGameScore.sol";
+import {IMatch} from "../../interfaces/game/IMatch.sol";
+import {IScore} from "../../interfaces/game/IScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 
 /**

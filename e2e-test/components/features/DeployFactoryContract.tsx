@@ -2,9 +2,9 @@
 
 import { useState, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { CheckCircle2, Loader2, Rocket, Info, ArrowRight } from 'lucide-react'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
 
