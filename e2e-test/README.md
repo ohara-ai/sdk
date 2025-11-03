@@ -20,6 +20,11 @@ This Next.js application provides a web interface for testing and demonstrating 
 npm install
 ```
 
+### Setup
+
+- `anvil` - Start an Anvil node
+- `npm run setup` - Deploy factory contracts to the network
+
 ### Development
 
 Run the development server:
@@ -28,13 +33,11 @@ Run the development server:
 npm run dev
 ```
 
+`npm run fund-controller` - Fund the controller address with coins
+
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ### Testing Scripts
-
-- `npm run deploy-factories` - Deploy factory contracts to the network
-- `npm run deploy-devworld-token` - Deploy DEVWORLD demo ERC20 token for testing
-- `npm run fund-controller` - Fund the controller address with test tokens
 - `npm run test` - Run Vitest tests
 - `npm run test:ui` - Run Vitest with UI
 

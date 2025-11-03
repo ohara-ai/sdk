@@ -1,9 +1,10 @@
+'use client'
+
 import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react'
 import { PublicClient, WalletClient, Address } from 'viem'
 import { createClientMatchOperations } from '../core/game/match'
 import { createScoreOperations } from '../core/game/scores'
 import { OharaAiContext, GameContext, AppContext, OharaContext, InternalContext } from './OharaAiContext'
-import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
 
 const OharaAiContextInstance = createContext<OharaAiContext | undefined>(undefined)
 
@@ -45,47 +46,19 @@ export function OharaAiProvider({
   const [gameMatchFactory, setGameMatchFactory] = useState<Address | undefined>()
   const [gameScoreFactory, setGameScoreFactory] = useState<Address | undefined>()
   
-  // Detect chain ID from wagmi if available
-  const [detectedChainId, setDetectedChainId] = useState<number | undefined>(chainId)
-
-  if (!publicClient) {
-    publicClient = usePublicClient()
-  }
-  
-  if (!walletClient) {
-    const { data: wagmiWalletClient } = useWalletClient()
-    walletClient = wagmiWalletClient
-  }
-
-  if (!chainId) {
-    chainId = useChainId()
-  }
-  
-  useEffect(() => {
-    // Try to get chainId from wagmi config if available
-    if (typeof window !== 'undefined' && !chainId) {
-      try {
-        // @ts-ignore - wagmi might be available globally
-        const wagmiChainId = window.__wagmi_chainId
-        if (wagmiChainId) {
-          setDetectedChainId(wagmiChainId)
-        }
-      } catch {
-        // Ignore if wagmi not available
-      }
-    }
-  }, [chainId])
-  
-  chainId = chainId || detectedChainId
+  // Use provided clients/chainId (they should be passed as props from parent component)
+  const effectivePublicClient = publicClient
+  const effectiveWalletClient = walletClient
+  const effectiveChainId = chainId
   
   // Function to load addresses from backend
   const loadAddresses = async () => {
-    if (typeof window === 'undefined' || !chainId) {
+    if (typeof window === 'undefined' || !effectiveChainId) {
       return
     }
     
     try {
-      const response = await fetch(`/api/addresses?chainId=${chainId}`)
+      const response = await fetch(`/api/sdk/addresses?chainId=${effectiveChainId}`)
       
       if (!response.ok) {
         console.error('Failed to fetch contract addresses:', response.statusText)
@@ -141,7 +114,7 @@ export function OharaAiProvider({
     return () => {
       window.removeEventListener('contractDeployed', handleCustomEvent)
     }
-  }, [chainId])
+  }, [effectiveChainId])
   
   // Build context structure
   const ohara = useMemo<OharaContext>(() => ({
@@ -155,17 +128,17 @@ export function OharaAiProvider({
   const game = useMemo<GameContext>(() => ({
     match: {
       address: gameMatchAddress,
-      operations: gameMatchAddress 
-        ? createClientMatchOperations(gameMatchAddress, publicClient!, walletClient)
+      operations: gameMatchAddress && effectivePublicClient
+        ? createClientMatchOperations(gameMatchAddress, effectivePublicClient, effectiveWalletClient)
         : undefined,
     },
     scores: {
       address: gameScoreAddress,
-      operations: gameScoreAddress
-        ? createScoreOperations(gameScoreAddress, publicClient!)
+      operations: gameScoreAddress && effectivePublicClient
+        ? createScoreOperations(gameScoreAddress, effectivePublicClient)
         : undefined,
     },
-  }), [gameMatchAddress, gameScoreAddress, publicClient, walletClient])
+  }), [gameMatchAddress, gameScoreAddress, effectivePublicClient, effectiveWalletClient])
   
   const app = useMemo<AppContext>(() => ({
     coin: {
@@ -179,12 +152,12 @@ export function OharaAiProvider({
   }), [env, controllerAddress])
   
   const internal = useMemo<InternalContext>(() => ({
-    chainId,
+    chainId: effectiveChainId,
     factories: {
       gameMatch: gameMatchFactory,
       gameScore: gameScoreFactory,
     },
-  }), [chainId, gameMatchFactory, gameScoreFactory])
+  }), [effectiveChainId, gameMatchFactory, gameScoreFactory])
  
   const value: OharaAiContext = {
     ohara,

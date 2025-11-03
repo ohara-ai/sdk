@@ -5,8 +5,8 @@ import { formatEther } from 'viem'
 import { usePublicClient } from 'wagmi'
 import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { Copy, ExternalLink, Factory, Wallet } from 'lucide-react'
-import { GAME_MATCH_FACTORY_ABI } from '@/sdk/src/abis/gameMatchFactory'
-import { GAME_SCORE_FACTORY_ABI } from '@/sdk/src/abis/gameScoreFactory'
+import { MATCH_FACTORY_ABI } from '@/sdk/src/abis/game/matchFactory'
+import { SCORE_FACTORY_ABI } from '@/sdk/src/abis/game/scoreFactory'
 
 interface FactoryConfig {
   defaultMaxActiveMatches?: bigint
@@ -81,12 +81,12 @@ export function AddressesInfo() {
                 const [defaultMaxActiveMatches, fees] = await Promise.all([
                   publicClient.readContract({
                     address: info.address as `0x${string}`,
-                    abi: GAME_MATCH_FACTORY_ABI,
+                    abi: MATCH_FACTORY_ABI,
                     functionName: 'defaultMaxActiveMatches',
                   }),
                   publicClient.readContract({
                     address: info.address as `0x${string}`,
-                    abi: GAME_MATCH_FACTORY_ABI,
+                    abi: MATCH_FACTORY_ABI,
                     functionName: 'getDefaultFees',
                   }) as Promise<readonly [readonly `0x${string}`[], readonly bigint[]]>,
                 ])
@@ -104,17 +104,17 @@ export function AddressesInfo() {
                 const [maxLosersPerMatch, maxTotalPlayers, maxTotalMatches] = await Promise.all([
                   publicClient.readContract({
                     address: info.address as `0x${string}`,
-                    abi: GAME_SCORE_FACTORY_ABI,
+                    abi: SCORE_FACTORY_ABI,
                     functionName: 'maxLosersPerMatch',
                   }),
                   publicClient.readContract({
                     address: info.address as `0x${string}`,
-                    abi: GAME_SCORE_FACTORY_ABI,
+                    abi: SCORE_FACTORY_ABI,
                     functionName: 'maxTotalPlayers',
                   }),
                   publicClient.readContract({
                     address: info.address as `0x${string}`,
-                    abi: GAME_SCORE_FACTORY_ABI,
+                    abi: SCORE_FACTORY_ABI,
                     functionName: 'maxTotalMatches',
                   }),
                 ])

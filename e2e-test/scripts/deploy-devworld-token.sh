@@ -6,8 +6,8 @@
 set -e
 
 # Load environment variables
-if [ -f ../.env ]; then
-  export $(cat ../.env | grep -v '^#' | xargs)
+if [ -f ./.env ]; then
+  export $(cat ./.env | grep -v '^#' | xargs)
 else
   echo "Error: .env file not found in root directory"
   exit 1
@@ -27,8 +27,6 @@ fi
 
 echo "🪙 Deploying DEVWORLD Token..."
 echo "Using RPC: $RPC_URL"
-
-cd "$(dirname "$0")"
 
 forge script contracts/script/DeployDevWorldToken.s.sol:DeployDevWorldToken \
   --rpc-url "$RPC_URL" \

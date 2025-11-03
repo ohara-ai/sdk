@@ -172,13 +172,13 @@ The `e2e-test/` directory contains a Next.js application for end-to-end testing 
 4. **Run the E2E test app**:
    ```bash
    npm run e2e:dev
+   npm run e2e:fund-controller
    ```
 
 5. **Explore the testing interface**:
    - Open http://localhost:3000/
    - Connect your wallet
-   - Deploy and test GameMatch contracts
-   - Query GameScore statistics and leaderboards
+   - Deploy and test contracts
    - Test end-to-end workflows
 
 ### E2E Test App Features

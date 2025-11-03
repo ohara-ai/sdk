@@ -7,8 +7,26 @@
 set -e
 
 KEYS_FILE="ohara-ai-data/keys.json"
-RPC_URL="${RPC_URL:-http://localhost:8545}"
-ANVIL_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
+
+# Load environment variables
+if [ -f ./.env ]; then
+  export $(cat ./.env | grep -v '^#' | xargs)
+else
+  echo "Error: .env file not found in root directory"
+  exit 1
+fi
+
+# Check if PRIVATE_KEY is set
+if [ -z "$PRIVATE_KEY" ]; then
+  echo "Error: PRIVATE_KEY not set in .env file"
+  exit 1
+fi
+
+# Check if RPC_URL is set
+if [ -z "$RPC_URL" ]; then
+  echo "Error: RPC_URL not set in .env file"
+  exit 1
+fi
 
 # Check if keys file exists
 if [ ! -f "$KEYS_FILE" ]; then
@@ -35,7 +53,7 @@ echo "💰 Sending 10 ETH from Anvil default account..."
 # Send ETH to controller
 cast send "$CONTROLLER_ADDRESS" \
   --value 10ether \
-  --private-key "$ANVIL_PRIVATE_KEY" \
+  --private-key "$PRIVATE_KEY" \
   --rpc-url "$RPC_URL"
 
 # Check balance

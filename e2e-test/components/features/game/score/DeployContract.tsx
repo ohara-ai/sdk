@@ -17,7 +17,7 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
       throw new Error('Deployment can only be called from the browser')
     }
     
-    const response = await fetch('/api/testing/deploy/game/score', {
+    const response = await fetch('/testing/deploy/game/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),

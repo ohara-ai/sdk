@@ -10,11 +10,11 @@ import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
 import { Address } from 'viem'
 import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
 
-interface DeployGameMatchContractProps {
+interface DeployMatchContractProps {
   onDeployed: (address: `0x${string}`) => void 
 }
 
-export interface DeployGameMatchParams {
+export interface DeployMatchParams {
   gameScoreAddress?: Address
   feeRecipients?: string[]
   feeShares?: string[]
@@ -25,7 +25,7 @@ interface FeeRecipient {
   share: string
 }
 
-export function DeployContract({ onDeployed }: DeployGameMatchContractProps) {
+export function DeployContract({ onDeployed }: DeployMatchContractProps) {
   // Configuration state
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
@@ -34,12 +34,12 @@ export function DeployContract({ onDeployed }: DeployGameMatchContractProps) {
   const deployedGameScoreAddress: `0x${string}` | null = game.scores?.address || null
   const gameMatchAddress = game.match?.address
   
- const deployGameMatch = async (params: DeployGameMatchParams): Promise<DeploymentResult> => {
+ const deployGameMatch = async (params: DeployMatchParams): Promise<DeploymentResult> => {
     if (typeof window === 'undefined') {
       throw new Error('Deployment can only be called from the browser')
     }
     
-    const response = await fetch('/api/testing/deploy/game/match', {
+    const response = await fetch('/testing/deploy/game/match', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

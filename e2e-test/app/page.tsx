@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { DeployContract as DeployGameMatch } from '@/components/features/game/match/DeployContract'

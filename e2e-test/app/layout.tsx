@@ -10,6 +10,8 @@ export const metadata: Metadata = {
   description: 'On-chain gaming SDK with production-ready components for wagered matches and leaderboards',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default function RootLayout({
   children,
 }: {

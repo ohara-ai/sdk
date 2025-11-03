@@ -10,8 +10,8 @@ export async function register() {
     
     try {
       // Dynamically import server-only modules
-      const { getContracts } = await import('./sdk/src/storage/contractStorage')
-      const { deployGameScore, deployGameMatch, getFactoryAddresses } = await import('./sdk/src/deployment/deploymentService')
+      const { getContracts } = await import('../sdk/src/storage/contractStorage')
+      const { deployGameScore, deployGameMatch, getFactoryAddresses } = await import('../sdk/src/deployment/deploymentService')
       const { createPublicClient, http } = await import('viem')
       
       // Check if factory addresses are configured

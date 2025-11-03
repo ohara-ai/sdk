@@ -4,6 +4,8 @@ const nextConfig = {
   experimental: {
     instrumentationHook: true,
   },
+  // Skip static optimization for pages using Wagmi
+  skipTrailingSlashRedirect: true,
   webpack: (config, { isServer }) => {
     // Ignore React Native and optional dependencies not needed in browser
     config.resolve.fallback = {

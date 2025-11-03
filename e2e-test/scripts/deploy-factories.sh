@@ -2,11 +2,28 @@
 
 # Deploy factory contracts to the network
 # Deploys game.MatchFactory and game.ScoreFactory
-# Note: Use npm run deploy-devworld-token to deploy the demo ERC20 token
 
 set -e
 
-RPC_URL="${RPC_URL:-http://localhost:8545}"
+# Load environment variables
+if [ -f ./.env ]; then
+  export $(cat ./.env | grep -v '^#' | xargs)
+else
+  echo "Error: .env file not found in root directory"
+  exit 1
+fi
+
+# Check if PRIVATE_KEY is set
+if [ -z "$PRIVATE_KEY" ]; then
+  echo "Error: PRIVATE_KEY not set in .env file"
+  exit 1
+fi
+
+# Check if RPC_URL is set
+if [ -z "$RPC_URL" ]; then
+  echo "Error: RPC_URL not set in .env file"
+  exit 1
+fi
 
 echo "🚀 Deploying factory contracts..."
 echo "   RPC URL: $RPC_URL"
@@ -27,5 +44,3 @@ forge script ../contracts/script/game/DeployScoreFactory.s.sol:DeployScoreFactor
 echo ""
 echo "✅ Factory contracts deployed successfully!"
 echo "   Update .env.local with the deployed addresses"
-echo ""
-echo "💡 Tip: Run 'npm run deploy-devworld-token' to deploy the demo ERC20 token"
