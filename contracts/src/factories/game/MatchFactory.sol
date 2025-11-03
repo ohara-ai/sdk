@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {GameMatch} from "../../features/game/GameMatch.sol";
+import {Match} from "../../features/game/Match.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
 
 /**
@@ -16,11 +16,11 @@ contract MatchFactory is OwnedFactory {
     address[] public defaultFeeRecipients;
     uint256[] public defaultFeeShares;
 
-    event GameMatchDeployed(
+    event MatchDeployed(
         address indexed instance,
         address indexed owner,
         address indexed controller,
-        address gameScore
+        address score
     );
     event DefaultMaxActiveMatchesUpdated(uint256 newDefault);
     event DefaultFeesUpdated(address[] recipients, uint256[] shares);
@@ -73,27 +73,27 @@ contract MatchFactory is OwnedFactory {
     }
 
     /**
-     * @notice Deploy a new GameMatch contract
-     * @param _gameScore GameScore contract address (address(0) if not used)
+     * @notice Deploy a new Match contract
+     * @param _score Score contract address (address(0) if not used)
      * @return instance Address of the deployed contract
      * @dev The caller (msg.sender) will be set as the controller of the deployed contract
      * @dev Fees can be configured after deployment using the configureFees function
      */
-    function deployGameMatch(
-        address _gameScore
+    function deployMatch(
+        address _score
     ) external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
         
         instance = address(
-            new GameMatch(
+            new Match(
                 instanceOwnerAddress,
                 msg.sender,
-                _gameScore,
+                _score,
                 defaultMaxActiveMatches,
                 defaultFeeRecipients,
                 defaultFeeShares
             )
         );
-        emit GameMatchDeployed(instance, instanceOwnerAddress, msg.sender, _gameScore);
+        emit MatchDeployed(instance, instanceOwnerAddress, msg.sender, _score);
     }
 }

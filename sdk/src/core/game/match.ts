@@ -1,5 +1,5 @@
 import { PublicClient, WalletClient, Address, Hash } from 'viem'
-import { GAME_MATCH_ABI } from '../../abis/gameMatch'
+import { MATCH_ABI } from '../../abis/game/match'
 
 /**
  * Match primitive - Core on-chain match operations
@@ -172,7 +172,7 @@ function createMatchOperationsInternal(
 
       return wallet.writeContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'createMatch',
         args: [config.token, config.stakeAmount, BigInt(config.maxPlayers)],
         value,
@@ -194,7 +194,7 @@ function createMatchOperationsInternal(
 
       return wallet.writeContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'joinMatch',
         args: [matchId],
         value,
@@ -210,7 +210,7 @@ function createMatchOperationsInternal(
 
       return wallet.writeContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'withdrawStake',
         args: [matchId],
         account,
@@ -221,7 +221,7 @@ function createMatchOperationsInternal(
     async get(matchId: bigint) {
       const result = await publicClient.readContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'getMatch',
         args: [matchId],
       })
@@ -252,7 +252,7 @@ function createMatchOperationsInternal(
       
       return publicClient.readContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'getActiveMatchIds',
         args: [BigInt(offset ?? 0), BigInt(limit)],
       })
@@ -261,7 +261,7 @@ function createMatchOperationsInternal(
     async getActiveMatchCount(): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'getActiveMatchCount',
       })
     },
@@ -269,7 +269,7 @@ function createMatchOperationsInternal(
     async getMaxActiveMatches(): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'maxActiveMatches',
       })
     },
@@ -277,7 +277,7 @@ function createMatchOperationsInternal(
     async getFeeConfiguration() {
       const result = await publicClient.readContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'getFeeConfiguration',
       })
 
@@ -291,7 +291,7 @@ function createMatchOperationsInternal(
     async getPlayerStake(matchId: bigint, player: Address): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'getPlayerStake',
         args: [matchId, player],
       })
@@ -314,7 +314,7 @@ function createMatchOperationsInternal(
 
       return wallet.writeContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'activateMatch',
         args: [matchId],
         account,
@@ -329,7 +329,7 @@ function createMatchOperationsInternal(
 
       return wallet.writeContract({
         address: contractAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'finalizeMatch',
         args: [matchId, winner],
         account,

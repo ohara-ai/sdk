@@ -1,7 +1,7 @@
 import { setContractAddress } from '../storage/contractStorage'
-import { GAME_MATCH_FACTORY_ABI } from '../abis/gameMatchFactory'
-import { GAME_MATCH_ABI } from '../abis/gameMatch'
-import { GAME_SCORE_ABI } from '../abis/gameScore'
+import { MATCH_FACTORY_ABI } from '../abis/game/matchFactory'
+import { MATCH_ABI } from '../abis/game/match'
+import { SCORE_ABI } from '../abis/game/score'
 import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -39,8 +39,8 @@ export async function deployGameMatch(
   // Deploy the contract
   const hash = await walletClient.writeContract({
     address: config.game.match.factoryAddress,
-    abi: GAME_MATCH_FACTORY_ABI,
-    functionName: 'deployGameMatch',
+    abi: MATCH_FACTORY_ABI,
+    functionName: 'deployMatch',
     args: [
       gameScoreAddress as `0x${string}`,
     ],
@@ -74,7 +74,7 @@ export async function deployGameMatch(
       
       const feeHash = await feeWalletClient.writeContract({
         address: deployedAddress,
-        abi: GAME_MATCH_ABI,
+        abi: MATCH_ABI,
         functionName: 'configureFees',
         args: [feeRecipients as `0x${string}`[], feeShares],
         chain: null,
@@ -94,7 +94,7 @@ export async function deployGameMatch(
     try {
       const authHash = await walletClient.writeContract({
         address: gameScoreAddress as `0x${string}`,
-        abi: GAME_SCORE_ABI,
+        abi: SCORE_ABI,
         functionName: 'setRecorderAuthorization',
         args: [deployedAddress, true],
         chain: null,

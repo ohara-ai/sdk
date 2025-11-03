@@ -2,17 +2,17 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {GameMatchFactory} from "../../../src/factories/game/GameMatchFactory.sol";
-import {GameMatch} from "../../../src/features/game/GameMatch.sol";
+import {MatchFactory} from "../../../src/factories/game/MatchFactory.sol";
+import {Match} from "../../../src/features/game/Match.sol";
 
-contract GameMatchFactoryTest is Test {
-    GameMatchFactory public factory;
+contract MatchFactoryTest is Test {
+    MatchFactory public factory;
 
     address public factoryOwner = address(this);
     address public instanceOwner = address(0x1);
     address public controller = address(0x2);
 
-    event GameMatchDeployed(
+    event MatchDeployed(
         address indexed instance,
         address indexed owner,
         address indexed controller,
@@ -20,27 +20,27 @@ contract GameMatchFactoryTest is Test {
     );
 
     function setUp() public {
-        factory = new GameMatchFactory();
+        factory = new MatchFactory();
     }
 
     function test_DeployGameMatch() public {
         vm.expectEmit(false, true, true, true);
-        emit GameMatchDeployed(address(0), factoryOwner, address(this), address(0));
+        emit MatchDeployed(address(0), factoryOwner, address(this), address(0));
         
-        address instance = factory.deployGameMatch(address(0));
+        address instance = factory.deployMatch(address(0));
         
         assertTrue(instance != address(0));
         
-        GameMatch gameMatch = GameMatch(instance);
+        Match gameMatch = Match(instance);
         assertEq(gameMatch.owner(), factoryOwner); // Should use factory owner by default
         assertEq(gameMatch.controller(), address(this)); // Caller is the controller
-        assertEq(gameMatch.featureName(), "GameMatch - OCI-001");
+        assertEq(gameMatch.featureName(), "Match - OCI-001");
         assertEq(gameMatch.version(), "1.0.0");
     }
 
     function test_DeployMultipleInstances() public {
-        address instance1 = factory.deployGameMatch(address(0));
-        address instance2 = factory.deployGameMatch(address(0));
+        address instance1 = factory.deployMatch(address(0));
+        address instance2 = factory.deployMatch(address(0));
         
         assertTrue(instance1 != instance2);
     }
@@ -57,18 +57,18 @@ contract GameMatchFactoryTest is Test {
         address gameScoreAddress = address(0x888);
         
         // Deploy with scoreboard
-        address instance = factory.deployGameMatch(gameScoreAddress);
+        address instance = factory.deployMatch(gameScoreAddress);
         
         assertTrue(instance != address(0));
         
-        GameMatch gameMatch = GameMatch(instance);
+        Match gameMatch = Match(instance);
         
         // Verify basic configuration
         assertEq(gameMatch.owner(), factoryOwner); // Should use factory owner
         assertEq(gameMatch.controller(), address(this)); // Caller is the controller
         
         // Verify scoreboard is set
-        assertEq(address(gameMatch.gameScore()), gameScoreAddress);
+        assertEq(address(gameMatch.score()), gameScoreAddress);
         
         // Configure fees after deployment
         gameMatch.configureFees(feeRecipients, feeShares);
@@ -104,9 +104,9 @@ contract GameMatchFactoryTest is Test {
         factory.setInstanceOwner(instanceOwner);
         
         // Deploy instance
-        address instance = factory.deployGameMatch(address(0));
+        address instance = factory.deployMatch(address(0));
         
-        GameMatch gameMatch = GameMatch(instance);
+        Match gameMatch = Match(instance);
         assertEq(gameMatch.owner(), instanceOwner); // Should use custom instance owner
     }
 
@@ -118,9 +118,9 @@ contract GameMatchFactoryTest is Test {
         factory.setInstanceOwner(address(0));
         
         // Deploy instance
-        address instance = factory.deployGameMatch(address(0));
+        address instance = factory.deployMatch(address(0));
         
-        GameMatch gameMatch = GameMatch(instance);
+        Match gameMatch = Match(instance);
         assertEq(gameMatch.owner(), factoryOwner); // Should use factory owner again
     }
 
@@ -144,8 +144,8 @@ contract GameMatchFactoryTest is Test {
     }
 
     function test_DeployedGameMatchUsesFactoryDefault() public {
-        address instance = factory.deployGameMatch(address(0));
-        GameMatch gameMatch = GameMatch(instance);
+        address instance = factory.deployMatch(address(0));
+        Match gameMatch = Match(instance);
         
         assertEq(gameMatch.maxActiveMatches(), 100);
     }
@@ -168,8 +168,8 @@ contract GameMatchFactoryTest is Test {
 
     function test_NewDeploymentsUseUpdatedDefault() public {
         // Deploy with default (100)
-        address instance1 = factory.deployGameMatch(address(0));
-        GameMatch gameMatch1 = GameMatch(instance1);
+        address instance1 = factory.deployMatch(address(0));
+        Match gameMatch1 = Match(instance1);
         
         assertEq(gameMatch1.maxActiveMatches(), 100);
         
@@ -177,8 +177,8 @@ contract GameMatchFactoryTest is Test {
         factory.setDefaultMaxActiveMatches(200);
         
         // Deploy with new default (200)
-        address instance2 = factory.deployGameMatch(address(0));
-        GameMatch gameMatch2 = GameMatch(instance2);
+        address instance2 = factory.deployMatch(address(0));
+        Match gameMatch2 = Match(instance2);
         
         assertEq(gameMatch2.maxActiveMatches(), 200);
         
@@ -216,8 +216,8 @@ contract GameMatchFactoryTest is Test {
         factory.setDefaultFees(recipients, shares);
         
         // Deploy instance
-        address instance = factory.deployGameMatch(address(0));
-        GameMatch gameMatch = GameMatch(instance);
+        address instance = factory.deployMatch(address(0));
+        Match gameMatch = Match(instance);
         
         // Verify fees are configured
         (

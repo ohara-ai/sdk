@@ -1,4 +1,4 @@
-export const GAME_SCORE_ABI = [
+export const SCORE_ABI = [
   {
     "type": "constructor",
     "inputs": [

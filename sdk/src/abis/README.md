@@ -9,13 +9,13 @@ This directory contains TypeScript ABI definitions for all contracts used in the
 These contracts are used to deploy instances of the feature contracts. To effectively gain control over the deployed contracts, the factory contracts deploy functions should be called by the app controller.
 It is also possible for the owner to call the setController function on the deployed feature contracts to transfer control to the app controller.
 
-#### `gameMatchFactory.ts`
+#### `game/matchFactory.ts`
 **Export:** `GAME_MATCH_FACTORY_ABI`
 
-ABI for the GameMatchFactory contract, which deploys GameMatch instances.
+ABI for the GameMatchFactory contract, which deploys game.Match instances.
 
 **Key Functions:**
-- `deployGameMatch(address _controller, address _gameScore)` - Deploy a new GameMatch instance
+- `deployMatch(address _controller, address _Score)` - Deploy a new game.Match instance
 - `setDefaultFees(address[] _recipients, uint256[] _shares)` - Set default fee configuration
 - `setDefaultMaxActiveMatches(uint256)` - Set default max active matches limit
 - `getDefaultFees()` - Get default fee configuration
@@ -24,13 +24,13 @@ ABI for the GameMatchFactory contract, which deploys GameMatch instances.
 - `GameMatchDeployed(address instance, address owner, address controller, address gameScore)`
 - `DefaultFeesUpdated(address[] recipients, uint256[] shares)`
 
-#### `gameScoreFactory.ts`
-**Export:** `GAME_SCORE_FACTORY_ABI`
+#### `game/scoreFactory.ts`
+**Export:** `SCORE_FACTORY_ABI`
 
-ABI for the GameScoreFactory contract, which deploys GameScore instances.
+ABI for the GameScoreFactory contract, which deploys game.Score instances.
 
 **Key Functions:**
-- `deployGameScore()` - Deploy a new GameScore instance
+- `deployScore()` - Deploy a new game.Score instance
 - `setDeploymentLimits(uint256 _maxLosersPerMatch, uint256 _maxTotalPlayers, uint256 _maxTotalMatches)` - Set limits
 
 **Key Events:**
@@ -39,8 +39,8 @@ ABI for the GameScoreFactory contract, which deploys GameScore instances.
 
 ### Feature Contracts
 
-#### `gameMatch.ts`
-**Exports:** `GAME_MATCH_ABI`, `MatchStatus` (enum)
+#### `game/match.ts`
+**Exports:** `MATCH_ABI`, `MatchStatus` (enum)
 
 ABI for the GameMatch contract, which manages game matches with stakes.
 
@@ -68,8 +68,8 @@ enum MatchStatus {
 }
 ```
 
-#### `gameScore.ts`
-**Export:** `GAME_SCORE_ABI`
+#### `game/score.ts`
+**Export:** `SCORE_ABI`
 
 ABI for the GameScore contract, which tracks player scores and leaderboards.
 
@@ -90,17 +90,18 @@ ABI for the GameScore contract, which tracks player scores and leaderboards.
 
 ```typescript
 // Import individual ABIs
-import { GAME_MATCH_ABI, MatchStatus } from '@/sdk/src/abis/gameMatch'
-import { GAME_SCORE_ABI } from '@/sdk/src/abis/gameScore'
-import { GAME_MATCH_FACTORY_ABI } from '@/sdk/src/abis/gameMatchFactory'
-import { GAME_SCORE_FACTORY_ABI } from '@/sdk/src/abis/gameScoreFactory'
+import { MATCH_ABI, MatchStatus } from '@/sdk/src/abis/game/match'
+import { SCORE_ABI } from '@/sdk/src/abis/game/score'
+import { MATCH_FACTORY_ABI } from '@/sdk/src/abis/game/matchFactory'
+import { SCORE_FACTORY_ABI } from '@/sdk/src/abis/game/scoreFactory'
 
 // Or import from the main SDK index
 import { 
-  GAME_MATCH_ABI, 
-  GAME_SCORE_ABI,
-  GAME_MATCH_FACTORY_ABI,
-  GAME_SCORE_FACTORY_ABI
+  MATCH_ABI, 
+  SCORE_ABI,
+  MATCH_FACTORY_ABI,
+  SCORE_FACTORY_ABI,
+  MatchStatus
 } from '@/sdk'
 
 // Use with viem
@@ -108,7 +109,7 @@ import { useReadContract } from 'wagmi'
 
 const { data: match } = useReadContract({
   address: matchAddress,
-  abi: GAME_MATCH_ABI,
+  abi: MATCH_ABI,
   functionName: 'getMatch',
   args: [matchId],
 })
@@ -127,10 +128,10 @@ npm run sdk:update-abi
 The update script (`scripts/update-abis.js`) automatically:
 - Builds the contracts using Forge
 - Extracts ABIs from all compiled contracts in `contracts/out/`
-- Generates TypeScript files in `sdk/src/abis/`
+- Generates TypeScript files in `sdk/src/abis/game/`
 - Updates the index file with all exports
 
-To add a new contract to the ABI generation, edit `CONTRACT_MAPPINGS` in `scripts/update-abis.js`.
+To add a new contract to the ABI generation, edit `CONTRACT_MAPPINGS` in `scripts/update-abis.js`. The script will automatically handle the `game/` namespace for the generated files.
 
 ## Type Safety
 

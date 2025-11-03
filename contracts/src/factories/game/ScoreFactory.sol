@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {GameScore} from "../../features/game/GameScore.sol";
+import {Score} from "../../features/game/Score.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
 
 /**
@@ -14,7 +14,7 @@ contract ScoreFactory is OwnedFactory {
     uint256 public maxTotalPlayers;
     uint256 public maxTotalMatches;
 
-    event GameScoreDeployed(
+    event ScoreDeployed(
         address indexed instance,
         address indexed owner
     );
@@ -49,16 +49,16 @@ contract ScoreFactory is OwnedFactory {
     }
 
     /**
-     * @notice Deploy a new GameScore contract
+     * @notice Deploy a new Score contract
      * @return instance Address of the deployed contract
      * @dev The caller (msg.sender) will be set as the controller of the deployed contract
      */
-    function deployGameScore() external returns (address instance) {
+    function deployScore() external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
         
         instance = address(
-            new GameScore(instanceOwnerAddress, msg.sender, maxLosersPerMatch, maxTotalPlayers, maxTotalMatches)
+            new Score(instanceOwnerAddress, msg.sender, maxLosersPerMatch, maxTotalPlayers, maxTotalMatches)
         );
-        emit GameScoreDeployed(instance, instanceOwnerAddress);
+        emit ScoreDeployed(instance, instanceOwnerAddress);
     }
 }

@@ -14,14 +14,14 @@ echo ""
 
 # Deploy game.MatchFactory
 echo "🏭 Deploying game.MatchFactory..."
-forge script ../contracts/script/DeployGameMatchFactory.s.sol:DeployGameMatchFactory \
+forge script ../contracts/script/game/DeployMatchFactory.s.sol:DeployMatchFactory \
   --rpc-url "$RPC_URL" --broadcast
 
 echo ""
 
 # Deploy game.ScoreFactory
 echo "🏭 Deploying game.ScoreFactory..."
-forge script ../contracts/script/DeployGameScoreFactory.s.sol:DeployGameScoreFactory \
+forge script ../contracts/script/game/DeployScoreFactory.s.sol:DeployScoreFactory \
   --rpc-url "$RPC_URL" --broadcast
 
 echo ""

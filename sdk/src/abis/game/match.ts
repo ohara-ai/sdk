@@ -1,4 +1,4 @@
-export const GAME_MATCH_ABI = [
+export const MATCH_ABI = [
   {
     "type": "constructor",
     "inputs": [
@@ -13,7 +13,7 @@ export const GAME_MATCH_ABI = [
         "internalType": "address"
       },
       {
-        "name": "_gameScore",
+        "name": "_score",
         "type": "address",
         "internalType": "address"
       },
@@ -205,19 +205,6 @@ export const GAME_MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "gameScore",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IGameScore"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getActiveMatchCount",
     "inputs": [],
     "outputs": [
@@ -310,7 +297,7 @@ export const GAME_MATCH_ABI = [
       {
         "name": "status",
         "type": "uint8",
-        "internalType": "enum IGameMatch.MatchStatus"
+        "internalType": "enum IMatch.MatchStatus"
       },
       {
         "name": "winner",
@@ -390,23 +377,23 @@ export const GAME_MATCH_ABI = [
   },
   {
     "type": "function",
+    "name": "score",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IScore"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "setController",
     "inputs": [
       {
         "name": "newController",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setGameScore",
-    "inputs": [
-      {
-        "name": "_gameScore",
         "type": "address",
         "internalType": "address"
       }
@@ -422,6 +409,19 @@ export const GAME_MATCH_ABI = [
         "name": "_maxActiveMatches",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setScore",
+    "inputs": [
+      {
+        "name": "_score",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],

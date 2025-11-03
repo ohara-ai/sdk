@@ -1,5 +1,5 @@
 import { setContractAddress } from '../storage/contractStorage'
-import { GAME_SCORE_FACTORY_ABI } from '../abis/gameScoreFactory'
+import { SCORE_FACTORY_ABI } from '../abis/game/scoreFactory'
 import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
 
@@ -18,8 +18,8 @@ export async function deployGameScore(
   // Deploy the contract
   const hash = await walletClient.writeContract({
     address: config.game.score.factoryAddress,
-    abi: GAME_SCORE_FACTORY_ABI,
-    functionName: 'deployGameScore',
+    abi: SCORE_FACTORY_ABI,
+    functionName: 'deployScore',
     args: [],
     chain: null,
     account,

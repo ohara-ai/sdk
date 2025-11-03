@@ -19,8 +19,8 @@ The **OharaAI SDK** provides functional primitives for building on-chain gaming 
 
 - **`game.match`** - Create, join, withdraw from matches, and query match data
 - **`game.scores`** - Query player statistics and leaderboards
-- **`internal.factories`** - Access to factory contract addresses
 - **`app.controller`** - Controller address for server-side operations
+- **`internal.factories`** - Access to factory contract addresses
 
 ### Example Usage
 
@@ -160,6 +160,7 @@ The `e2e-test/` directory contains a Next.js application for end-to-end testing 
 2. **Configure environment**:
    ```bash
    # Copy the example env file (if not already done)
+   cp .env.anvil .env
    cp e2e-test/.env.example e2e-test/.env
    ```
 

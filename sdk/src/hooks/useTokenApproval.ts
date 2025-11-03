@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Address, zeroAddress } from 'viem'
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { ERC20_ABI } from '../abis/erc20'
+import { ERC20_ABI } from '../abis/erc/erc20';
 
 export interface UseTokenApprovalParams {
   /** Token address to approve (use zeroAddress for native token) */

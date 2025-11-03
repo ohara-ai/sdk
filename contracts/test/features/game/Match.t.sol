@@ -2,16 +2,16 @@
 pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
-import {GameMatch} from "../../../src/features/game/GameMatch.sol";
-import {IGameMatch} from "../../../src/interfaces/IGameMatch.sol";
+import {Match} from "../../../src/features/game/Match.sol";
+import {IMatch} from "../../../src/interfaces/game/IMatch.sol";
 import {MockERC20} from "../../mocks/MockERC20.sol";
-import {MockGameScore} from "../../mocks/MockGameScore.sol";
+import {MockScore} from "../../mocks/MockScore.sol";
 import {Owned} from "../../../src/base/Owned.sol";
 
-contract GameMatchTest is Test {
-    GameMatch public gameMatch;
+contract MatchTest is Test {
+    Match public gameMatch;
     MockERC20 public token;
-    MockGameScore public gameScore;
+    MockScore public gameScore;
 
     address public owner = address(0x1);
     address public controller = address(0x2);
@@ -45,9 +45,9 @@ contract GameMatchTest is Test {
         uint256 defaultMaxActiveMatches = 100; // Default limit
         address[] memory feeRecipients = new address[](0);
         uint256[] memory feeShares = new uint256[](0);
-        gameMatch = new GameMatch(owner, controller, address(0), defaultMaxActiveMatches, feeRecipients, feeShares);
+        gameMatch = new Match(owner, controller, address(0), defaultMaxActiveMatches, feeRecipients, feeShares);
         token = new MockERC20(1000000 ether);
-        gameScore = new MockGameScore();
+        gameScore = new MockScore();
         vm.stopPrank();
 
         // Fund players with ETH and tokens
@@ -83,7 +83,7 @@ contract GameMatchTest is Test {
             uint256 stakeAmount,
             uint256 maxPlayers,
             address[] memory players,
-            IGameMatch.MatchStatus status,
+            IMatch.MatchStatus status,
             address winner,
             uint256 createdAt
         ) = gameMatch.getMatch(matchId);
@@ -94,7 +94,7 @@ contract GameMatchTest is Test {
         assertEq(maxPlayers, MAX_PLAYERS);
         assertEq(players.length, 1);
         assertEq(players[0], player1);
-        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Open));
+        assertEq(uint256(status), uint256(IMatch.MatchStatus.Open));
         assertEq(winner, address(0));
     }
 
@@ -166,7 +166,7 @@ contract GameMatchTest is Test {
         assertEq(gameMatch.getPlayerStake(matchId, player1), 0);
         
         // After cleanup, match data is deleted and returns default values
-        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        (address matchToken, uint256 matchStake, , address[] memory players, IMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
         assertEq(players.length, 0);
         assertEq(matchToken, address(0)); // Default value
         assertEq(matchStake, 0); // Default value
@@ -189,7 +189,7 @@ contract GameMatchTest is Test {
         gameMatch.activateMatch(matchId);
 
         vm.prank(player1);
-        vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
+        vm.expectRevert(Match.InvalidMatchStatus.selector);
         gameMatch.withdrawStake(matchId);
     }
 
@@ -220,9 +220,9 @@ contract GameMatchTest is Test {
         emit PlayerWithdrew(matchId, player1, STAKE_AMOUNT);
         gameMatch.withdrawStake(matchId);
 
-        (, , , address[] memory players1, IGameMatch.MatchStatus status1, , ) = gameMatch.getMatch(matchId);
+        (, , , address[] memory players1, IMatch.MatchStatus status1, , ) = gameMatch.getMatch(matchId);
         assertEq(players1.length, 2);
-        assertEq(uint256(status1), uint256(IGameMatch.MatchStatus.Open));
+        assertEq(uint256(status1), uint256(IMatch.MatchStatus.Open));
         assertEq(gameMatch.getActiveMatchCount(), 1); // Still active
         assertEq(player1.balance, player1BalanceBefore + STAKE_AMOUNT);
 
@@ -232,9 +232,9 @@ contract GameMatchTest is Test {
         emit PlayerWithdrew(matchId, player2, STAKE_AMOUNT);
         gameMatch.withdrawStake(matchId);
 
-        (, , , address[] memory players2, IGameMatch.MatchStatus status2, , ) = gameMatch.getMatch(matchId);
+        (, , , address[] memory players2, IMatch.MatchStatus status2, , ) = gameMatch.getMatch(matchId);
         assertEq(players2.length, 1);
-        assertEq(uint256(status2), uint256(IGameMatch.MatchStatus.Open));
+        assertEq(uint256(status2), uint256(IMatch.MatchStatus.Open));
         assertEq(gameMatch.getActiveMatchCount(), 1); // Still active
         assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
 
@@ -247,7 +247,7 @@ contract GameMatchTest is Test {
         gameMatch.withdrawStake(matchId);
 
         // After cleanup, match data is deleted and returns default values
-        (address matchToken, uint256 matchStake, , address[] memory players3, IGameMatch.MatchStatus status3, , ) = gameMatch.getMatch(matchId);
+        (address matchToken, uint256 matchStake, , address[] memory players3, IMatch.MatchStatus status3, , ) = gameMatch.getMatch(matchId);
         assertEq(players3.length, 0);
         assertEq(matchToken, address(0)); // Default value
         assertEq(matchStake, 0); // Default value
@@ -276,8 +276,8 @@ contract GameMatchTest is Test {
         emit MatchActivated(matchId, expectedPlayers);
         gameMatch.activateMatch(matchId);
 
-        (, , , , IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
-        assertEq(uint256(status), uint256(IGameMatch.MatchStatus.Active));
+        (, , , , IMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        assertEq(uint256(status), uint256(IMatch.MatchStatus.Active));
     }
 
     function test_CannotActivateWithLessThanTwoPlayers() public {
@@ -289,7 +289,7 @@ contract GameMatchTest is Test {
         );
 
         vm.prank(controller);
-        vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
+        vm.expectRevert(Match.InvalidMatchStatus.selector);
         gameMatch.activateMatch(matchId);
     }
 
@@ -334,7 +334,7 @@ contract GameMatchTest is Test {
         assertEq(player1.balance, player1BalanceBefore + totalPrize);
         
         // After cleanup, match data is deleted and returns default values
-        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, address winner, ) = gameMatch.getMatch(matchId);
+        (address matchToken, uint256 matchStake, , address[] memory players, IMatch.MatchStatus status, address winner, ) = gameMatch.getMatch(matchId);
         assertEq(matchToken, address(0)); // Default value
         assertEq(matchStake, 0); // Default value
         assertEq(players.length, 0); // Default value
@@ -354,7 +354,7 @@ contract GameMatchTest is Test {
         gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
 
         vm.prank(controller);
-        vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
+        vm.expectRevert(Match.InvalidMatchStatus.selector);
         gameMatch.finalizeMatch(matchId, player1);
     }
 
@@ -373,13 +373,13 @@ contract GameMatchTest is Test {
         gameMatch.activateMatch(matchId);
 
         vm.prank(controller);
-        vm.expectRevert(GameMatch.InvalidWinner.selector);
+        vm.expectRevert(Match.InvalidWinner.selector);
         gameMatch.finalizeMatch(matchId, player3); // player3 not in match
     }
 
     function test_FinalizeWithGameScore() public {
         vm.prank(controller);
-        gameMatch.setGameScore(address(gameScore));
+        gameMatch.setScore(address(gameScore));
 
         vm.prank(player1);
         uint256 matchId = gameMatch.createMatch{value: STAKE_AMOUNT}(
@@ -398,7 +398,7 @@ contract GameMatchTest is Test {
         gameMatch.finalizeMatch(matchId, player1);
 
         assertEq(gameScore.getResultCount(), 1);
-        MockGameScore.MatchResult memory result = gameScore.getResult(0);
+        MockScore.MatchResult memory result = gameScore.getResult(0);
         assertEq(result.matchId, matchId);
         assertEq(result.winner, player1);
         assertEq(result.losers.length, 1);
@@ -454,7 +454,7 @@ contract GameMatchTest is Test {
         gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
 
         vm.prank(player3);
-        vm.expectRevert(GameMatch.MaxPlayersReached.selector);
+        vm.expectRevert(Match.MaxPlayersReached.selector);
         gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
     }
 
@@ -467,13 +467,13 @@ contract GameMatchTest is Test {
         );
 
         vm.prank(player1);
-        vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
+        vm.expectRevert(Match.InvalidMatchStatus.selector);
         gameMatch.joinMatch{value: STAKE_AMOUNT}(matchId);
     }
 
     function test_FeatureMetadata() public view {
         assertEq(gameMatch.version(), "1.0.0");
-        assertEq(gameMatch.featureName(), "GameMatch - OCI-001");
+        assertEq(gameMatch.featureName(), "Match - OCI-001");
     }
 
     function test_OwnershipTransfer() public {
@@ -540,7 +540,7 @@ contract GameMatchTest is Test {
         
         // Try to create third match
         vm.prank(player3);
-        vm.expectRevert(GameMatch.MaxActiveMatchesReached.selector);
+        vm.expectRevert(Match.MaxActiveMatchesReached.selector);
         gameMatch.createMatch{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, MAX_PLAYERS);
     }
 
@@ -583,7 +583,7 @@ contract GameMatchTest is Test {
         assertEq(gameMatch.getActiveMatchCount(), 0);
         
         // Match data is deleted and returns default values
-        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        (address matchToken, uint256 matchStake, , address[] memory players, IMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
         assertEq(matchToken, address(0)); // Default value
         assertEq(matchStake, 0); // Default value
         assertEq(players.length, 0); // Default value
@@ -591,7 +591,7 @@ contract GameMatchTest is Test {
         
         // Cannot clean up a match that doesn't exist (stakeAmount == 0 means InvalidMatchId)
         vm.prank(owner);
-        vm.expectRevert(GameMatch.InvalidMatchId.selector);
+        vm.expectRevert(Match.InvalidMatchId.selector);
         gameMatch.cleanupInactiveMatch(matchId);
     }
 
@@ -601,7 +601,7 @@ contract GameMatchTest is Test {
         
         // Match has player1, cannot clean up
         vm.prank(owner);
-        vm.expectRevert(GameMatch.MatchNotInactive.selector);
+        vm.expectRevert(Match.MatchNotInactive.selector);
         gameMatch.cleanupInactiveMatch(matchId);
     }
 
@@ -617,7 +617,7 @@ contract GameMatchTest is Test {
         
         // Match is activated, cannot clean up
         vm.prank(owner);
-        vm.expectRevert(GameMatch.MatchNotInactive.selector);
+        vm.expectRevert(Match.MatchNotInactive.selector);
         gameMatch.cleanupInactiveMatch(matchId);
     }
 
@@ -687,7 +687,7 @@ contract GameMatchTest is Test {
         assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
 
         // After cleanup, match data is deleted and returns default values
-        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        (address matchToken, uint256 matchStake, , address[] memory players, IMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
         assertEq(matchToken, address(0)); // Default value
         assertEq(matchStake, 0); // Default value
         assertEq(players.length, 0); // Default value
@@ -754,7 +754,7 @@ contract GameMatchTest is Test {
         assertEq(player2.balance, player2BalanceBefore + STAKE_AMOUNT);
 
         // After cleanup, match data is deleted and returns default values
-        (address matchToken, uint256 matchStake, , address[] memory players, IGameMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
+        (address matchToken, uint256 matchStake, , address[] memory players, IMatch.MatchStatus status, , ) = gameMatch.getMatch(matchId);
         assertEq(matchToken, address(0)); // Default value
         assertEq(matchStake, 0); // Default value
         assertEq(players.length, 0); // Default value
@@ -789,7 +789,7 @@ contract GameMatchTest is Test {
         );
 
         vm.prank(controller);
-        vm.expectRevert(GameMatch.InvalidMatchStatus.selector);
+        vm.expectRevert(Match.InvalidMatchStatus.selector);
         gameMatch.cancelMatch(matchId);
     }
 

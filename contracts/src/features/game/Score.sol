@@ -2,15 +2,15 @@
 pragma solidity ^0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
-import {IGameScore} from "../../interfaces/IGameScore.sol";
+import {IScore} from "../../interfaces/game/IScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 
 /**
- * @title GameScore
+ * @title Score
  * @notice Tracks and stores player scores from completed matches
- * @dev Implements IGameScore for recording results and provides query functions
+ * @dev Implements IScore for recording results and provides query functions
  */
-contract GameScore is IGameScore, IFeature, FeatureController {
+contract Score is IScore, IFeature, FeatureController {
     struct PlayerScore {
         address player;
         uint256 totalWins;
@@ -196,7 +196,7 @@ contract GameScore is IGameScore, IFeature, FeatureController {
         _scores[player].player = player;
     }
 
-    /// @inheritdoc IGameScore
+    /// @inheritdoc IScore
     function recordMatchResult(
         uint256 matchId,
         address winner,

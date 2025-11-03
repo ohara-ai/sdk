@@ -1,4 +1,4 @@
-export const GAME_MATCH_FACTORY_ABI = [
+export const SCORE_FACTORY_ABI = [
   {
     "type": "constructor",
     "inputs": [],
@@ -6,65 +6,8 @@ export const GAME_MATCH_FACTORY_ABI = [
   },
   {
     "type": "function",
-    "name": "defaultFeeRecipients",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "defaultFeeShares",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "defaultMaxActiveMatches",
+    "name": "deployScore",
     "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "deployGameMatch",
-    "inputs": [
-      {
-        "name": "_gameScore",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
     "outputs": [
       {
         "name": "instance",
@@ -73,24 +16,6 @@ export const GAME_MATCH_FACTORY_ABI = [
       }
     ],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "getDefaultFees",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "recipients",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "shares",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -120,6 +45,45 @@ export const GAME_MATCH_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "maxLosersPerMatch",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "maxTotalMatches",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "maxTotalPlayers",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "owner",
     "inputs": [],
     "outputs": [
@@ -133,28 +97,20 @@ export const GAME_MATCH_FACTORY_ABI = [
   },
   {
     "type": "function",
-    "name": "setDefaultFees",
+    "name": "setDeploymentLimits",
     "inputs": [
       {
-        "name": "_recipients",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "_maxLosersPerMatch",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "_shares",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setDefaultMaxActiveMatches",
-    "inputs": [
+        "name": "_maxTotalPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
-        "name": "_defaultMaxActiveMatches",
+        "name": "_maxTotalMatches",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -190,63 +146,25 @@ export const GAME_MATCH_FACTORY_ABI = [
   },
   {
     "type": "event",
-    "name": "DefaultFeesUpdated",
+    "name": "DeploymentLimitsUpdated",
     "inputs": [
       {
-        "name": "recipients",
-        "type": "address[]",
-        "indexed": false,
-        "internalType": "address[]"
-      },
-      {
-        "name": "shares",
-        "type": "uint256[]",
-        "indexed": false,
-        "internalType": "uint256[]"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "DefaultMaxActiveMatchesUpdated",
-    "inputs": [
-      {
-        "name": "newDefault",
+        "name": "maxLosersPerMatch",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "GameMatchDeployed",
-    "inputs": [
-      {
-        "name": "instance",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
       },
       {
-        "name": "owner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "controller",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "gameScore",
-        "type": "address",
+        "name": "maxTotalPlayers",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "address"
+        "internalType": "uint256"
+      },
+      {
+        "name": "maxTotalMatches",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -282,6 +200,25 @@ export const GAME_MATCH_FACTORY_ABI = [
       },
       {
         "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ScoreDeployed",
+    "inputs": [
+      {
+        "name": "instance",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "owner",
         "type": "address",
         "indexed": true,
         "internalType": "address"

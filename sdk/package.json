@@ -7,9 +7,9 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
     },
     "./styles.css": "./dist/styles.css"
   },
@@ -52,8 +52,8 @@
     "@tanstack/react-query": "^5.17.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "tailwind-merge": "^2.2.0",
-    "lucide-react": "^0.303.0"
+    "lucide-react": "^0.303.0",
+    "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",

@@ -7,11 +7,11 @@ import {IScore} from "../../interfaces/game/IScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 
 /**
- * @title GameMatch
+ * @title Match
  * @notice Escrow-based match system with stake management
  * @dev Allows players to create/join matches, with controller-managed activation and finalization
  */
-contract GameMatch is IGameMatch, IFeature, FeatureController {
+contract Match is IMatch, IFeature, FeatureController {
     uint256 private _matchIdCounter;
     mapping(uint256 => Match) private _matches;
     
@@ -23,7 +23,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     uint256 public maxActiveMatches;
 
     // Optional integrations
-    IGameScore public gameScore;
+    IScore public score;
 
     event MaxActiveMatchesUpdated(uint256 newLimit);
     event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
@@ -43,14 +43,14 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     constructor(
         address _owner,
         address _controller,
-        address _gameScore,
+        address _score,
         uint256 _maxActiveMatches,
         address[] memory _feeRecipients,
         uint256[] memory _feeShares
     ) FeatureController(_owner, _controller) {
         // Initialize gamescore if provided
-        if (_gameScore != address(0)) {
-            gameScore = IGameScore(_gameScore);
+        if (_score != address(0)) {
+            score = IScore(_score);
         }
         
         // Set capacity limit
@@ -63,11 +63,11 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
     }
 
     /**
-     * @notice Set the gamescore contract
-     * @param _gameScore Address of the gamescore contract
+     * @notice Set the score contract
+     * @param _score Address of the score contract
      */
-    function setGameScore(address _gameScore) external onlyController {
-        gameScore = IGameScore(_gameScore);
+    function setScore(address _score) external onlyController {
+        score = IScore(_score);
     }
 
     /**
@@ -153,7 +153,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         delete _matchIdIndex[matchId];
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function createMatch(
         address token,
         uint256 stakeAmount,
@@ -184,7 +184,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         _joinMatch(matchId, msg.sender);
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function joinMatch(uint256 matchId) external payable {
         _joinMatch(matchId, msg.sender);
     }
@@ -223,7 +223,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         emit PlayerJoined(matchId, player, m.stakeAmount);
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function withdrawStake(uint256 matchId) external {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
@@ -263,7 +263,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         }
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function activateMatch(uint256 matchId) external onlyController {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
@@ -275,7 +275,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         emit MatchActivated(matchId, m.players);
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function finalizeMatch(uint256 matchId, address winner) external onlyController {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
@@ -302,7 +302,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         _transfer(m.token, winner, winnerAmount);
 
         // Record result in gamescore if configured
-        if (address(gameScore) != address(0)) {
+        if (address(score) != address(0)) {
             address[] memory losers = new address[](m.players.length - 1);
             uint256 loserIndex = 0;
             for (uint256 i = 0; i < m.players.length; i++) {
@@ -310,7 +310,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
                     losers[loserIndex++] = m.players[i];
                 }
             }
-            gameScore.recordMatchResult(matchId, winner, losers, winnerAmount);
+            score.recordMatchResult(matchId, winner, losers, winnerAmount);
         }
 
         emit MatchFinalized(matchId, winner, totalPrize, winnerAmount);
@@ -322,7 +322,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         _cleanupMatch(matchId);
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function cancelMatch(uint256 matchId) external onlyController {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
@@ -370,7 +370,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         delete _matches[matchId];
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function getMatch(
         uint256 matchId
     )
@@ -390,7 +390,7 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
         return (m.token, m.stakeAmount, m.maxPlayers, m.players, m.status, m.winner, m.createdAt);
     }
 
-    /// @inheritdoc IGameMatch
+    /// @inheritdoc IMatch
     function getPlayerStake(uint256 matchId, address player) external view returns (uint256) {
         return _matches[matchId].stakes[player];
     }
@@ -402,6 +402,6 @@ contract GameMatch is IGameMatch, IFeature, FeatureController {
 
     /// @inheritdoc IFeature
     function featureName() external pure returns (string memory) {
-        return "GameMatch - OCI-001";
+        return "Match - OCI-001";
     }
 }
