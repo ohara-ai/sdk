@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getContracts, getControllerAddress } from '@/sdk/src/server'
+import { getContracts, getControllerAddress } from '@ohara-ai/sdk/server'
 
 // Mark this route as dynamic since it depends on query parameters
 export const dynamic = 'force-dynamic'
