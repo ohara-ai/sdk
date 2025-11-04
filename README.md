@@ -138,7 +138,7 @@ After making changes to contracts, update the SDK's ABIs:
 
 ```bash
 # Build contracts and update ABIs in one command
-npm run sdk:update-abi
+npm run update-abi
 ```
 
 ## E2E Testing Application

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+npm run e2e:install
+npm run e2e:setup
+npm run e2e:dev

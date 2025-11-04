@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+
+const fs = require('fs')
+const path = require('path')
+const minimist = require('minimist')
+const { getDopplerEnv } = require('./read-doppler-vars')
+const { logger, loader } = require('./base')
+
+const args = minimist(process.argv.slice(2), {
+  alias: {
+    h: 'help',
+    f: 'force',
+  },
+})
+
+const force = args.force || false
+const help = args.help || false
+
+async function setupNpmrc() {
+  if (help) {
+    logger.log('Usage: setup-npmrc [options]')
+    logger.log()
+    logger.log('Options:')
+    logger.log('  -f, --force                              overwrite .npmrc if it exists')
+    logger.log()
+    logger.log('  -p, --doppler-project [doppler-project]  specify doppler project (default: ovm)')
+    logger.log('  -c, --doppler-config [doppler-config]    specify doppler config (default: development)')
+    logger.log('  --print-env                              print doppler variables to stdout')
+    logger.log('')
+    logger.log('  -h, --help                               display this help message')
+    process.exit(0)
+  }
+
+  const SCRIPT_DIR = path.dirname(__filename)
+  const PROJECT_DIR = path.join(SCRIPT_DIR, '..')
+  const npmrcPath = path.join(PROJECT_DIR, 'e2e-test/.npmrc')
+
+  if (fs.existsSync(npmrcPath) && !force) {
+    logger.error('.npmrc already exists. Use --force to overwrite.')
+    process.exit(1)
+  }
+
+  const env = await getDopplerEnv()
+  const spinner = loader('Creating .npmrc file').start()
+
+  if (!env.GH_PERSONAL_ACCESS_TOKEN) {
+    spinner.fail('GH_PERSONAL_ACCESS_TOKEN not found in doppler variables')
+    process.exit(1)
+  }
+
+  try {
+    const npmrcContent = [
+      '@ohara-ai:registry=https://npm.pkg.github.com',
+      `//npm.pkg.github.com/:_authToken=${env.GH_PERSONAL_ACCESS_TOKEN}`,
+    ].join('\n')
+
+    fs.writeFileSync(npmrcPath, npmrcContent, 'utf8')
+
+    spinner.succeed('Created .npmrc file')
+  } catch (error) {
+    spinner.fail('Failed to create .npmrc file')
+    logger.error(error)
+    process.exit(1)
+  }
+}
+
+if (require.main === module) {
+  setupNpmrc()
+}

@@ -8,11 +8,11 @@
     "forge:test": "cd contracts && forge test",
     "forge:test:verbose": "cd contracts && forge test -vvv",
     "forge:coverage": "cd contracts && forge coverage",
+    "update-abi": "cd contracts && forge build && cd .. && node scripts/update-abis.js",
     "sdk:build": "cd sdk && npm run build",
     "sdk:dev": "cd sdk && npm run dev",
     "sdk:install": "cd sdk && npm install",
     "sdk:test": "cd sdk && npm test",
-    "sdk:update-abi": "cd contracts && forge build && cd .. && node scripts/update-abis.js",
     "e2e:install": "cd e2e-test && npm install",
     "e2e:setup": "cd e2e-test && npm run setup",
     "e2e:fund-controller": "cd e2e-test && npm run fund-controller",
@@ -23,6 +23,9 @@
   "devDependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@types/node": "^20.10.6",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "minimist": "^1.2.8"
   }
 }

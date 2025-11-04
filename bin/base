@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+
+const chalk = require('chalk')
+const { spawn } = require('child_process')
+const ora = require('ora')
+
+log()
+
+process.on('exit', () => {
+  logger.log()
+})
+
+function log(message) {
+  if (message) {
+    console.log(chalk.blue.bold(message))
+  } else {
+    console.log()
+  }
+}
+
+function error(e) {
+  if (e.command) {
+    logRunCommandError(e)
+  } else if (e instanceof Error) {
+    const errorMessage = e.message
+    console.error(chalk.red.bold(errorMessage))
+  } else {
+    console.error(chalk.red.bold(e))
+  }
+}
+
+function logRunCommandError(e) {
+  const { command, args, stderr, code } = e
+  log()
+  error(`Command '${command}' exited with code ${code}`)
+  log()
+  error(stderr)
+  log()
+  error(`To debug the issue, run: \n\n   $ ${command} ${args.join(' ')}`)
+}
+
+const logger = {
+  log,
+  error,
+}
+
+function runCommand(command, args = [], minTime = 0) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    })
+
+    let stdout = ''
+    let stderr = ''
+    let fullOutput = ''
+
+    const start = Date.now()
+
+    child.stdout.on('data', data => {
+      fullOutput += data
+      stdout += data
+    })
+
+    child.stderr.on('data', data => {
+      fullOutput += data
+      stderr += data
+    })
+
+    child.on('close', code => {
+      const duration = Date.now() - start
+      const waitTime = Math.max(0, minTime - duration)
+
+      const result = { command, args, code, stdout, stderr, fullOutput }
+
+      setTimeout(() => {
+        if (code === 0) {
+          resolve(result)
+        } else {
+          reject(result)
+        }
+      }, waitTime)
+    })
+  })
+}
+
+const loader = function (message) {
+  const spinner = ora({
+    text: chalk.blue.bold(message),
+    spinner: 'dots',
+  })
+
+  const loader = {
+    start: message => {
+      spinner.start(message)
+      return loader
+    },
+    succeed: message => {
+      return spinner.succeed(chalk.green.bold(message))
+    },
+    fail: message => {
+      return spinner.fail(chalk.red.bold(message))
+    },
+  }
+
+  return loader
+}
+
+module.exports = {
+  logger,
+  chalk,
+  runCommand,
+  loader,
+}
+
+if (require.main === module) {
+  logger.log(chalk.magenta.bold('You are not supposed to run this, friend.'))
+  process.exit(1)
+}

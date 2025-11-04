@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+
+const { runCommand } = require('./base')
+const { logger, loader } = require('./base')
+const minimist = require('minimist')
+
+const args = minimist(process.argv.slice(2), {
+  alias: {
+    h: 'help',
+    p: 'doppler-project',
+    c: 'doppler-config',
+  },
+})
+
+const printEnv = args['print-env'] || false
+const dopplerProject = args['doppler-project'] || 'sdk'
+const dopplerConfig = args['doppler-config'] || 'development'
+const help = args.help || false
+
+async function getDopplerEnv() {
+  const spinner = loader('Downloading doppler variables...').start()
+
+  try {
+    if (help) {
+      logger.log('Usage: read-doppler-vars [options]')
+      logger.log()
+      logger.log('Options:')
+      logger.log('  -p, --doppler-project [doppler-project]  specify doppler project (default: sdk)')
+      logger.log('  -c, --doppler-config [doppler-config]    specify doppler config (default: development)')
+      logger.log('  --print-env                              print doppler variables to stdout')
+      logger.log('')
+      logger.log('  -h, --help                               display this help message')
+      process.exit(0)
+    }
+
+    const { stdout } = await runCommand('doppler', [
+      'secrets',
+      'download',
+      '--no-file',
+      '--format',
+      'env',
+      '--project',
+      dopplerProject,
+      '--config',
+      dopplerConfig,
+    ])
+
+    const env = {}
+
+    stdout.split('\n').forEach(line => {
+      if (line.trim() === '' || !line.includes('=')) return
+      const [key, ...rest] = line.split('=')
+      env[key] = rest.join('=')
+    })
+
+    spinner.succeed('Downloaded doppler variables')
+
+    if (printEnv) {
+      logger.log()
+      logger.log(stdout)
+    }
+
+    return env
+  } catch (error) {
+    spinner.fail('Failed to download doppler variables')
+    logger.error(error)
+    process.exit(1)
+  }
+}
+
+if (require.main === module) {
+  getDopplerEnv()
+}
+
+module.exports = {
+  getDopplerEnv,
+}

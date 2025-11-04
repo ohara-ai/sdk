@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Test contracts
+npm install
+npm run forge:build
+npm run forge:test
+npm run forge:coverage
+
+npm run update-abi
+
+# Test SDK
+npm run sdk:install
+npm run sdk:build
+npm run sdk:test

@@ -1,6 +1,6 @@
 {
-  "name": "@ohara-ai/game-sdk",
-  "version": "0.1.0",
+  "name": "@ohara-ai/sdk",
+  "version": "0.2.0",
   "description": "Production-ready UI components and hooks for building on-chain gaming applications",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -17,6 +17,9 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts --external react --external react-dom --external viem --external wagmi",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
@@ -31,7 +34,6 @@
     "web3",
     "gaming",
     "blockchain",
-    "ui-components",
     "react",
     "ethereum"
   ],

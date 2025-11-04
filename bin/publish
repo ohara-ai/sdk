@@ -1,0 +1,64 @@
+#!/usr/bin/env node
+
+const { runCommand } = require('./base')
+
+const minimist = require('minimist')
+const { logger, loader } = require('./base')
+
+const args = minimist(process.argv.slice(2), {
+  alias: {
+    h: 'help',
+  },
+})
+
+const help = args.help || false
+
+async function publish() {
+  if (help) {
+    logger.log('Usage: publish [minor|patch|major]')
+    logger.log()
+    logger.log('Options:')
+    logger.log('  -h, --help display this help message')
+    process.exit(0)
+  }
+
+  const versionType = args._[0]
+
+  if (!['patch', 'minor', 'major'].includes(versionType)) {
+    logger.error('Invalid version type. Use patch, minor, or major.')
+    process.exit(1)
+  }
+
+  const spinner = loader('Building project...').start()
+
+  try {
+    await runCommand('npm', ['run', 'forge:build'])
+    await runCommand('npm', ['run', 'update-abi'])
+    await runCommand('npm', ['run', 'sdk:build'])
+    spinner.succeed('Built project')
+    spinner.start('Testing contracts...')
+    await runCommand('npm', ['run', 'forge:test'])
+    spinner.succeed('Tested contracts')
+    spinner.start('Testing SDK...')
+    await runCommand('npm', ['run', 'sdk:test'])
+    spinner.succeed('Tested SDK')
+    spinner.start('Increasing package version...')
+    await runCommand('npm', ['version', versionType])
+    const { version } = require('../package.json')
+    spinner.succeed(`Increased package version to @ohara-ai/sdk@${version}`)
+    spinner.start('Publishing package...')
+    await runCommand('npm', ['publish'])
+    spinner.succeed(`Published package @ohara-ai/sdk@${version}`)
+    spinner.start('Pushing changes...')
+    await runCommand('git', ['push'])
+    spinner.succeed(`Pushed changes to GitHub Registry`)
+  } catch (error) {
+    spinner.fail('Failed to publish package')
+    logger.error(error)
+    process.exit(1)
+  }
+}
+
+if (require.main === module) {
+  publish()
+}
