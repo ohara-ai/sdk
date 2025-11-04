@@ -21,33 +21,56 @@ npm install @ohara-ai/sdk viem wagmi
 
 ### 1. Setup Provider
 
-The provider auto-detects wagmi hooks and chain configuration:
+Use the simplified `OharaAiWagmiProvider` that automatically bridges Wagmi hooks:
 
 ```tsx
+'use client'
+
+import { useState } from 'react'
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { OharaAiProvider } from '@ohara-ai/sdk'
+import { OharaAiWagmiProvider } from '@ohara-ai/sdk'
 import { config } from '@/lib/wagmi'
 
-function Providers({ children }) {
-  const queryClient = new QueryClient()
-  
+export function Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient())
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <OharaAiProvider>
+        <OharaAiWagmiProvider>
           {children}
-        </OharaAiProvider>
+        </OharaAiWagmiProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )
 }
 ```
 
-**Note:** The provider automatically:
-- Detects wallet client and public client from wagmi
-- Fetches contract addresses from `/api/addresses` backend
-- Manages chain-specific contract instances
+**How it works:** The `OharaAiWagmiProvider` automatically:
+- Detects and uses wagmi's `usePublicClient`, `useWalletClient`, and `useChainId` hooks
+- Passes these to the underlying `OharaAiProvider`
+- Fetches contract addresses from `/api/sdk/addresses?chainId=<chainId>` backend
+- Creates contract operation instances with the detected clients
+- Manages chain-specific contract state
+
+**Note:** The wallet client is optional - read-only operations (like viewing leaderboards) work without it. Write operations (like creating matches) require a connected wallet.
+
+#### Advanced: Using OharaAiProvider Directly
+
+For non-Wagmi setups or custom client management, use `OharaAiProvider` directly:
+
+```tsx
+import { OharaAiProvider } from '@ohara-ai/sdk'
+
+<OharaAiProvider 
+  publicClient={yourPublicClient}
+  walletClient={yourWalletClient}
+  chainId={yourChainId}
+>
+  {children}
+</OharaAiProvider>
+```
 
 ### 2. Use the SDK
 

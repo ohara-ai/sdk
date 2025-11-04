@@ -3,6 +3,10 @@ export {
   useOharaAi,
 } from './context/OharaAiProvider'
 
+export {
+  OharaAiWagmiProvider,
+} from './context/OharaAiWagmiProvider'
+
 // Types
 export { ContractType } from './types/contracts'
 
