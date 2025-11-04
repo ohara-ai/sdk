@@ -44,7 +44,7 @@ async function publish() {
     spinner.succeed('Tested SDK')
     spinner.start('Increasing package version...')
     await runCommand('npm', ['run', 'sdk:version', versionType])
-    const { version } = require('../package.json')
+    const { version } = require('../sdk/package.json')
     spinner.succeed(`Increased package version to @ohara-ai/sdk@${version}`)
     spinner.start('Publishing package...')
     await runCommand('npm', ['run', 'sdk:publish'])

@@ -1,6 +1,6 @@
 {
   "name": "@ohara-ai/sdk",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Production-ready UI components and hooks for building on-chain gaming applications",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
