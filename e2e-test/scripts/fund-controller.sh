@@ -38,11 +38,13 @@ CONTROLLER_ADDRESS=$(node -e "
   require('module').Module._initPaths();
 
   try {
-    const { getControllerAddress } = require('@ohara-ai/sdk/server');
+    // Use the controller script which handles the server-only logic
+    const { getControllerAddress } = require('@ohara-ai/sdk/scripts/controller');
+    
     getControllerAddress()
       .then(address => {
         if (!address) {
-          console.error('❌ Failed to get controller address');
+          console.error('❌ No controller address found');
           process.exit(1);
         }
         console.log(address);
