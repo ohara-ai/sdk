@@ -1,4 +1,3 @@
-// Provider & Context
 export { 
   OharaAiProvider, 
   useOharaAi,
@@ -14,9 +13,6 @@ export type {
   AppContext,
   InternalContext,
 } from './context/OharaAiContext'
-
-// Storage
-export { getControllerKey } from './storage/contractStorage';
 
 // Core Primitives
 export {

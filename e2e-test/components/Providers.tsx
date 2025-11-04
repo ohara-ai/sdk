@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { WagmiProvider, usePublicClient, useWalletClient, useChainId } from 'wagmi'
 import { config } from '@/lib/wagmi'
 import { useState } from 'react'
-import { OharaAiProvider } from '@/sdk/src'
+import { OharaAiProvider } from '@ohara-ai/sdk'
 
 function OharaAiWrapper({ children }: { children: React.ReactNode }) {
   // Call Wagmi hooks here, inside WagmiProvider context
