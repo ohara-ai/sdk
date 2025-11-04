@@ -14,8 +14,6 @@ on-chain-features/
 └── README.md
 ```
 
-## SDK
-
 The **OharaAI SDK** provides functional primitives for building on-chain gaming applications without dealing with blockchain complexity directly. The SDK uses a hierarchical context structure:
 
 - **`game.match`** - Create, join, withdraw from matches, and query match data
@@ -23,7 +21,7 @@ The **OharaAI SDK** provides functional primitives for building on-chain gaming 
 - **`app.controller`** - Controller address for server-side operations
 - **`internal.factories`** - Access to factory contract addresses
 
-### Example Usage
+## Example Usage
 
 ```tsx
 import { useOharaAi } from '@/sdk/src'
