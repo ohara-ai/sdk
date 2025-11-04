@@ -1,7 +1,7 @@
 {
   "name": "@ohara-ai/sdk",
-  "version": "0.2.4",
-  "description": "Production-ready UI components and hooks for building on-chain gaming applications",
+  "version": "0.2.5",
+  "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -17,6 +17,7 @@
     "dist",
     "README.md"
   ],
+  "repository": "https://github.com/ohara-ai/sdk.git",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
