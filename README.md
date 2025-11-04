@@ -19,7 +19,8 @@ We use [Doppler](https://docs.doppler.com/docs) to manage environment variables.
 ```bash
 doppler setup
 
-./bin/setup-npmrc # to be able to publish the new package version
+npm install
+./bin/setup-npmrc
 ```
 
 ### Run tests
