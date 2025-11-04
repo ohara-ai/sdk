@@ -252,9 +252,11 @@ describe('App Operations - Specification Tests', () => {
       if (app.match) {
         expect(typeof app.match.create).toBe('function')
         expect(typeof app.match.join).toBe('function')
-        expect(typeof app.match.withdraw).toBe('function')
+        expect(typeof app.match.leave).toBe('function')
         expect(typeof app.match.get).toBe('function')
         expect(typeof app.match.getActiveMatches).toBe('function')
+        expect(typeof app.match.withdrawFees).toBe('function')
+        expect(typeof app.match.getPendingFees).toBe('function')
       }
     })
 

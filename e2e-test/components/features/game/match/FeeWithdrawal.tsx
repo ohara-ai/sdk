@@ -5,10 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DollarSign, CheckCircle2, AlertCircle } from 'lucide-react'
-import { useAccount, useWaitForTransactionReceipt, usePublicClient, useWalletClient, useBlockNumber } from 'wagmi'
-import { formatEther, zeroAddress, getContract } from 'viem'
+import { useAccount, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi'
+import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi } from '@ohara-ai/sdk'
-import { MATCH_ABI } from '@ohara-ai/sdk'
 
 interface PendingFees {
   token: `0x${string}`
@@ -19,10 +18,7 @@ interface PendingFees {
 export function FeeWithdrawal() {
   const { address } = useAccount()
   const { game } = useOharaAi()
-  const publicClient = usePublicClient()
-  const { data: walletClient } = useWalletClient()
   const { data: blockNumber } = useBlockNumber({ watch: true })
-  const contractAddress = game.match?.address
 
   const [pendingFees, setPendingFees] = useState<PendingFees[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -54,7 +50,7 @@ export function FeeWithdrawal() {
 
   // Fetch pending fees for the connected wallet
   useEffect(() => {
-    if (!contractAddress || !address || !publicClient || !isRecipient) {
+    if (!game.match?.operations || !address || !isRecipient) {
       setPendingFees([])
       return
     }
@@ -62,14 +58,8 @@ export function FeeWithdrawal() {
     const fetchPendingFees = async () => {
       setIsLoading(true)
       try {
-        // Check native token (ETH) fees using direct ABI call
-        const contract = getContract({
-          address: contractAddress,
-          abi: MATCH_ABI,
-          client: publicClient,
-        })
-        
-        const nativeFees = await contract.read.pendingFees([address, zeroAddress]) as bigint
+        // Check native token (ETH) fees using SDK
+        const nativeFees = await game.match.operations!.getPendingFees(address, zeroAddress)
 
         const fees: PendingFees[] = []
         
@@ -94,23 +84,17 @@ export function FeeWithdrawal() {
     }
 
     fetchPendingFees()
-  }, [contractAddress, address, publicClient, isRecipient, blockNumber, isWithdrawSuccess])
+  }, [game.match?.operations, address, isRecipient, blockNumber, isWithdrawSuccess])
 
   const handleWithdrawFees = async (token: `0x${string}`) => {
-    if (!contractAddress || !address || !walletClient) return
+    if (!game.match?.operations || !address) return
 
     try {
       setIsWithdrawing(true)
       setWithdrawError(null)
       
-      // Call withdrawFees on the contract
-      const contract = getContract({
-        address: contractAddress,
-        abi: MATCH_ABI,
-        client: walletClient,
-      })
-
-      const hash = await contract.write.withdrawFees([token])
+      // Call withdrawFees using SDK
+      const hash = await game.match.operations.withdrawFees(token)
       setWithdrawHash(hash)
     } catch (err) {
       console.error('[FeeWithdrawal] Error withdrawing fees:', err)

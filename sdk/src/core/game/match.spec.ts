@@ -30,7 +30,7 @@ describe('Match Operations - Specification Tests', () => {
       assertHasOperations(operations, [
         'create',
         'join',
-        'withdraw',
+        'leave',
         'get',
         'getActiveMatches',
         'getActiveMatchCount',
@@ -38,6 +38,8 @@ describe('Match Operations - Specification Tests', () => {
         'getFeeConfiguration',
         'getPlayerStake',
         'getScoreboardAddress',
+        'withdrawFees',
+        'getPendingFees',
       ])
 
       // Verify server operations are NOT present
@@ -55,7 +57,7 @@ describe('Match Operations - Specification Tests', () => {
       assertHasOperations(operations, [
         'create',
         'join',
-        'withdraw',
+        'leave',
         'get',
         'getActiveMatches',
         'getActiveMatchCount',
@@ -63,6 +65,8 @@ describe('Match Operations - Specification Tests', () => {
         'getFeeConfiguration',
         'getPlayerStake',
         'getScoreboardAddress',
+        'withdrawFees',
+        'getPendingFees',
         'activate',
         'finalize',
       ])
@@ -223,9 +227,9 @@ describe('Match Operations - Specification Tests', () => {
       operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
     })
 
-    it('SPEC: withdraw() - successfully withdraws stake from match', async () => {
+    it('SPEC: leave() - successfully leaves match and withdraws stake', async () => {
       const matchId = 1n
-      const hash = await operations.withdraw(matchId)
+      const hash = await operations.leave(matchId)
 
       assertValidHash(hash)
       expect(walletClient.writeContract).toHaveBeenCalledWith(

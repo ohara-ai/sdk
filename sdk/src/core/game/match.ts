@@ -45,9 +45,9 @@ export interface MatchOperations {
   join(matchId: bigint): Promise<Hash>
   
   /**
-   * Withdraw stake from a match (if still open)
+   * Leave a match and withdraw stake (if still open)
    */
-  withdraw(matchId: bigint): Promise<Hash>
+  leave(matchId: bigint): Promise<Hash>
   
   /**
    * Get match details
@@ -87,6 +87,19 @@ export interface MatchOperations {
    * Get the address of the scoreboard configured in this contract
    */
   getScoreboardAddress(): Promise<Address>
+  
+  /**
+   * Withdraw accumulated fees (for fee recipients only)
+   * @param token The token address (use zeroAddress for native token/ETH)
+   */
+  withdrawFees(token: Address): Promise<Hash>
+  
+  /**
+   * Get pending fees for a recipient
+   * @param recipient The fee recipient address
+   * @param token The token address (use zeroAddress for native token/ETH)
+   */
+  getPendingFees(recipient: Address, token: Address): Promise<bigint>
 }
 
 /**
@@ -208,7 +221,7 @@ function createOperationsInternal(
       })
     },
 
-    async withdraw(matchId: bigint) {
+    async leave(matchId: bigint) {
       const wallet = requireWallet()
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
@@ -307,6 +320,30 @@ function createOperationsInternal(
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'score',
+      })
+    },
+
+    async withdrawFees(token: Address): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: MATCH_ABI,
+        functionName: 'withdrawFees',
+        args: [token],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async getPendingFees(recipient: Address, token: Address): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: MATCH_ABI,
+        functionName: 'pendingFees',
+        args: [recipient, token],
       })
     },
   }
