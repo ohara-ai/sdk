@@ -1,6 +1,6 @@
 # Smart Contracts
 
-Solidity smart contracts for modular on-chain gaming features. This package provides factory-based contract deployment for match systems and scoreboards with built-in fee collection and access control.
+Solidity smart contracts for modular on-chain features. This package provides factory-based contract deployment for features with built-in fee collection and access control.
 
 ## Architecture
 
@@ -21,26 +21,26 @@ contracts/
 
 ### Features
 
-#### **GameMatch** (`src/features/game/GameMatch.sol`)
+#### **Match** (`src/features/game/Match.sol`)
 
 Escrow-based match system with stake management.
 
 **Key Features:**
 - Create matches with configurable stake amounts and player limits
-- Join/withdraw from matches before activation
+- Join/leave from matches before activation
 - Controller-managed activation and finalization
 - Automatic fee distribution on match completion
-- Integration with GameScore for result tracking
+- Integration with Score for result tracking
 - Capacity management with configurable active match limits
 
 **Main Functions:**
-- `createMatch(token, stakeAmount, maxPlayers)` - Create a new match
-- `joinMatch(matchId)` - Join an existing match
-- `withdrawFromMatch(matchId)` - Leave a match before activation
-- `activateMatch(matchId)` - Controller activates a full match
-- `finalizeMatch(matchId, winner, losers)` - Controller finalizes and distributes stakes
+- `create(token, stakeAmount, maxPlayers)` - Create a new match
+- `join(matchId)` - Join an existing match
+- `leave(matchId)` - Leave a match before activation
+- `activate(matchId)` - Controller activates a full match
+- `finalize(matchId, winner, losers)` - Controller finalizes and distributes stakes
 
-#### **GameScore** (`src/features/game/GameScore.sol`)
+#### **Score** (`src/features/game/Score.sol`)
 
 Tracks and stores player scores from completed matches.
 
@@ -59,22 +59,22 @@ Tracks and stores player scores from completed matches.
 
 ### Factories
 
-#### **GameMatchFactory** (`src/factories/GameMatchFactory.sol`)
+#### **MatchFactory** (`src/factories/MatchFactory.sol`)
 
-Factory for deploying GameMatch contracts with configurable defaults.
+Factory for deploying Match contracts with configurable defaults.
 
 **Features:**
-- Deploy GameMatch instances with custom parameters
+- Deploy Match instances with custom parameters
 - Configure default max active matches
 - Set default fee recipients and shares
 - Owner-controlled factory settings
 
-#### **GameScoreFactory** (`src/factories/GameScoreFactory.sol`)
+#### **ScoreFactory** (`src/factories/ScoreFactory.sol`)
 
-Factory for deploying GameScore contracts with storage limits.
+Factory for deploying Score contracts with storage limits.
 
 **Features:**
-- Deploy GameScore instances with capacity limits
+- Deploy Score instances with capacity limits
 - Configure maximum losers per match, total players, and total matches
 - Prevent state explosion with configurable bounds
 
@@ -118,27 +118,15 @@ forge build
 # Run all tests
 npm run forge:test
 
-# Run with verbose output
-npm run forge:test:verbose
-
 # Generate coverage report
 npm run forge:coverage
 
 # Run specific test file
-forge test --match-path contracts/test/GameMatch.t.sol
+forge test --match-path contracts/test/Match.t.sol
 
 # Run specific test function
 forge test --match-test testCreateMatch
 ```
-
-### Test Coverage
-
-The test suite includes:
-- **GameMatch.t.sol** - Match creation, joining, activation, and finalization
-- **GameMatchFactory.t.sol** - Factory deployment and configuration
-- **GameScore.t.sol** - Score recording, queries, and leaderboards
-- **GameScoreFactory.t.sol** - Factory deployment with limits
-- **FeeCollectorValidation.t.sol** - Fee distribution validation
 
 ## Deployment
 
@@ -148,11 +136,11 @@ The test suite includes:
 # Start local node
 anvil
 
-# Deploy GameMatchFactory
-forge script script/DeployGameMatchFactory.s.sol --rpc-url http://localhost:8545 --broadcast
+# Deploy MatchFactory
+forge script script/DeployMatchFactory.s.sol --rpc-url http://localhost:8545 --broadcast
 
-# Deploy GameScoreFactory
-forge script script/DeployGameScoreFactory.s.sol --rpc-url http://localhost:8545 --broadcast
+# Deploy ScoreFactory
+forge script script/DeployScoreFactory.s.sol --rpc-url http://localhost:8545 --broadcast
 ```
 
 ### Testnet/Mainnet Deployment
@@ -172,25 +160,8 @@ forge script script/DeployGameScoreFactory.s.sol --rpc-url http://localhost:8545
 
 3. Deploy:
    ```bash
-   forge script script/DeployGameMatchFactory.s.sol --rpc-url sepolia --broadcast --verify
+   forge script script/DeployMatchFactory.s.sol --rpc-url sepolia --broadcast --verify
    ```
-
-## Configuration
-
-### Foundry Settings (`foundry.toml`)
-
-- **Solc Version:** 0.8.23
-- **Optimizer:** Enabled with 200 runs
-- **Via IR:** Enabled for better optimization
-- **Test Settings:** 256 fuzz runs (10000 in CI)
-
-### Gas Optimization
-
-The contracts use:
-- Via IR compilation for optimal gas usage
-- Packed storage slots where possible
-- Efficient array management with index tracking
-- Minimal external calls
 
 ## Security Considerations
 
@@ -203,7 +174,7 @@ The contracts use:
 ### State Management
 
 - Capacity limits on active matches to prevent DoS
-- Storage limits on GameScore to prevent state explosion
+- Storage limits on Score to prevent state explosion
 - Proper index tracking for array cleanup
 
 ### Fee Distribution
@@ -226,7 +197,3 @@ npm run sdk:update-abi
 ```
 
 This copies the compiled ABIs to the SDK for TypeScript integration.
-
-## License
-
-MIT

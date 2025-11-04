@@ -4,17 +4,17 @@ Functional primitives for building on-chain applications. Simple async functions
 
 ## Installation
 
-This SDK is used locally in the monorepo via path imports:
+This SDK is used through npm package `@ohara-ai/sdk`.
 
 ```tsx
 import { OharaAiProvider, useOharaAi } from '@ohara-ai/sdk'
 import { createServerOharaAi } from '@ohara-ai/sdk/server'
 ```
 
-For external projects, install via npm (coming soon):
+For external projects, make sure you have npmrc configured through doppler to use GitHub's npm and then install via npm:
 
 ```bash
-npm install @ohara-ai/game-sdk viem wagmi
+npm install @ohara-ai/sdk viem wagmi
 ```
 
 ## Quick Start

@@ -2,101 +2,27 @@
 
 A comprehensive SDK and smart contract library for modular features. This repository provides Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building on-chain applications.
 
-## Repository Structure
+You can test the features of contracts and SDK using tests and the `e2e-test` app.
 
-```
-on-chain-features/
-├── bin/                # Utility scripts
-├── contracts/          # Solidity smart contracts
-├── sdk/                # TypeScript SDK for on-chain features
-├── scripts/            # Build and ABI update scripts
-├── e2e-test/           # End-to-end testing application (Next.js)
-└── README.md
-```
-
-The **OharaAI SDK** provides functional primitives for building on-chain gaming applications without dealing with blockchain complexity directly. The SDK uses a hierarchical context structure:
-
-- **`game.match`** - Create, join, withdraw from matches, and query match data
-- **`game.scores`** - Query player statistics and leaderboards
-- **`app.controller`** - Controller address for server-side operations
-- **`internal.factories`** - Access to factory contract addresses
-
-## Example Usage
-
-```tsx
-import { useOharaAi } from '@/sdk/src'
-import { parseEther } from 'viem'
-
-function GameComponent() {
-  const { game } = useOharaAi()
-  
-  const createMatch = async () => {
-    if (!game.match.operations) {
-      throw new Error('Match operations not available')
-    }
-    
-    // Create a 2-player match with 0.1 ETH stake
-    const hash = await game.match.operations.create({
-      token: '0x0000000000000000000000000000000000000000',
-      stakeAmount: parseEther('0.1'),
-      maxPlayers: 2
-    })
-    
-    return hash
-  }
-  
-  const getLeaderboard = async () => {
-    if (!game.scores.operations) {
-      throw new Error('Score operations not available')
-    }
-    
-    // Get top 10 players by wins
-    const result = await game.scores.operations.getTopPlayersByWins(10)
-    return result
-  }
-  
-  return (
-    <div>
-      <button onClick={createMatch}>Create Match</button>
-      <button onClick={getLeaderboard}>View Leaderboard</button>
-    </div>
-  )
-}
-```
-
-### Key Features
-
-✅ **Functional Primitives** - Simple async functions instead of raw contract calls  
-✅ **Type-Safe** - Full TypeScript support with hierarchical context  
-✅ **Automatic Address Management** - Fetches contract addresses from backend  
-✅ **No UI Lock-in** - Build your own interface on top of primitives  
-✅ **Server-Side Operations** - Separate entry point for controller operations  
-
-See [`sdk/README.md`](./sdk/README.md) for more information on the SDK development.
-
-## Testing
+## QUICK START
 
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
-
-### Setup Foundry (for Solidity development and local e2e-test app)
+- Foundry - for Solidity development and local e2e-test app
 ```bash
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
-
-### Setup Doppler
-
+- Doppler
 We use [Doppler](https://docs.doppler.com/docs) to manage environment variables. Make sure you have an account, install the CLI, and run `doppler setup` selecting the `sdk` project.
-
 ```bash
 doppler setup
 
 ./bin/setup-npmrc # to be able to publish the new package version
 ```
 
-### Test it
+### Run tests
 
 ```bash
 ./bin/test
@@ -107,6 +33,32 @@ doppler setup
 ```bash
 ./bin/start
 ```
+
+## Key Features
+
+✅ **Functional Primitives** - Simple async functions instead of raw contract calls  
+✅ **Type-Safe** - Full TypeScript support with hierarchical context  
+✅ **Automatic Address Management** - Fetches contract addresses from backend  
+✅ **No UI Lock-in** - Build your own interface on top of primitives  
+✅ **Server-Side Operations** - Separate entry point for controller operations  
+
+
+## Repository Structure
+
+```
+/
+├── bin/                # Utility scripts
+├── contracts/          # Solidity smart contracts
+├── sdk/                # TypeScript SDK for on-chain features
+├── scripts/            # Contracts -> SDK ABIs update script
+└── e2e-test/           # End-to-end testing application (Next.js)
+```
+
+* Use [`contracts/README.md`](./contracts/README.md) for info on contracts development and use.
+* Use [`sdk/README.md`](./sdk/README.md) for info on SDK development and use.
+* Use [`e2e-test/README.md`](./e2e-test/README.md) for info on e2e-test app development and use.
+
+
 
 ## Development
 

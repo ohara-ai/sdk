@@ -1,8 +1,8 @@
 {
-  "name": "on-chain-features",
+  "name": "sdk-wrapper",
   "version": "0.2.1",
   "private": true,
-  "description": "SDK and smart contracts for on-chain gaming features",
+  "description": "Wrapper projects for the SDK, smart contracts and e2e tests",
   "scripts": {
     "forge:build": "cd contracts && forge build",
     "forge:test": "cd contracts && forge test",
