@@ -1,6 +1,9 @@
 // Server-only exports - DO NOT import from client components
 import 'server-only'
 
+// Deployment types
+export type { DeploymentResult } from './deployment/deploymentService'
+
 // Storage (server-side only)
 export {
   getContracts,

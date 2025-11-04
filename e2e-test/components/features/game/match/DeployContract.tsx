@@ -6,9 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, Trash2, Link2 } from 'lucide-react'
 import { DeployFactoryContract } from '../../DeployFactoryContract'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
+import { useOharaAi } from '@ohara-ai/sdk'
 import { Address } from 'viem'
-import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
+import { DeploymentResult } from '@ohara-ai/sdk/server'
 
 interface DeployMatchContractProps {
   onDeployed: (address: `0x${string}`) => void 

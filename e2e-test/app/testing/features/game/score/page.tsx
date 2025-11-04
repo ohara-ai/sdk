@@ -11,8 +11,8 @@ import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
-import { ContractType } from '@/sdk/src/types/contracts'
+import { useOharaAi } from '@ohara-ai/sdk'
+import { ContractType } from '@ohara-ai/sdk'
 
 export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()

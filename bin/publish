@@ -15,7 +15,7 @@ const help = args.help || false
 
 async function publish() {
   if (help) {
-    logger.log('Usage: publish [minor|patch|major]')
+    logger.log('Usage: publish [minor|patch|major] "Some commit message"')
     logger.log()
     logger.log('Options:')
     logger.log('  -h, --help display this help message')
@@ -23,6 +23,7 @@ async function publish() {
   }
 
   const versionType = args._[0]
+  const message = args._[1]
 
   if (!['patch', 'minor', 'major'].includes(versionType)) {
     logger.error('Invalid version type. Use patch, minor, or major.')
@@ -50,7 +51,7 @@ async function publish() {
     await runCommand('npm', ['run', 'sdk:publish'])
     spinner.succeed(`Published package @ohara-ai/sdk@${version}`)
     spinner.start('Pushing changes...')
-    await runCommand('git', ['commit', '-am', `release: @ohara-ai/sdk@${version}`])
+    await runCommand('git', ['commit', '-am', `release: @ohara-ai/sdk@${version} ${message}`])
     await runCommand('git', ['push', 'origin', 'main'])
     spinner.succeed(`Pushed changes to GitHub Registry`)
   } catch (error) {
