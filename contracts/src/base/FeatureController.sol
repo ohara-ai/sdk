@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
+pragma solidity 0.8.23;
 
 import {FeeCollector} from "./FeeCollector.sol";
 
@@ -32,6 +32,7 @@ abstract contract FeatureController is FeeCollector {
 
     function setController(address newController) external onlyOwner {
         if (newController == address(0)) revert InvalidController();
+        if (newController == controller) revert InvalidController();
         emit ControllerUpdated(controller, newController);
         controller = newController;
     }

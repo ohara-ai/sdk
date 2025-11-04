@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
+pragma solidity 0.8.23;
 
 import {Match} from "../../features/game/Match.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
@@ -25,6 +25,9 @@ contract MatchFactory is OwnedFactory {
     event DefaultMaxActiveMatchesUpdated(uint256 newDefault);
     event DefaultFeesUpdated(address[] recipients, uint256[] shares);
 
+    error LengthMismatch();
+    error MaxFeeExceeded();
+
     constructor() OwnedFactory(msg.sender) {
         // Initialize with default limit
         defaultMaxActiveMatches = 100;
@@ -49,13 +52,15 @@ contract MatchFactory is OwnedFactory {
         address[] calldata _recipients,
         uint256[] calldata _shares
     ) external onlyOwner {
-        require(_recipients.length == _shares.length, "Length mismatch");
+        if (_recipients.length != _shares.length) revert LengthMismatch();
         
-        uint256 total = 0;
-        for (uint256 i = 0; i < _shares.length; i++) {
+        uint256 total;
+        uint256 length = _shares.length;
+        for (uint256 i = 0; i < length;) {
             total += _shares[i];
+            unchecked { ++i; }
         }
-        require(total <= 5000, "Max 50% fee"); // Max 50% fee
+        if (total > 5000) revert MaxFeeExceeded();
         
         defaultFeeRecipients = _recipients;
         defaultFeeShares = _shares;

@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createClientMatchOperations, createMatchOperations, MatchStatus } from './match'
+import { createClientMatchOperations, createOperations, MatchStatus } from './match'
 import type { MatchOperations, ServerMatchOperations } from './match'
 import {
   createMockPublicClient,
@@ -45,11 +45,11 @@ describe('Match Operations - Specification Tests', () => {
       expect(operations).not.toHaveProperty('finalize')
     })
 
-    it('SPEC: createMatchOperations with walletClient - includes server operations', () => {
+    it('SPEC: createOperations with walletClient - includes server operations', () => {
       const publicClient = createMockPublicClient()
       const walletClient = createMockWalletClient(PLAYER_ADDRESS)
 
-      const operations = createMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      const operations = createOperations(CONTRACT_ADDRESS, publicClient, walletClient)
 
       // Verify all operations are present
       assertHasOperations(operations, [
@@ -68,10 +68,10 @@ describe('Match Operations - Specification Tests', () => {
       ])
     })
 
-    it('SPEC: createMatchOperations without walletClient - returns base operations', () => {
+    it('SPEC: createOperations without walletClient - returns base operations', () => {
       const publicClient = createMockPublicClient()
 
-      const operations = createMatchOperations(CONTRACT_ADDRESS, publicClient)
+      const operations = createOperations(CONTRACT_ADDRESS, publicClient)
 
       // Should have read operations
       assertHasOperations(operations, [
@@ -115,7 +115,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
-          functionName: 'createMatch',
+          functionName: 'create',
           args: [config.token, config.stakeAmount, 2n],
           value: config.stakeAmount, // Native token requires value
         })
@@ -135,7 +135,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
-          functionName: 'createMatch',
+          functionName: 'create',
           args: [config.token, config.stakeAmount, 4n],
           value: 0n, // ERC20 doesn't require value
         })
@@ -197,7 +197,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
-          functionName: 'joinMatch',
+          functionName: 'join',
           args: [matchId],
           value: 1000000000000000000n, // stake amount from mocked match
         })
@@ -231,7 +231,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
-          functionName: 'withdrawStake',
+          functionName: 'leave',
           args: [matchId],
         })
       )
@@ -418,7 +418,7 @@ describe('Match Operations - Specification Tests', () => {
     beforeEach(() => {
       const publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(CONTROLLER_ADDRESS)
-      operations = createMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createOperations(CONTRACT_ADDRESS, publicClient, walletClient)
     })
 
     it('SPEC: activate() - controller can activate a match', async () => {
@@ -429,7 +429,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
-          functionName: 'activateMatch',
+          functionName: 'activate',
           args: [matchId],
         })
       )
@@ -445,7 +445,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
-          functionName: 'finalizeMatch',
+          functionName: 'finalize',
           args: [matchId, winner],
         })
       )

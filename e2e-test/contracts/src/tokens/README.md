@@ -51,7 +51,7 @@ DevWorldToken token = new DevWorldToken(1_000_000 * 10**18);
 token.mint(recipient, 1000 * 10**18);
 
 // Use with GameMatch
-gameMatch.createMatch(address(token), stakeAmount, maxPlayers);
+gameMatch.create(address(token), stakeAmount, maxPlayers);
 ```
 
 #### In TypeScript/Frontend
@@ -72,7 +72,7 @@ await writeContract({
 await writeContract({
   address: gameMatchAddress,
   abi: GAME_MATCH_ABI,
-  functionName: "createMatch",
+  functionName: "create",
   args: [DEVWORLD_ADDRESS, stakeAmount, maxPlayers]
 });
 ```

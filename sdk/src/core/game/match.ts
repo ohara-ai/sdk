@@ -114,7 +114,7 @@ export function createClientMatchOperations(
   publicClient: PublicClient,
   walletClient?: WalletClient
 ): MatchOperations {
-  return createMatchOperationsInternal(contractAddress, publicClient, walletClient, false) as MatchOperations
+  return createOperationsInternal(contractAddress, publicClient, walletClient, false) as MatchOperations
 }
 
 /**
@@ -122,32 +122,32 @@ export function createClientMatchOperations(
  * For server-side (controller wallet): returns ServerMatchOperations
  */
 // Overload: without wallet client, returns base operations
-export function createMatchOperations(
+export function createOperations(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient?: undefined
 ): MatchOperations
 
 // Overload: with wallet client, returns server operations (includes activate/finalize)
-export function createMatchOperations(
+export function createOperations(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient: WalletClient
 ): ServerMatchOperations
 
 // Implementation
-export function createMatchOperations(
+export function createOperations(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient?: WalletClient
 ): MatchOperations | ServerMatchOperations {
-  return createMatchOperationsInternal(contractAddress, publicClient, walletClient, true)
+  return createOperationsInternal(contractAddress, publicClient, walletClient, true)
 }
 
 /**
  * Internal function to create match operations
  */
-function createMatchOperationsInternal(
+function createOperationsInternal(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient?: WalletClient,
@@ -178,7 +178,7 @@ function createMatchOperationsInternal(
       return wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
-        functionName: 'createMatch',
+        functionName: 'create',
         args: [config.token, config.stakeAmount, BigInt(config.maxPlayers)],
         value,
         account,
@@ -200,7 +200,7 @@ function createMatchOperationsInternal(
       return wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
-        functionName: 'joinMatch',
+        functionName: 'join',
         args: [matchId],
         value,
         account,
@@ -216,7 +216,7 @@ function createMatchOperationsInternal(
       return wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
-        functionName: 'withdrawStake',
+        functionName: 'leave',
         args: [matchId],
         account,
         chain: undefined,
@@ -328,7 +328,7 @@ function createMatchOperationsInternal(
       return wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
-        functionName: 'activateMatch',
+        functionName: 'activate',
         args: [matchId],
         account,
         chain: undefined,
@@ -343,7 +343,7 @@ function createMatchOperationsInternal(
       return wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
-        functionName: 'finalizeMatch',
+        functionName: 'finalize',
         args: [matchId, winner],
         account,
         chain: undefined,

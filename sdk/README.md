@@ -198,7 +198,7 @@ interface MatchOperations {
   // Write operations (require user wallet)
   create(config: MatchConfig): Promise<Hash>
   join(matchId: bigint): Promise<Hash>
-  withdraw(matchId: bigint): Promise<Hash>
+  leave(matchId: bigint): Promise<Hash>
   
   // Read operations
   get(matchId: bigint): Promise<Match>

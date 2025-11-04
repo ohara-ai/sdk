@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
+pragma solidity 0.8.23;
 
 /**
  * @title IMatch
@@ -56,48 +56,48 @@ interface IMatch {
     }
 
     /**
-     * @notice Creates a new match
-     * @param token The token to use for staking (address(0) for native token)
-     * @param stakeAmount The amount each player must stake
+     * @notice Create a new match with specified parameters
+     * @param token Token address for stakes (address(0) for native token)
+     * @param stakeAmount Required stake amount per player
      * @param maxPlayers Maximum number of players allowed
      * @return matchId The ID of the created match
      */
-    function createMatch(
+    function create(
         address token,
         uint256 stakeAmount,
         uint256 maxPlayers
     ) external payable returns (uint256 matchId);
 
     /**
-     * @notice Join an existing match
+     * @notice Join an existing open match
      * @param matchId The ID of the match to join
      */
-    function joinMatch(uint256 matchId) external payable;
+    function join(uint256 matchId) external payable;
 
     /**
-     * @notice Withdraw stake from a match (only before activation)
-     * @param matchId The ID of the match
+     * @notice Leave an open match and withdraw stake before activation
+     * @param matchId The ID of the match to leave
      */
-    function withdrawStake(uint256 matchId) external;
+    function leave(uint256 matchId) external;
 
     /**
-     * @notice Activate a match, locking all stakes
-     * @param matchId The ID of the match
+     * @notice Activate a match (controller only)
+     * @param matchId The ID of the match to activate
      */
-    function activateMatch(uint256 matchId) external;
+    function activate(uint256 matchId) external;
 
     /**
-     * @notice Finalize a match and distribute prizes
-     * @param matchId The ID of the match
-     * @param winner The address of the winning player (address(0) for tied match)
+     * @notice Finalize a match with a winner (controller only)
+     * @param matchId The ID of the match to finalize
+     * @param winner Address of the winning player (address(0) for tie/refund)
      */
-    function finalizeMatch(uint256 matchId, address winner) external;
+    function finalize(uint256 matchId, address winner) external;
 
     /**
-     * @notice Cancel an active match and refund all stakes (e.g., for tied matches)
-     * @param matchId The ID of the match
+     * @notice Cancel an active match and refund all players (controller only)
+     * @param matchId The ID of the match to cancel
      */
-    function cancelMatch(uint256 matchId) external;
+    function cancel(uint256 matchId) external;
 
     /**
      * @notice Get match details

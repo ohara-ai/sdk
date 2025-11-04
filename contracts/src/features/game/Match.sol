@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.23;
+pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IMatch} from "../../interfaces/game/IMatch.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * @title Match
@@ -12,6 +14,8 @@ import {FeatureController} from "../../base/FeatureController.sol";
  * @dev Allows players to create/join matches, with controller-managed activation and finalization
  */
 contract Match is IMatch, IFeature, FeatureController {
+    using SafeERC20 for IERC20;
+    
     uint256 private _matchIdCounter;
     mapping(uint256 => Match) private _matches;
     
@@ -21,12 +25,16 @@ contract Match is IMatch, IFeature, FeatureController {
     
     // Capacity limits
     uint256 public maxActiveMatches;
+    uint256 public constant ABSOLUTE_MAX_ACTIVE_MATCHES = 10000;
+    uint256 public constant MAX_PLAYERS_LIMIT = 100;
+    uint256 public constant MAX_STAKE_AMOUNT = 1000000 ether;
 
     // Optional integrations
     IScore public score;
 
     event MaxActiveMatchesUpdated(uint256 newLimit);
     event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
+    event ScoreContractUpdated(address indexed previousScore, address indexed newScore);
 
     error InvalidStakeAmount();
     error InvalidMaxPlayers();
@@ -39,6 +47,11 @@ contract Match is IMatch, IFeature, FeatureController {
     error InvalidWinner();
     error MaxActiveMatchesReached();
     error MatchNotInactive();
+    error InvalidTokenAddress();
+    error PlayerAlreadyJoined();
+    error StakeAmountTooHigh();
+    error TooManyPlayers();
+    error LimitTooHigh();
 
     constructor(
         address _owner,
@@ -64,10 +77,16 @@ contract Match is IMatch, IFeature, FeatureController {
 
     /**
      * @notice Set the score contract
-     * @param _score Address of the score contract
+     * @param _score Address of the score contract (address(0) to disable)
      */
     function setScore(address _score) external onlyController {
+        // Allow address(0) to disable score tracking
+        if (_score != address(0) && _score.code.length == 0) {
+            revert InvalidTokenAddress();
+        }
+        address previousScore = address(score);
         score = IScore(_score);
+        emit ScoreContractUpdated(previousScore, _score);
     }
 
     /**
@@ -75,6 +94,7 @@ contract Match is IMatch, IFeature, FeatureController {
      * @param _maxActiveMatches Maximum number of active matches (0 = unlimited)
      */
     function setMaxActiveMatches(uint256 _maxActiveMatches) external onlyOwner {
+        if (_maxActiveMatches > ABSOLUTE_MAX_ACTIVE_MATCHES) revert LimitTooHigh();
         maxActiveMatches = _maxActiveMatches;
         emit MaxActiveMatchesUpdated(_maxActiveMatches);
     }
@@ -154,13 +174,18 @@ contract Match is IMatch, IFeature, FeatureController {
     }
 
     /// @inheritdoc IMatch
-    function createMatch(
+    function create(
         address token,
         uint256 stakeAmount,
         uint256 maxPlayers
-    ) external payable returns (uint256 matchId) {
+    ) external payable nonReentrant returns (uint256 matchId) {
         if (stakeAmount == 0) revert InvalidStakeAmount();
+        if (stakeAmount > MAX_STAKE_AMOUNT) revert StakeAmountTooHigh();
         if (maxPlayers < 2) revert InvalidMaxPlayers();
+        if (maxPlayers > MAX_PLAYERS_LIMIT) revert TooManyPlayers();
+        
+        // Validate token is a contract if not native token
+        if (token != address(0) && token.code.length == 0) revert InvalidTokenAddress();
         
         // Check capacity limit
         if (maxActiveMatches > 0 && _activeMatchIds.length >= maxActiveMatches) {
@@ -185,7 +210,7 @@ contract Match is IMatch, IFeature, FeatureController {
     }
 
     /// @inheritdoc IMatch
-    function joinMatch(uint256 matchId) external payable {
+    function join(uint256 matchId) external payable nonReentrant {
         _joinMatch(matchId, msg.sender);
     }
 
@@ -194,7 +219,7 @@ contract Match is IMatch, IFeature, FeatureController {
         if (m.stakeAmount == 0) revert InvalidMatchId();
         if (m.status != MatchStatus.Open) revert InvalidMatchStatus();
         if (m.players.length >= m.maxPlayers) revert MaxPlayersReached();
-        if (m.stakes[player] > 0) revert InvalidMatchStatus(); // Already joined
+        if (m.stakes[player] > 0) revert PlayerAlreadyJoined();
 
         // Handle stake
         if (m.token == address(0)) {
@@ -203,18 +228,8 @@ contract Match is IMatch, IFeature, FeatureController {
         } else {
             // ERC20 token
             if (msg.value != 0) revert InsufficientStake();
-            // Transfer tokens from player
-            (bool success, bytes memory data) = m.token.call(
-                abi.encodeWithSignature(
-                    "transferFrom(address,address,uint256)",
-                    player,
-                    address(this),
-                    m.stakeAmount
-                )
-            );
-            if (!success || (data.length > 0 && !abi.decode(data, (bool)))) {
-                revert TransferFailed();
-            }
+            // Transfer tokens from player using SafeERC20
+            IERC20(m.token).safeTransferFrom(player, address(this), m.stakeAmount);
         }
 
         m.players.push(player);
@@ -224,7 +239,7 @@ contract Match is IMatch, IFeature, FeatureController {
     }
 
     /// @inheritdoc IMatch
-    function withdrawStake(uint256 matchId) external {
+    function leave(uint256 matchId) external nonReentrant {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
         if (m.status != MatchStatus.Open) revert InvalidMatchStatus();
@@ -234,37 +249,38 @@ contract Match is IMatch, IFeature, FeatureController {
 
         // Remove player from array
         address[] storage players = m.players;
-        for (uint256 i = 0; i < players.length; i++) {
+        uint256 length = players.length;
+        for (uint256 i = 0; i < length;) {
             if (players[i] == msg.sender) {
-                players[i] = players[players.length - 1];
+                players[i] = players[length - 1];
                 players.pop();
                 break;
             }
+            unchecked { ++i; }
         }
 
+        // Update state before external call (CEI pattern)
         m.stakes[msg.sender] = 0;
+        
+        bool shouldCancel = m.players.length == 0;
+        if (shouldCancel) {
+            m.status = MatchStatus.Cancelled;
+            _removeFromActiveMatches(matchId);
+        }
 
-        // Return stake
+        // External call last
         _transfer(m.token, msg.sender, stake);
 
         emit PlayerWithdrew(matchId, msg.sender, stake);
 
-        // If this was the last player, cancel the match and clean up data
-        if (m.players.length == 0) {
-            m.status = MatchStatus.Cancelled;
-            
-            // Remove from active matches tracking
-            _removeFromActiveMatches(matchId);
-            
+        if (shouldCancel) {
             emit MatchCancelled(matchId, new address[](0), 0);
-            
-            // Clean up match data to free storage
             _cleanupMatch(matchId);
         }
     }
 
     /// @inheritdoc IMatch
-    function activateMatch(uint256 matchId) external onlyController {
+    function activate(uint256 matchId) external onlyController {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
         if (m.status != MatchStatus.Open) revert InvalidMatchStatus();
@@ -276,7 +292,7 @@ contract Match is IMatch, IFeature, FeatureController {
     }
 
     /// @inheritdoc IMatch
-    function finalizeMatch(uint256 matchId, address winner) external onlyController {
+    function finalize(uint256 matchId, address winner) external onlyController nonReentrant {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
         if (m.status != MatchStatus.Active) revert InvalidMatchStatus();
@@ -289,41 +305,54 @@ contract Match is IMatch, IFeature, FeatureController {
 
         if (m.stakes[winner] == 0) revert InvalidWinner();
 
+        // Cache values for gas optimization
+        uint256 stakeAmount = m.stakeAmount;
+        uint256 playersCount = m.players.length;
+        address token = m.token;
+        
+        // Update state first (CEI pattern)
         m.status = MatchStatus.Finalized;
         m.winner = winner;
+        _removeFromActiveMatches(matchId);
 
-        uint256 totalPrize = m.stakeAmount * m.players.length;
+        uint256 totalPrize = stakeAmount * playersCount;
         
-        // Distribute fees using inherited FeeCollector functionality
-        uint256 feeAmount = _distributeFees(m.token, totalPrize);
+        // Accrue fees using pull-over-push pattern
+        uint256 feeAmount = _accrueFees(token, totalPrize);
         uint256 winnerAmount = totalPrize - feeAmount;
 
-        // Transfer winnings to winner
-        _transfer(m.token, winner, winnerAmount);
+        // Transfer winnings to winner (external call)
+        _transfer(token, winner, winnerAmount);
 
         // Record result in gamescore if configured
         if (address(score) != address(0)) {
-            address[] memory losers = new address[](m.players.length - 1);
-            uint256 loserIndex = 0;
-            for (uint256 i = 0; i < m.players.length; i++) {
+            address[] memory losers = new address[](playersCount - 1);
+            uint256 loserIndex;
+            uint256 length = m.players.length;
+            for (uint256 i = 0; i < length;) {
                 if (m.players[i] != winner) {
-                    losers[loserIndex++] = m.players[i];
+                    losers[loserIndex] = m.players[i];
+                    unchecked { ++loserIndex; }
                 }
+                unchecked { ++i; }
             }
-            score.recordMatchResult(matchId, winner, losers, winnerAmount);
+            // Use try-catch to prevent DoS from buggy score contracts
+            try score.recordMatchResult(matchId, winner, losers, winnerAmount) {
+                // Score recorded successfully
+            } catch {
+                // Score recording failed, but match finalization succeeds
+                // This prevents a buggy score contract from blocking match finalization
+            }
         }
 
         emit MatchFinalized(matchId, winner, totalPrize, winnerAmount);
-        
-        // Remove from active matches tracking
-        _removeFromActiveMatches(matchId);
 
-        // Clean up match data to save gas
+        // Clean up match data
         _cleanupMatch(matchId);
     }
 
     /// @inheritdoc IMatch
-    function cancelMatch(uint256 matchId) external onlyController {
+    function cancel(uint256 matchId) external onlyController nonReentrant {
         Match storage m = _matches[matchId];
         if (m.stakeAmount == 0) revert InvalidMatchId();
         if (m.status != MatchStatus.Active) revert InvalidMatchStatus();
@@ -331,6 +360,10 @@ contract Match is IMatch, IFeature, FeatureController {
         _cancelMatchInternal(matchId);
     }
 
+    /**
+     * @dev Internal cancel logic. Must only be called from nonReentrant functions.
+     * This function is protected by the caller's nonReentrant modifier.
+     */
     function _cancelMatchInternal(uint256 matchId) internal {
         Match storage m = _matches[matchId];
         
@@ -340,12 +373,14 @@ contract Match is IMatch, IFeature, FeatureController {
         address[] memory players = m.players;
         
         // Refund all players their stakes
-        for (uint256 i = 0; i < players.length; i++) {
+        uint256 length = players.length;
+        for (uint256 i = 0; i < length;) {
             address player = players[i];
             uint256 stake = m.stakes[player];
             if (stake > 0) {
                 _transfer(m.token, player, stake);
             }
+            unchecked { ++i; }
         }
         
         emit MatchCancelled(matchId, players, refundAmount);
@@ -362,8 +397,10 @@ contract Match is IMatch, IFeature, FeatureController {
         address[] memory players = m.players;
         
         // Clean up stakes mapping for all players
-        for (uint256 i = 0; i < players.length; i++) {
+        uint256 length = players.length;
+        for (uint256 i = 0; i < length;) {
             delete m.stakes[players[i]];
+            unchecked { ++i; }
         }
         
         // Delete the entire match struct (resets all fields to default values)

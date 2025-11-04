@@ -7,6 +7,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectWallet } from '@/components/ConnectWallet'
 import { MatchList, CreateMatchForm, MatchDetails, MatchContractInformation } from '@/components/features/game/match'
+import { FeeWithdrawal } from '@/components/features/game/match/FeeWithdrawal'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
@@ -112,11 +113,12 @@ export default function GameMatchPage() {
               </Tabs>
             </div>
             
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
               <MatchDetails 
                 matchId={selectedMatchId} 
                 onMatchDeleted={() => setSelectedMatchId(null)}
               />
+              <FeeWithdrawal />
             </div>
           </div>
         )}

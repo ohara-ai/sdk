@@ -45,9 +45,9 @@ ABI for the GameScoreFactory contract, which deploys game.Score instances.
 ABI for the GameMatch contract, which manages game matches with stakes.
 
 **Key Functions:**
-- `createMatch(address token, uint256 stakeAmount, uint256 maxPlayers)` - Create a new match
-- `joinMatch(uint256 matchId)` - Join an existing match
-- `withdrawStake(uint256 matchId)` - Withdraw stake from a match
+- `create(address token, uint256 stakeAmount, uint256 maxPlayers)` - Create a new match
+- `join(uint256 matchId)` - Join an existing match
+- `leave(uint256 matchId)` - Withdraw stake from a match
 - `configureFees(address[] _recipients, uint256[] _shares)` - Configure fee distribution
 - `getMatch(uint256 matchId)` - Get match details
 - `getActiveMatchIds(uint256 offset, uint256 limit)` - Get list of active match IDs

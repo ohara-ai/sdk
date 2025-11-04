@@ -37,7 +37,92 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "activateMatch",
+    "name": "ABSOLUTE_MAX_ACTIVE_MATCHES",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "FEE_BASIS_POINTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_FEE_BASIS_POINTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_FEE_RECIPIENTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_PLAYERS_LIMIT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_STAKE_AMOUNT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "acceptOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "activate",
     "inputs": [
       {
         "name": "matchId",
@@ -50,7 +135,7 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "cancelMatch",
+    "name": "cancel",
     "inputs": [
       {
         "name": "matchId",
@@ -107,7 +192,7 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "createMatch",
+    "name": "create",
     "inputs": [
       {
         "name": "token",
@@ -187,7 +272,7 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "finalizeMatch",
+    "name": "finalize",
     "inputs": [
       {
         "name": "matchId",
@@ -338,7 +423,7 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "joinMatch",
+    "name": "join",
     "inputs": [
       {
         "name": "matchId",
@@ -348,6 +433,19 @@ export const MATCH_ABI = [
     ],
     "outputs": [],
     "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "leave",
+    "inputs": [
+      {
+        "name": "matchId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -365,6 +463,43 @@ export const MATCH_ABI = [
   {
     "type": "function",
     "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pendingFees",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pendingOwner",
     "inputs": [],
     "outputs": [
       {
@@ -468,12 +603,12 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
-    "name": "withdrawStake",
+    "name": "withdrawFees",
     "inputs": [
       {
-        "name": "matchId",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -500,7 +635,32 @@ export const MATCH_ABI = [
   },
   {
     "type": "event",
-    "name": "FeeDistributed",
+    "name": "FeeAccrued",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FeeWithdrawn",
     "inputs": [
       {
         "name": "recipient",
@@ -694,6 +854,25 @@ export const MATCH_ABI = [
   },
   {
     "type": "event",
+    "name": "OwnershipTransferInitiated",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "OwnershipTransferred",
     "inputs": [
       {
@@ -762,6 +941,52 @@ export const MATCH_ABI = [
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "ScoreContractUpdated",
+    "inputs": [
+      {
+        "name": "previousScore",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newScore",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AddressEmptyCode",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "AddressInsufficientBalance",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "FailedInnerCall",
+    "inputs": []
+  },
+  {
     "type": "error",
     "name": "InsufficientStake",
     "inputs": []
@@ -808,7 +1033,17 @@ export const MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidTokenAddress",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidWinner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "LimitTooHigh",
     "inputs": []
   },
   {
@@ -828,12 +1063,58 @@ export const MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "NoFeesToWithdraw",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoPendingOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NoStakeToWithdraw",
     "inputs": []
   },
   {
     "type": "error",
     "name": "NotAPlayer",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PlayerAlreadyJoined",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "SafeERC20FailedOperation",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "StakeAmountTooHigh",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManyFeeRecipients",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManyPlayers",
     "inputs": []
   },
   {

@@ -125,9 +125,20 @@ contract ScoreFactoryTest is Test {
     function test_FactoryOwnerCanTransferFactoryOwnership() public {
         address newFactoryOwner = address(0x456);
         
+        // Initiate transfer
         factory.transferOwnership(newFactoryOwner);
         
+        // Owner should not change yet
+        assertEq(factory.owner(), factoryOwner);
+        assertEq(factory.pendingOwner(), newFactoryOwner);
+        
+        // Accept ownership
+        vm.prank(newFactoryOwner);
+        factory.acceptOwnership();
+        
+        // Now ownership should be transferred
         assertEq(factory.owner(), newFactoryOwner);
+        assertEq(factory.pendingOwner(), address(0));
     }
 
     function test_DeployedInstancesRetainTheirOwner() public {
@@ -136,12 +147,16 @@ contract ScoreFactoryTest is Test {
         Score score1 = Score(instance1);
         assertEq(score1.owner(), factoryOwner);
         
-        // Transfer factory ownership
+        // Initiate factory ownership transfer
         address newFactoryOwner = address(0x456);
         factory.transferOwnership(newFactoryOwner);
         
         // First instance should still have original owner
         assertEq(score1.owner(), factoryOwner);
+        
+        // Accept ownership
+        vm.prank(newFactoryOwner);
+        factory.acceptOwnership();
         
         // New deployment should use new factory owner
         vm.prank(newFactoryOwner);

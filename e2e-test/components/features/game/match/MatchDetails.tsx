@@ -172,7 +172,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     }
   }
 
-  const handleWithdrawStake = async () => {
+  const handleLeaveMatch = async () => {
     if (!game.match?.address || matchId === null) return
 
     if (!game.match.operations) {
@@ -183,10 +183,10 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     try {
       setIsWithdrawing(true)
       setWithdrawError(null)
-      const txHash = await game.match.operations.withdraw(BigInt(matchId))
+      const txHash = await game.match.operations.leave(BigInt(matchId))
       setWithdrawHash(txHash)
     } catch (err) {
-      console.error('Error withdrawing stake:', err)
+      console.error('Error leaving match:', err)
       setWithdrawError(err instanceof Error ? err : new Error('Unknown error'))
     } finally {
       setIsWithdrawing(false)
@@ -522,10 +522,10 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
             <Button 
               variant="outline" 
               className="w-full"
-              onClick={handleWithdrawStake}
+              onClick={handleLeaveMatch}
               disabled={isWithdrawing || isWithdrawConfirming}
             >
-              {isWithdrawing ? 'Confirming...' : isWithdrawConfirming ? 'Withdrawing...' : 'Withdraw Stake'}
+              {isWithdrawing ? 'Confirming...' : isWithdrawConfirming ? 'Leaving...' : 'Leave Match'}
             </Button>
           )}
 

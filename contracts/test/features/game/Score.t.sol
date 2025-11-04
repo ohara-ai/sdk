@@ -409,10 +409,21 @@ contract ScoreTest is Test {
     function test_OwnershipTransfer() public {
         address newOwner = address(0x123);
         
+        // Step 1: Initiate transfer
         vm.prank(owner);
         score.transferOwnership(newOwner);
         
+        // Owner should not change yet
+        assertEq(score.owner(), owner);
+        assertEq(score.pendingOwner(), newOwner);
+        
+        // Step 2: Accept ownership
+        vm.prank(newOwner);
+        score.acceptOwnership();
+        
+        // Now ownership should be transferred
         assertEq(score.owner(), newOwner);
+        assertEq(score.pendingOwner(), address(0));
     }
     
     function test_OnlyOwnerCanTransferOwnership() public {
