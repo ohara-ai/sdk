@@ -1,5 +1,5 @@
 // This file provides script-friendly access to controller functionality
-const { getControllerKey } = require('../dist/storage/contractStorage');
+const { getControllerKey } = require('..');
 const { privateKeyToAccount } = require('viem/accounts');
 
 async function getControllerAddress() {
