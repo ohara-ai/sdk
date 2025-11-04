@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { formatEther } from 'viem'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trophy, Coins } from 'lucide-react'
@@ -100,7 +101,7 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
                   <div className="text-right">
                     <div className="text-xs text-gray-500">Prize</div>
                     <div className="text-sm font-bold text-gray-900">
-                      {item.prize.toString()}
+                      {parseFloat(formatEther(item.prize)).toFixed(4)} ETH
                     </div>
                   </div>
                 </div>
