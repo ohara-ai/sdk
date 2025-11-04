@@ -1,10 +1,10 @@
 # E2E Test Application
 
-This directory contains the end-to-end testing application for the on-chain gaming features SDK.
+This directory contains the end-to-end testing application for the SDK.
 
 ## Overview
 
-This Next.js application provides a web interface for testing and demonstrating the functionality of the on-chain gaming features SDK.
+This Next.js application provides a web interface for testing and demonstrating the functionality of the SDK.
 
 ## Getting Started
 
@@ -22,38 +22,22 @@ npm install
 
 ### Setup
 
-- `anvil` - Start an Anvil node
-- `npm run setup` - Deploy factory contracts to the network
+- `anvil` - Start an Anvil node with local network
+- `npm run setup` - Deploy testing contracts to the local network
 
 ### Development
-
-Run the development server:
 
 ```bash
 npm run dev
 ```
 
-`npm run fund-controller` - Fund the controller address with coins
-
 Open [http://localhost:3000](http://localhost:3000) to view the application.
-
-### Testing Scripts
-- `npm run test` - Run Vitest tests
-- `npm run test:ui` - Run Vitest with UI
 
 ## Project Structure
 
 - `app/` - Next.js app directory with pages and API routes
 - `components/` - React components for the UI
-- `contracts/` - Demo contracts for testing (DevWorldToken, etc.)
+- `contracts/` - Demo contracts, only for testing (DevWorldToken, etc.)
 - `lib/` - Utility functions and configuration (wagmi, etc.)
-- `*.sh` - Deployment and utility scripts
+- `scripts/*.sh` - Deployment and utility scripts
 
-## Environment Variables
-
-Copy `.env.example` from the root directory and configure:
-
-- `PRIVATE_KEY` - Your wallet private key for deployments
-- `RPC_URL` - RPC endpoint URL
-- `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` - WalletConnect project ID
-- Other contract addresses as needed

@@ -1,11 +1,12 @@
-# On-Chain Features
+# OharaAI SDK
 
-A comprehensive SDK and smart contract library for modular on-chain gaming features. This repository provides Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building gaming applications.
+A comprehensive SDK and smart contract library for modular features. This repository provides Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building on-chain applications.
 
 ## Repository Structure
 
 ```
 on-chain-features/
+├── bin/                # Utility scripts
 ├── contracts/          # Solidity smart contracts
 ├── sdk/                # TypeScript SDK for on-chain features
 ├── scripts/            # Build and ABI update scripts
@@ -73,31 +74,43 @@ function GameComponent() {
 ✅ **No UI Lock-in** - Build your own interface on top of primitives  
 ✅ **Server-Side Operations** - Separate entry point for controller operations  
 
-See [`sdk/README.md`](./sdk/README.md) for detailed documentation.
+See [`sdk/README.md`](./sdk/README.md) for more information on the SDK development.
 
-## Development
+## Testing
 
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
-- Foundry (for Solidity development)
 
-### Installation
-
+### Setup Foundry (for Solidity development and local e2e-test app)
 ```bash
-# Install root dependencies (minimal)
-npm install
-
-# Install SDK dependencies
-npm run sdk:install
-
-# Install E2E test app dependencies
-npm run e2e:install
-
-# Install Foundry (if not already installed)
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
+
+### Setup Doppler
+
+We use [Doppler](https://docs.doppler.com/docs) to manage environment variables. Make sure you have an account, install the CLI, and run `doppler setup` selecting the `sdk` project.
+
+```bash
+doppler setup
+
+./bin/setup-npmrc # to be able to publish the new package version
+```
+
+### Test it
+
+```bash
+./bin/test
+```
+
+### Start the test app
+
+```bash
+./bin/start
+```
+
+## Development
 
 ### Smart Contracts
 
@@ -110,11 +123,16 @@ npm run forge:build
 # Run tests
 npm run forge:test
 
-# Run tests with verbose output
-npm run forge:test:verbose
-
 # Generate coverage report
 npm run forge:coverage
+```
+
+### Update ABIs
+
+After making changes to contracts, update the SDK's ABIs:
+
+```bash
+npm run update-abi
 ```
 
 ### SDK Development
@@ -132,23 +150,13 @@ npm run sdk:dev
 npm run sdk:test
 ```
 
-### Update ABIs
-
-After making changes to contracts, update the SDK's ABIs:
-
-```bash
-# Build contracts and update ABIs in one command
-npm run update-abi
-```
-
 ## E2E Testing Application
 
 The `e2e-test/` directory contains a Next.js application for end-to-end testing and demonstration of the SDK features:
 
-- Deploy and interact with GameMatch contracts
-- Deploy and query GameScore contracts
+- Deploy and interact with on-chain contracts
 - Test complete workflows with a web UI
-- Validate SDK functionality in a real environment
+- Validate SDK functionality in a local app environment
 
 ### Quick Start with Anvil (Local Development)
 
@@ -172,7 +180,6 @@ The `e2e-test/` directory contains a Next.js application for end-to-end testing 
 4. **Run the E2E test app**:
    ```bash
    npm run e2e:dev
-   npm run e2e:fund-controller
    ```
 
 5. **Explore the testing interface**:
@@ -191,17 +198,3 @@ The test application demonstrates:
 - **Complete SDK integration** showcasing all functional primitives
 
 See [`e2e-test/README.md`](./e2e-test/README.md) for detailed documentation.
-
-### Other E2E Commands
-
-```bash
-# Build E2E app for production
-npm run e2e:build
-
-# Run E2E tests
-npm run e2e:test
-```
-
-## License
-
-MIT

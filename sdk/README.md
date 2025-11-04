@@ -1,6 +1,6 @@
 # OharaAI SDK
 
-Functional primitives for building on-chain gaming applications. Simple async functions that abstract blockchain complexity without UI constraints.
+Functional primitives for building on-chain applications. Simple async functions that abstract blockchain complexity without UI constraints.
 
 ## Installation
 
