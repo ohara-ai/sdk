@@ -82,6 +82,11 @@ export interface MatchOperations {
    * Get player's stake in a match
    */
   getPlayerStake(matchId: bigint, player: Address): Promise<bigint>
+  
+  /**
+   * Get the address of the scoreboard configured in this contract
+   */
+  getScoreboardAddress(): Promise<Address>
 }
 
 /**
@@ -294,6 +299,14 @@ function createMatchOperationsInternal(
         abi: MATCH_ABI,
         functionName: 'getPlayerStake',
         args: [matchId, player],
+      })
+    },
+
+    async getScoreboardAddress(): Promise<Address> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: MATCH_ABI,
+        functionName: 'score',
       })
     },
   }

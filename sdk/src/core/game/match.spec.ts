@@ -37,6 +37,7 @@ describe('Match Operations - Specification Tests', () => {
         'getMaxActiveMatches',
         'getFeeConfiguration',
         'getPlayerStake',
+        'getScoreboardAddress',
       ])
 
       // Verify server operations are NOT present
@@ -61,6 +62,7 @@ describe('Match Operations - Specification Tests', () => {
         'getMaxActiveMatches',
         'getFeeConfiguration',
         'getPlayerStake',
+        'getScoreboardAddress',
         'activate',
         'finalize',
       ])
@@ -389,6 +391,20 @@ describe('Match Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getPlayerStake',
           args: [1n, PLAYER_ADDRESS],
+        })
+      )
+    })
+
+    it('SPEC: getScoreboardAddress() - returns the scoreboard contract address', async () => {
+      const scoreboardAddress = '0x8888888888888888888888888888888888888888' as const
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(scoreboardAddress)
+
+      const address = await operations.getScoreboardAddress()
+
+      expect(address).toBe(scoreboardAddress)
+      expect(publicClient.readContract).toHaveBeenCalledWith(
+        expect.objectContaining({
+          functionName: 'score',
         })
       )
     })

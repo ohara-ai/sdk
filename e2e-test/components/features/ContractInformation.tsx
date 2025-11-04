@@ -51,10 +51,11 @@ export function ContractInformation({ type }: { type: ContractType }) {
 
     const fetchMatchData = async () => {
       try {
-        const [feeConfigData, activeCount, maxActive] = await Promise.all([
+        const [feeConfigData, activeCount, maxActive, scoreboardAddress] = await Promise.all([
           game.match.operations!.getFeeConfiguration(),
           game.match.operations!.getActiveMatchCount(),
           game.match.operations!.getMaxActiveMatches(),
+          game.match.operations!.getScoreboardAddress(),
         ])
         
         setFeeConfig(feeConfigData)
