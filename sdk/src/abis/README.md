@@ -90,10 +90,10 @@ ABI for the GameScore contract, which tracks player scores and leaderboards.
 
 ```typescript
 // Import individual ABIs
-import { MATCH_ABI, MatchStatus } from '@/sdk/src/abis/game/match'
-import { SCORE_ABI } from '@/sdk/src/abis/game/score'
-import { MATCH_FACTORY_ABI } from '@/sdk/src/abis/game/matchFactory'
-import { SCORE_FACTORY_ABI } from '@/sdk/src/abis/game/scoreFactory'
+import { MATCH_ABI, MatchStatus } from '@ohara-ai/sdk'
+import { SCORE_ABI } from '@ohara-ai/sdk'
+import { MATCH_FACTORY_ABI } from '@ohara-ai/sdk'
+import { SCORE_FACTORY_ABI } from '@ohara-ai/sdk'
 
 // Or import from the main SDK index
 import { 
@@ -102,7 +102,7 @@ import {
   MATCH_FACTORY_ABI,
   SCORE_FACTORY_ABI,
   MatchStatus
-} from '@/sdk'
+} from '@ohara-ai/sdk'
 
 // Use with viem
 import { useReadContract } from 'wagmi'

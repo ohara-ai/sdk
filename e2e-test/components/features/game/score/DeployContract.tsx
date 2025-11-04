@@ -1,8 +1,8 @@
 'use client'
 
-import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
+import { DeploymentResult } from '@ohara-ai/sdk/server'
 import { DeployFactoryContract } from '../../DeployFactoryContract'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
+import { useOharaAi } from '@ohara-ai/sdk'
 
 interface DeployContractProps {
   onDeployed: (address: `0x${string}`) => void

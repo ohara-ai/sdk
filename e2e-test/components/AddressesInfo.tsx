@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react'
 import { formatEther } from 'viem'
 import { usePublicClient } from 'wagmi'
-import { useOharaAi } from '@/sdk/src/context/OharaAiProvider'
+import { useOharaAi } from '@ohara-ai/sdk'
 import { Copy, ExternalLink, Factory, Wallet } from 'lucide-react'
-import { MATCH_FACTORY_ABI } from '@/sdk/src/abis/game/matchFactory'
-import { SCORE_FACTORY_ABI } from '@/sdk/src/abis/game/scoreFactory'
+import { MATCH_FACTORY_ABI } from '@ohara-ai/sdk'
+import { SCORE_FACTORY_ABI } from '@ohara-ai/sdk'
 
 interface FactoryConfig {
   defaultMaxActiveMatches?: bigint

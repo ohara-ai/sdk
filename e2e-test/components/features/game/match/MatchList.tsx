@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
 import { useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
-import { useOharaAi } from '@/sdk/src'
+import { useOharaAi } from '@ohara-ai/sdk'
 
 interface MatchListProps {
   onSelectMatch: (matchId: number) => void

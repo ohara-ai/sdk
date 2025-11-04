@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Shield, FileCode, Percent, BarChart3 } from 'lucide-react'
-import { ContractType } from '@/sdk/src/types/contracts'
-import { useOharaAi } from '@/sdk/src'
+import { ContractType } from '@ohara-ai/sdk'
+import { useOharaAi } from '@ohara-ai/sdk'
 import { useBlockNumber } from 'wagmi'
 
 /**

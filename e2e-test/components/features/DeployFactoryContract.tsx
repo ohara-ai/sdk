@@ -6,7 +6,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
-import { DeploymentResult } from '@/sdk/src/deployment/deploymentService'
+import { DeploymentResult } from '@ohara-ai/sdk/server'
 
 interface DeployFactoryContractProps {
   contractName: string

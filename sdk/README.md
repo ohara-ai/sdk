@@ -7,8 +7,8 @@ Functional primitives for building on-chain applications. Simple async functions
 This SDK is used locally in the monorepo via path imports:
 
 ```tsx
-import { OharaAiProvider, useOharaAi } from '@/sdk/src'
-import { createServerOharaAi } from '@/sdk/src/server'
+import { OharaAiProvider, useOharaAi } from '@ohara-ai/sdk'
+import { createServerOharaAi } from '@ohara-ai/sdk/server'
 ```
 
 For external projects, install via npm (coming soon):
@@ -26,7 +26,7 @@ The provider auto-detects wagmi hooks and chain configuration:
 ```tsx
 import { WagmiProvider } from 'wagmi'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { OharaAiProvider } from '@/sdk/src'
+import { OharaAiProvider } from '@ohara-ai/sdk'
 import { config } from '@/lib/wagmi'
 
 function Providers({ children }) {
@@ -54,7 +54,7 @@ function Providers({ children }) {
 Access operations through the hierarchical context structure:
 
 ```tsx
-import { useOharaAi } from '@/sdk/src'
+import { useOharaAi } from '@ohara-ai/sdk'
 import { parseEther } from 'viem'
 
 function GameComponent() {
@@ -100,16 +100,16 @@ The SDK has separate entry points for client and server code to prevent Node.js-
 
 ### Entry Points
 
-#### Client Entry Point: `@/sdk/src`
+#### Client Entry Point: `@ohara-ai/sdk`
 Use this in client components and browser code:
 ```typescript
 import { 
   OharaAiProvider, 
   useOharaAi
-} from '@/sdk/src'
+} from '@ohara-ai/sdk'
 ```
 
-#### Server Entry Point: `@/sdk/src/server`
+#### Server Entry Point: `@ohara-ai/sdk/server`
 Use this in API routes, server actions, and server components:
 ```typescript
 import { 
@@ -122,7 +122,7 @@ import {
   deployGameScore,
   createServerOharaAi,
   // ... other server-only exports
-} from '@/sdk/src/server'
+} from '@ohara-ai/sdk/server'
 ```
 
 ### Examples
@@ -130,7 +130,7 @@ import {
 **Client Component:**
 ```typescript
 'use client'
-import { useOharaAi } from '@/sdk/src'
+import { useOharaAi } from '@ohara-ai/sdk'
 
 export function MyComponent() {
   const { game } = useOharaAi()
@@ -140,7 +140,7 @@ export function MyComponent() {
 
 **API Route:**
 ```typescript
-import { createServerOharaAi, deployGameMatch } from '@/sdk/src/server'
+import { createServerOharaAi, deployGameMatch } from '@ohara-ai/sdk/server'
 
 export async function POST(request: Request) {
   // Create server context with controller wallet
@@ -161,7 +161,7 @@ export async function POST(request: Request) {
 ```typescript
 'use client'
 // This will cause "Module not found: Can't resolve 'fs/promises'" error
-import { getContracts } from '@/sdk/src/server'
+import { getContracts } from '@ohara-ai/sdk/server'
 ```
 
 ## Core Primitives
@@ -287,8 +287,8 @@ NEXT_PUBLIC_GAME_SCORE_FACTORY=0x...
 You can create operations directly without the provider:
 
 ```tsx
-import { createClientMatchOperations } from '@/sdk/src/core/match'
-import { createScoreOperations } from '@/sdk/src/core/scores'
+import { createClientMatchOperations } from '@ohara-ai/sdk'
+import { createScoreOperations } from '@ohara-ai/sdk'
 import { usePublicClient, useWalletClient } from 'wagmi'
 
 function Component() {
