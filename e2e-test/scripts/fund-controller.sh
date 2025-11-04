@@ -38,10 +38,7 @@ CONTROLLER_ADDRESS=$(node -e "
   require('module').Module._initPaths();
 
   try {
-    // Import from the package's main entry point
-    const { getControllerAddress } = require('@ohara-ai/on-chain-features');
-    
-    // Get or create the controller address
+    const { getControllerAddress } = require('@ohara-ai/sdk/server');
     getControllerAddress()
       .then(address => {
         if (!address) {
@@ -57,7 +54,7 @@ CONTROLLER_ADDRESS=$(node -e "
       });
   } catch (error) {
     console.error('❌ Failed to load SDK:', error.message);
-    console.error('Make sure @ohara-ai/on-chain-features is installed as a dependency');
+    console.error('Make sure @ohara-ai/sdk is installed as a dependency');
     process.exit(1);
   }
 ")

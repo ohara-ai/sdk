@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Trophy, Clock, CheckCircle2, AlertCircle, Play, Flag } from 'lucide-react'
 import { useAccount, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
-import { useOharaAi, useTokenApproval, MatchStatus } from '@/sdk/src'
+import { useOharaAi, useTokenApproval, MatchStatus } from '@ohara-ai/sdk'
 
 interface MatchDetailsProps {
   matchId: number | null

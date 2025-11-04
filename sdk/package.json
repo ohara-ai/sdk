@@ -1,6 +1,6 @@
 {
   "name": "@ohara-ai/sdk",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -13,8 +13,8 @@
     },
     "./server": {
       "types": "./dist/server.d.ts",
-      "import": "./dist/server.js",
-      "require": "./dist/server.cjs"
+      "import": "./dist/server.mjs",
+      "require": "./dist/server.js"
     },
     "./styles.css": "./dist/styles.css"
   },
