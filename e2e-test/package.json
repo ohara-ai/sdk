@@ -1,8 +1,8 @@
 {
-  "name": "on-chain-features-e2e-test",
-  "version": "0.3.0",
+  "name": "sdk-e2e-test",
+  "version": "0.4.0",
   "private": true,
-  "description": "E2E testing application for on-chain gaming features SDK",
+  "description": "E2E testing application for the SDK's features",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -24,7 +24,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@tanstack/react-query": "^5.17.0",
-    "@ohara-ai/sdk": "^0.4.0",
+    "@ohara-ai/sdk": "^0.4.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "lucide-react": "^0.303.0",

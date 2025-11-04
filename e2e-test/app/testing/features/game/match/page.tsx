@@ -6,13 +6,11 @@ import { useState, useEffect } from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectWallet } from '@/components/ConnectWallet'
-import { MatchList, CreateMatchForm, MatchDetails } from '@/components/features/game/match'
-import { ContractInformation } from '@/components/features/ContractInformation'
+import { MatchList, CreateMatchForm, MatchDetails, MatchContractInformation } from '@/components/features/game/match'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
-import { ContractType } from '@ohara-ai/sdk'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
@@ -61,9 +59,7 @@ export default function GameMatchPage() {
           {/* Contract Information */}
           {showContractInfo && (
             <div className="mt-6 animate-in slide-in-from-top duration-200">
-              <ContractInformation
-                type={ContractType.GAME_MATCH}
-              />
+              <MatchContractInformation />
             </div>
           )}
         </div>

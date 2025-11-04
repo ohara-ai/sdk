@@ -4,15 +4,13 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ContractInformation } from '@/components/features/ContractInformation'
 import { ConnectWallet } from '@/components/ConnectWallet'
-import { ContractStats, PlayerStats, Leaderboard } from '@/components/features/game/score'
+import { PlayerStats, Leaderboard, ScoreContractInformation } from '@/components/features/game/score'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { useOharaAi } from '@ohara-ai/sdk'
-import { ContractType } from '@ohara-ai/sdk'
 
 export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()
@@ -21,8 +19,6 @@ export default function GameScorePage() {
   
   const [mounted, setMounted] = useState(false)
   const [showContractInfo, setShowContractInfo] = useState(false)
-  const [totalMatches, setTotalMatches] = useState<bigint>()
-  const [totalPlayers, setTotalPlayers] = useState<bigint>()
   const [playerScore, setPlayerScore] = useState<readonly [bigint, bigint, bigint, bigint]>()
   const [topPlayersByWins, setTopPlayersByWins] = useState<readonly [readonly `0x${string}`[], readonly bigint[], readonly bigint[]]>()
 
@@ -36,14 +32,7 @@ export default function GameScorePage() {
       if (!game.scores.operations) return
       
       try {
-        const [matches, players, top] = await Promise.all([
-          game.scores.operations.getTotalMatches(),
-          game.scores.operations.getTotalPlayers(),
-          game.scores.operations.getTopPlayersByWins(10),
-        ])
-        
-        setTotalMatches(matches)
-        setTotalPlayers(players)
+        const top = await game.scores.operations.getTopPlayersByWins(10)
         setTopPlayersByWins([top.players, top.wins, top.prizes])
         
         // Fetch player score if user is connected
@@ -95,9 +84,7 @@ export default function GameScorePage() {
           {/* Contract Information */}
           {showContractInfo && (
             <div className="mt-6 animate-in slide-in-from-top duration-200">
-              <ContractInformation 
-                type={ContractType.GAME_SCORE}
-              />
+              <ScoreContractInformation />
             </div>
           )}
         </div>
@@ -124,15 +111,14 @@ export default function GameScorePage() {
             </CardHeader>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <ContractStats 
-              totalMatches={totalMatches} 
-              totalPlayers={totalPlayers} 
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-3">
+              <Leaderboard topPlayersByWins={topPlayersByWins} />
+            </div>
             
-            <PlayerStats playerScore={playerScore} />
-            
-            <Leaderboard topPlayersByWins={topPlayersByWins} />
+            <div className="lg:col-span-1">
+              <PlayerStats playerScore={playerScore} />
+            </div>
           </div>
         )}
       </div>

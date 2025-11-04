@@ -1,6 +1,9 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Trophy, Coins } from 'lucide-react'
 
 interface LeaderboardProps {
   topPlayersByWins?: readonly [
@@ -11,22 +14,72 @@ interface LeaderboardProps {
 }
 
 export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
+  const [rankBy, setRankBy] = useState<'wins' | 'prize'>('wins')
   const hasPlayers = topPlayersByWins && topPlayersByWins[0].length > 0
 
+  // Sort players based on selected ranking
+  const sortedPlayers = useMemo(() => {
+    if (!hasPlayers) return null
+    
+    const players = topPlayersByWins[0]
+    const wins = topPlayersByWins[1]
+    const prizes = topPlayersByWins[2]
+    
+    const combined = players.map((player, idx) => ({
+      player,
+      wins: wins[idx],
+      prize: prizes[idx]
+    }))
+    
+    combined.sort((a, b) => {
+      if (rankBy === 'wins') {
+        return Number(b.wins - a.wins)
+      } else {
+        return Number(b.prize - a.prize)
+      }
+    })
+    
+    return combined
+  }, [topPlayersByWins, rankBy, hasPlayers])
+
   return (
-    <Card className="border-2 border-gray-200 lg:col-span-2">
+    <Card className="border-2 border-gray-200">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Top Players</CardTitle>
-        <CardDescription className="text-gray-600">
-          Ranked by total wins
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-lg font-semibold text-gray-900">Top Players</CardTitle>
+            <CardDescription className="text-gray-600">
+              Ranked by {rankBy === 'wins' ? 'total wins' : 'prize pool'}
+            </CardDescription>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant={rankBy === 'wins' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setRankBy('wins')}
+              className="flex items-center gap-1.5"
+            >
+              <Trophy className="w-3.5 h-3.5" />
+              Wins
+            </Button>
+            <Button
+              variant={rankBy === 'prize' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setRankBy('prize')}
+              className="flex items-center gap-1.5"
+            >
+              <Coins className="w-3.5 h-3.5" />
+              Prize
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {hasPlayers ? (
+        {sortedPlayers ? (
           <div className="space-y-2">
-            {topPlayersByWins[0].map((player, index) => (
+            {sortedPlayers.map((item, index) => (
               <div 
-                key={player} 
+                key={item.player} 
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-4">
@@ -34,20 +87,20 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
                     #{index + 1}
                   </span>
                   <code className="text-xs font-mono text-gray-700">
-                    {player.slice(0, 6)}...{player.slice(-4)}
+                    {item.player.slice(0, 6)}...{item.player.slice(-4)}
                   </code>
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
                     <div className="text-xs text-gray-500">Wins</div>
                     <div className="text-sm font-bold text-gray-900">
-                      {topPlayersByWins[1][index].toString()}
+                      {item.wins.toString()}
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-xs text-gray-500">Prize</div>
                     <div className="text-sm font-bold text-gray-900">
-                      {topPlayersByWins[2][index].toString()}
+                      {item.prize.toString()}
                     </div>
                   </div>
                 </div>
