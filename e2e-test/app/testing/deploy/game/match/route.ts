@@ -1,4 +1,4 @@
-import { deployGameMatch } from '@/sdk/src/server'
+import { deployGameMatch } from '@ohara-ai/sdk/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {

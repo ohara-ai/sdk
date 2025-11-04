@@ -1,4 +1,4 @@
-import { createServerOharaAi } from '@/sdk/src/server'
+import { createServerOharaAi } from '@ohara-ai/sdk/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {

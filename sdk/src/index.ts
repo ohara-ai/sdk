@@ -4,6 +4,9 @@ export {
   useOharaAi,
 } from './context/OharaAiProvider'
 
+// Types
+export { ContractType } from './types/contracts'
+
 export type {
   OharaAiContext,
   OharaContext,

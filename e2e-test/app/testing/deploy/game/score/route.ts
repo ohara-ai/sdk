@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deployGameScore } from '@/sdk/src/server'
+import { deployGameScore } from '@ohara-ai/sdk/server'
 
 export async function POST(request: NextRequest) {
   try {
