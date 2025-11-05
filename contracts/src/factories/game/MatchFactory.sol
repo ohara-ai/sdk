@@ -3,12 +3,16 @@ pragma solidity 0.8.23;
 
 import {Match} from "../../features/game/Match.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
  * @title MatchFactory
  * @notice Factory for deploying Match contracts
  */
 contract MatchFactory is OwnedFactory {
+    // Implementation contract for ERC-1167 clones
+    address public immutable IMPLEMENTATION;
+    
     // Default capacity limit for new deployments
     uint256 public defaultMaxActiveMatches;
     
@@ -29,6 +33,9 @@ contract MatchFactory is OwnedFactory {
     error MaxFeeExceeded();
 
     constructor() OwnedFactory(msg.sender) {
+        // Deploy implementation contract for cloning
+        IMPLEMENTATION = address(new Match());
+        
         // Initialize with default limit
         defaultMaxActiveMatches = 100;
         // Default fees can be configured via setDefaultFees after deployment
@@ -78,7 +85,7 @@ contract MatchFactory is OwnedFactory {
     }
 
     /**
-     * @notice Deploy a new Match contract
+     * @notice Deploy a new Match contract using ERC-1167 minimal proxy
      * @param _score Score contract address (address(0) if not used)
      * @return instance Address of the deployed contract
      * @dev The caller (msg.sender) will be set as the controller of the deployed contract
@@ -89,16 +96,19 @@ contract MatchFactory is OwnedFactory {
     ) external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
         
-        instance = address(
-            new Match(
-                instanceOwnerAddress,
-                msg.sender,
-                _score,
-                defaultMaxActiveMatches,
-                defaultFeeRecipients,
-                defaultFeeShares
-            )
+        // Clone the implementation contract using ERC-1167
+        instance = Clones.clone(IMPLEMENTATION);
+        
+        // Initialize the clone
+        Match(instance).initialize(
+            instanceOwnerAddress,
+            msg.sender,
+            _score,
+            defaultMaxActiveMatches,
+            defaultFeeRecipients,
+            defaultFeeShares
         );
+        
         emit MatchDeployed(instance, instanceOwnerAddress, msg.sender, _score);
     }
 }

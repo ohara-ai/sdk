@@ -38,6 +38,17 @@ abstract contract FeeCollector is Owned, ReentrancyGuard {
     constructor(address _owner) Owned(_owner) {}
 
     /**
+     * @notice Initialize owner for clones
+     * @param _owner Owner address
+     * @dev Internal function to be called by inheriting contracts during initialization
+     */
+    function _initializeFeeCollector(address _owner) internal {
+        if (_owner == address(0)) revert InvalidOwner();
+        owner = _owner;
+        emit OwnershipTransferred(address(0), _owner);
+    }
+
+    /**
      * @notice Configure fee recipients and their shares
      * @param _recipients Array of recipient addresses
      * @param _shares Array of shares in basis points (100 = 1%)

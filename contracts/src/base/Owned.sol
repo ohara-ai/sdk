@@ -22,9 +22,12 @@ abstract contract Owned {
     }
 
     constructor(address _owner) {
-        if (_owner == address(0)) revert InvalidOwner();
-        owner = _owner;
-        emit OwnershipTransferred(address(0), _owner);
+        // Allow address(0) for cloneable implementation contracts
+        // The owner will be set via initialization for clones
+        if (_owner != address(0)) {
+            owner = _owner;
+            emit OwnershipTransferred(address(0), _owner);
+        }
     }
 
     /**

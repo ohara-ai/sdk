@@ -41,11 +41,14 @@ contract MatchTest is Test {
     event MatchCancelled(uint256 indexed matchId, address[] players, uint256 refundAmount);
 
     function setUp() public {
-        vm.startPrank(owner);
         uint256 defaultMaxActiveMatches = 100; // Default limit
         address[] memory feeRecipients = new address[](0);
         uint256[] memory feeShares = new uint256[](0);
-        gameMatch = new Match(owner, controller, address(0), defaultMaxActiveMatches, feeRecipients, feeShares);
+        
+        gameMatch = new Match();
+        gameMatch.initialize(owner, controller, address(0), defaultMaxActiveMatches, feeRecipients, feeShares);
+        
+        vm.startPrank(owner);
         token = new MockERC20(1000000 ether);
         gameScore = new MockScore();
         vm.stopPrank();

@@ -4,13 +4,14 @@ pragma solidity 0.8.23;
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /**
  * @title Score
  * @notice Tracks and stores player scores from completed matches
  * @dev Implements IScore for recording results and provides query functions
  */
-contract Score is IScore, IFeature, FeatureController {
+contract Score is IScore, IFeature, FeatureController, Initializable {
     struct PlayerScore {
         address player;
         uint256 totalWins;
@@ -65,13 +66,30 @@ contract Score is IScore, IFeature, FeatureController {
     error MatchAlreadyRecorded();
     error InvalidLimit();
 
-    constructor(
+    /**
+     * @notice Empty constructor for cloneable pattern
+     * @dev Calls parent with zero addresses. The initializer modifier prevents re-initialization.
+     */
+    constructor() FeatureController(address(0), address(0)) {}
+
+    /**
+     * @notice Initialize the Score contract (replaces constructor for clones)
+     * @param _owner Owner address
+     * @param _controller Controller address
+     * @param _maxLosersPerMatch Maximum losers per match
+     * @param _maxTotalPlayers Maximum total players
+     * @param _maxTotalMatches Maximum total matches
+     */
+    function initialize(
         address _owner,
         address _controller,
         uint256 _maxLosersPerMatch,
         uint256 _maxTotalPlayers,
         uint256 _maxTotalMatches
-    ) FeatureController(_owner, _controller) {
+    ) external initializer {
+        // Initialize FeatureController (sets owner and controller)
+        _initializeFeatureController(_owner, _controller);
+        
         maxLosersPerMatch = _maxLosersPerMatch;
         maxTotalPlayers = _maxTotalPlayers;
         maxTotalMatches = _maxTotalMatches;

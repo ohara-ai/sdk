@@ -1,33 +1,7 @@
 export const SCORE_ABI = [
   {
     "type": "constructor",
-    "inputs": [
-      {
-        "name": "_owner",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_controller",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_maxLosersPerMatch",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_maxTotalPlayers",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_maxTotalMatches",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable"
   },
   {
@@ -380,6 +354,39 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
+    "name": "initialize",
+    "inputs": [
+      {
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_controller",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_maxLosersPerMatch",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_maxTotalPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_maxTotalMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "maxLosersPerMatch",
     "inputs": [],
     "outputs": [
@@ -697,6 +704,19 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
+    "name": "Initialized",
+    "inputs": [
+      {
+        "name": "version",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "LimitsUpdated",
     "inputs": [
       {
@@ -896,6 +916,11 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidInitialization",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidLimit",
     "inputs": []
   },
@@ -917,6 +942,11 @@ export const SCORE_ABI = [
   {
     "type": "error",
     "name": "NoPendingOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotInitializing",
     "inputs": []
   },
   {

@@ -7,13 +7,14 @@ import {IScore} from "../../interfaces/game/IScore.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /**
  * @title Match
  * @notice Escrow-based match system with stake management
  * @dev Allows players to create/join matches, with controller-managed activation and finalization
  */
-contract Match is IMatch, IFeature, FeatureController {
+contract Match is IMatch, IFeature, FeatureController, Initializable {
     using SafeERC20 for IERC20;
     
     uint256 private _matchIdCounter;
@@ -53,14 +54,32 @@ contract Match is IMatch, IFeature, FeatureController {
     error TooManyPlayers();
     error LimitTooHigh();
 
-    constructor(
+    /**
+     * @notice Empty constructor for cloneable pattern
+     * @dev Calls parent with zero addresses. The initializer modifier prevents re-initialization.
+     */
+    constructor() FeatureController(address(0), address(0)) {}
+
+    /**
+     * @notice Initialize the Match contract (replaces constructor for clones)
+     * @param _owner Owner address
+     * @param _controller Controller address
+     * @param _score Score contract address
+     * @param _maxActiveMatches Maximum active matches
+     * @param _feeRecipients Fee recipient addresses
+     * @param _feeShares Fee shares in basis points
+     */
+    function initialize(
         address _owner,
         address _controller,
         address _score,
         uint256 _maxActiveMatches,
         address[] memory _feeRecipients,
         uint256[] memory _feeShares
-    ) FeatureController(_owner, _controller) {
+    ) external initializer {
+        // Initialize FeatureController (sets owner and controller)
+        _initializeFeatureController(_owner, _controller);
+        
         // Initialize gamescore if provided
         if (_score != address(0)) {
             score = IScore(_score);

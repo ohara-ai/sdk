@@ -3,12 +3,16 @@ pragma solidity 0.8.23;
 
 import {Score} from "../../features/game/Score.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
+import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
  * @title ScoreFactory
  * @notice Factory for deploying Score contracts
  */
 contract ScoreFactory is OwnedFactory {
+    // Implementation contract for ERC-1167 clones
+    address public immutable IMPLEMENTATION;
+    
     // Deployment limits
     uint256 public maxLosersPerMatch;
     uint256 public maxTotalPlayers;
@@ -25,6 +29,9 @@ contract ScoreFactory is OwnedFactory {
     );
 
     constructor() OwnedFactory(msg.sender) {
+        // Deploy implementation contract for cloning
+        IMPLEMENTATION = address(new Score());
+        
         // Initialize with default limits
         maxLosersPerMatch = 50;
         maxTotalPlayers = 1000;
@@ -49,16 +56,25 @@ contract ScoreFactory is OwnedFactory {
     }
 
     /**
-     * @notice Deploy a new Score contract
+     * @notice Deploy a new Score contract using ERC-1167 minimal proxy
      * @return instance Address of the deployed contract
      * @dev The caller (msg.sender) will be set as the controller of the deployed contract
      */
     function deployScore() external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
         
-        instance = address(
-            new Score(instanceOwnerAddress, msg.sender, maxLosersPerMatch, maxTotalPlayers, maxTotalMatches)
+        // Clone the implementation contract using ERC-1167
+        instance = Clones.clone(IMPLEMENTATION);
+        
+        // Initialize the clone
+        Score(instance).initialize(
+            instanceOwnerAddress,
+            msg.sender,
+            maxLosersPerMatch,
+            maxTotalPlayers,
+            maxTotalMatches
         );
+        
         emit ScoreDeployed(instance, instanceOwnerAddress);
     }
 }

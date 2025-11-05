@@ -23,9 +23,9 @@ contract ScoreTest is Test {
     );
     
     function setUp() public {
-        vm.prank(owner);
         // Initialize with test limits matching factory defaults: 50 losers, 1000 players, 100 matches
-        score = new Score(owner, owner, 50, 1000, 100);
+        score = new Score();
+        score.initialize(owner, owner, 50, 1000, 100);
     }
     
     function test_InitialState() public view {
@@ -641,8 +641,8 @@ contract ScoreTest is Test {
 
     function test_MatchEvictionWhenAtCapacity() public {
         // Create scoreboard with small match limit
-        vm.prank(owner);
-        Score smallGameScore = new Score(owner, owner, 50, 1000, 3); // Only 3 matches
+        Score smallGameScore = new Score();
+        smallGameScore.initialize(owner, owner, 50, 1000, 3); // Only 3 matches
         
         vm.prank(owner);
         smallGameScore.setRecorderAuthorization(recorder, true);
@@ -678,8 +678,8 @@ contract ScoreTest is Test {
 
     function test_PlayerEvictionWhenAtCapacity() public {
         // Create scoreboard with small player limit
-        vm.prank(owner);
-        Score smallGameScore = new Score(owner, owner, 50, 3, 1000); // Only 3 players
+        Score smallGameScore = new Score();
+        smallGameScore.initialize(owner, owner, 50, 3, 1000); // Only 3 players
         
         vm.prank(owner);
         smallGameScore.setRecorderAuthorization(recorder, true);
@@ -723,8 +723,8 @@ contract ScoreTest is Test {
 
     function test_PlayerEvictionTieBreaker() public {
         // Create scoreboard with small player limit
-        vm.prank(owner);
-        Score smallGameScore = new Score(owner, owner, 50, 3, 1000);
+        Score smallGameScore = new Score();
+        smallGameScore.initialize(owner, owner, 50, 3, 1000);
         
         vm.prank(owner);
         smallGameScore.setRecorderAuthorization(recorder, true);
