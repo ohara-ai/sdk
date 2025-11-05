@@ -33,4 +33,8 @@ contract MockScore is IScore {
     function getResult(uint256 index) external view returns (MatchResult memory) {
         return results[index];
     }
+
+    function recordMatchCalled() external view returns (bool) {
+        return results.length > 0;
+    }
 }
