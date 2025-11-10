@@ -23,16 +23,22 @@ npm install
 ./bin/setup-npmrc
 ```
 
+### Start the test app
+
+```bash
+./bin/start
+```
+
 ### Run tests
 
 ```bash
 ./bin/test
 ```
 
-### Start the test app
+### Publish a new version of the SDK (patch|minor|major) with automated version bump, build, test, and git commit + push
 
 ```bash
-./bin/start
+./bin/publish patch "Some commit message"
 ```
 
 ## Key Features

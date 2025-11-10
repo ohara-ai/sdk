@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 anvil &
-cp .env.anvil .env
+cp .env.dev .env
 cp e2e-test/.env.example e2e-test/.env
 npm run e2e:install
 npm run e2e:setup
