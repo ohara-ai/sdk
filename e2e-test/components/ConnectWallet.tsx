@@ -48,7 +48,7 @@ export function ConnectWallet() {
   }
 
   if (isConnected && address) {
-    const isWrongChain = chain?.id !== 31337 && chain?.id !== 1337
+    const isWrongChain = chain?.id !== 31337
     
     return (
       <div className="flex flex-col items-end gap-2">
