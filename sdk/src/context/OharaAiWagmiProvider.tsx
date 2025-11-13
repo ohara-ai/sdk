@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
 import { OharaAiProvider } from './OharaAiProvider'
 
@@ -35,15 +35,22 @@ interface OharaAiWagmiProviderProps {
  * ```
  */
 export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
+  const [isHydrated, setIsHydrated] = useState(false)
+  
+  // Defer hook subscriptions until after hydration to prevent setState-during-render warnings
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+  
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   const chainId = useChainId()
 
   return (
     <OharaAiProvider 
-      publicClient={publicClient as any}
-      walletClient={(walletClient || undefined) as any}
-      chainId={chainId}
+      publicClient={isHydrated ? publicClient as any : undefined}
+      walletClient={isHydrated ? (walletClient || undefined) as any : undefined}
+      chainId={isHydrated ? chainId : undefined}
     >
       {children}
     </OharaAiProvider>
