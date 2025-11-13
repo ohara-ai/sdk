@@ -2,16 +2,55 @@ import { setContractAddress } from '../storage/contractStorage'
 import { SCORE_FACTORY_ABI } from '../abis/game/scoreFactory'
 import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
+import { OharaApiClient, getOharaApiClient } from '../server/oharaApiClient'
 
 export interface GameScoreDeployParams {
 }
 
 /**
  * Deploy a GameScore contract instance
+ * Supports both direct on-chain and Ohara API modes
  */
 export async function deployGameScore(
   _params: GameScoreDeployParams
 ): Promise<DeploymentResult> {
+  // Check if we're in API mode
+  if (OharaApiClient.isConfigured()) {
+    const apiClient = getOharaApiClient()
+    
+    // Get chain ID from RPC
+    const config = await getDeploymentConfig()
+    const { publicClient } = createDeploymentClients(config)
+    const chainId = await publicClient.getChainId()
+    
+    // Deploy via Ohara API
+    const result = await apiClient.deployContract({
+      factoryType: 'ScoreFactory',
+      chainId,
+    })
+    
+    // Wait for transaction confirmation
+    const status = await apiClient.waitForTransaction(result.txHash)
+    
+    if (status.status === 'FAILED') {
+      throw new Error(`Deployment failed: ${status.errorMessage || 'Unknown error'}`)
+    }
+    
+    // Save to storage
+    try {
+      await setContractAddress(chainId, 'game', 'score', result.contractAddress)
+    } catch (storageError) {
+      console.error('Failed to save address to backend storage:', storageError)
+    }
+    
+    return {
+      success: true,
+      address: result.contractAddress,
+      transactionHash: result.txHash,
+    }
+  }
+  
+  // Direct on-chain mode
   const config = await getDeploymentConfig()
   const { walletClient, publicClient, account } = createDeploymentClients(config)
 

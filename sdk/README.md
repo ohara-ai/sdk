@@ -121,6 +121,41 @@ function GameComponent() {
 
 The SDK has separate entry points for client and server code to prevent Node.js-specific modules (like `fs`) from being bundled in client-side code.
 
+### Operation Modes
+
+The SDK supports two modes for server-side operations:
+
+1. **Direct On-Chain Mode** (Default): Uses a controller private key to execute transactions directly
+2. **Ohara API Mode**: Uses Ohara's managed API for deployments and controller operations
+
+#### Direct On-Chain Mode
+
+In this mode, the SDK executes transactions directly using a controller private key stored locally. This is the default mode when `OHARA_CONTROLLER_TOKEN` is not set.
+
+```bash
+# Controller private key is stored in ohara-ai-data/keys.json
+# RPC_URL determines which network to use
+RPC_URL=http://localhost:8545
+```
+
+#### Ohara API Mode
+
+In this mode, the SDK delegates controller operations (activate, finalize, deployments) to the Ohara API. This is useful for managed deployments and production environments.
+
+```bash
+# Enable Ohara API mode by setting these variables:
+OHARA_CONTROLLER_TOKEN=your_token_here
+OHARA_API_URL=https://api.ohara.ai
+
+# The controller address will be automatically fetched from the API
+```
+
+When Ohara API mode is enabled:
+- `activate()` and `finalize()` operations are executed via the API
+- `deployGameMatch()` and `deployGameScore()` use the API for deployments
+- The controller address is fetched from `/v2/miniapp-controller/wallet`
+- Transaction status can be tracked via the API
+
 ### Entry Points
 
 #### Client Entry Point: `@ohara-ai/sdk`
@@ -289,13 +324,35 @@ interface OharaAiContext {
 
 ## Environment Variables
 
+### Required Variables
+
 ```bash
+# RPC URL for blockchain network
+RPC_URL=http://localhost:8545
+
 # GameMatchFactory contract address
 NEXT_PUBLIC_GAME_MATCH_FACTORY=0x...
 
 # GameScoreFactory contract address
 NEXT_PUBLIC_GAME_SCORE_FACTORY=0x...
 ```
+
+### Ohara API Mode (Optional)
+
+To enable managed deployments via Ohara API:
+
+```bash
+# Ohara API authentication token
+OHARA_CONTROLLER_TOKEN=your_token_here
+
+# Ohara API base URL
+OHARA_API_URL=https://api.ohara.ai
+```
+
+When both `OHARA_CONTROLLER_TOKEN` and `OHARA_API_URL` are set, the SDK automatically switches to API mode for:
+- Controller operations (`activate`, `finalize`)
+- Contract deployments (`deployGameMatch`, `deployGameScore`)
+- Controller address resolution
 
 ## Key Features
 

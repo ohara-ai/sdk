@@ -1,0 +1,195 @@
+import { Address, Hash } from 'viem'
+
+/**
+ * Ohara API Client - Server-side only
+ * Handles communication with the Ohara Controller API for managed deployments and operations
+ */
+
+// Request/Response Types
+export interface WalletInfo {
+  address: Address
+  balance: string
+  lastFundedAt?: string
+}
+
+export interface DeployContractRequest {
+  factoryType: 'MatchFactory' | 'ScoreFactory'
+  scoreAddress?: string
+  chainId: number
+}
+
+export interface DeployContractResponse {
+  contractAddress: Address
+  txHash: Hash
+  contractType: 'Match' | 'Score'
+  deploymentId: string
+}
+
+export interface ExecuteContractFunctionRequest {
+  contractAddress: Address
+  functionName: string
+  params: Record<string, unknown>
+  chainId: number
+}
+
+export interface ExecuteContractFunctionResponse {
+  txHash: Hash
+  transactionId: string
+  status: string
+}
+
+export interface TransactionStatus {
+  txHash: Hash
+  status: 'PENDING' | 'CONFIRMED' | 'FAILED'
+  gasUsed?: string
+  errorMessage?: string
+  createdAt: string
+}
+
+export class OharaApiClient {
+  private baseUrl: string
+  private token: string
+
+  constructor(baseUrl?: string, token?: string) {
+    this.baseUrl = baseUrl || process.env.OHARA_API_URL || ''
+    this.token = token || process.env.OHARA_CONTROLLER_TOKEN || ''
+    
+    if (!this.baseUrl) {
+      throw new Error('OHARA_API_URL environment variable is required when using Ohara API mode')
+    }
+    
+    if (!this.token) {
+      throw new Error('OHARA_CONTROLLER_TOKEN environment variable is required when using Ohara API mode')
+    }
+  }
+
+  /**
+   * Check if the API client is configured (both token and URL are set)
+   */
+  static isConfigured(): boolean {
+    return !!(process.env.OHARA_CONTROLLER_TOKEN && process.env.OHARA_API_URL)
+  }
+
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown
+  ): Promise<T> {
+    const url = `${this.baseUrl}${path}`
+    
+    const headers: HeadersInit = {
+      'Authorization': `Bearer ${this.token}`,
+      'Content-Type': 'application/json',
+    }
+
+    const options: RequestInit = {
+      method,
+      headers,
+    }
+
+    if (body) {
+      options.body = JSON.stringify(body)
+    }
+
+    const response = await fetch(url, options)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(
+        `Ohara API request failed: ${response.status} ${response.statusText} - ${errorText}`
+      )
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Get the controller wallet information
+   */
+  async getWallet(): Promise<WalletInfo> {
+    return this.request<WalletInfo>('GET', '/v2/miniapp-controller/wallet')
+  }
+
+  /**
+   * Deploy a contract via the Ohara API
+   */
+  async deployContract(request: DeployContractRequest): Promise<DeployContractResponse> {
+    return this.request<DeployContractResponse>(
+      'POST',
+      '/v2/miniapp-controller/deploy',
+      request
+    )
+  }
+
+  /**
+   * Execute a contract function via the Ohara API
+   */
+  async executeContractFunction(
+    request: ExecuteContractFunctionRequest
+  ): Promise<ExecuteContractFunctionResponse> {
+    return this.request<ExecuteContractFunctionResponse>(
+      'POST',
+      '/v2/miniapp-controller/execute',
+      request
+    )
+  }
+
+  /**
+   * Get transaction status
+   */
+  async getTransactionStatus(txHash: Hash): Promise<TransactionStatus> {
+    return this.request<TransactionStatus>(
+      'GET',
+      `/v2/miniapp-controller/transaction/${txHash}`
+    )
+  }
+
+  /**
+   * Wait for a transaction to be confirmed or failed
+   * Polls the transaction status until it's no longer pending
+   */
+  async waitForTransaction(
+    txHash: Hash,
+    options: {
+      pollingInterval?: number
+      timeout?: number
+    } = {}
+  ): Promise<TransactionStatus> {
+    const pollingInterval = options.pollingInterval || 2000 // 2 seconds
+    const timeout = options.timeout || 60000 // 60 seconds
+    const startTime = Date.now()
+
+    while (true) {
+      const status = await this.getTransactionStatus(txHash)
+
+      if (status.status !== 'PENDING') {
+        return status
+      }
+
+      if (Date.now() - startTime > timeout) {
+        throw new Error(`Transaction ${txHash} timed out after ${timeout}ms`)
+      }
+
+      await new Promise(resolve => setTimeout(resolve, pollingInterval))
+    }
+  }
+}
+
+/**
+ * Get or create singleton Ohara API client instance
+ */
+let clientInstance: OharaApiClient | null = null
+
+export function getOharaApiClient(): OharaApiClient {
+  if (!clientInstance) {
+    clientInstance = new OharaApiClient()
+  }
+  return clientInstance
+}
+
+/**
+ * Clear the cached client instance
+ */
+export function clearOharaApiClient() {
+  clientInstance = null
+}

@@ -6,6 +6,7 @@ import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } 
 import type { DeploymentResult } from './deploymentService'
 import { privateKeyToAccount } from 'viem/accounts'
 import { createWalletClient, http } from 'viem'
+import { OharaApiClient, getOharaApiClient } from '../server/oharaApiClient'
 
 export interface GameMatchDeployParams {
   gameScoreAddress?: `0x${string}`
@@ -16,13 +17,11 @@ export interface GameMatchDeployParams {
 
 /**
  * Deploy a GameMatch contract instance
+ * Supports both direct on-chain and Ohara API modes
  */
 export async function deployGameMatch(
   params: GameMatchDeployParams
 ): Promise<DeploymentResult> {
-  const config = await getDeploymentConfig()
-  const { walletClient, publicClient, account } = createDeploymentClients(config)
-
   // Use provided gameScoreAddress or default to zero address
   const gameScoreAddress = params.gameScoreAddress || '0x0000000000000000000000000000000000000000'
 
@@ -35,6 +34,61 @@ export async function deployGameMatch(
     feeRecipients = params.feeRecipients
     feeShares = params.feeShares.map((s: string) => BigInt(s))
   }
+
+  // Check if we're in API mode
+  if (OharaApiClient.isConfigured()) {
+    const apiClient = getOharaApiClient()
+    
+    // Get chain ID from RPC
+    const config = await getDeploymentConfig()
+    const { publicClient } = createDeploymentClients(config)
+    const chainId = await publicClient.getChainId()
+    
+    // Deploy via Ohara API
+    const result = await apiClient.deployContract({
+      factoryType: 'MatchFactory',
+      scoreAddress: gameScoreAddress !== '0x0000000000000000000000000000000000000000' 
+        ? gameScoreAddress 
+        : undefined,
+      chainId,
+    })
+    
+    // Wait for transaction confirmation
+    const status = await apiClient.waitForTransaction(result.txHash)
+    
+    if (status.status === 'FAILED') {
+      throw new Error(`Deployment failed: ${status.errorMessage || 'Unknown error'}`)
+    }
+    
+    const deployedAddress = result.contractAddress
+    
+    // Configure fees if provided (note: in API mode, this still needs direct access)
+    // This is a limitation - fee configuration typically requires owner privileges
+    if (feeRecipients.length > 0 && feeShares.length > 0) {
+      console.warn('Fee configuration in API mode requires direct contract access. Skipping...')
+      // TODO: Add API endpoint for fee configuration if needed
+    }
+    
+    // Note: Authorization is typically handled by the API backend
+    // The deployed contract should already be authorized if needed
+    
+    // Save to storage
+    try {
+      await setContractAddress(chainId, 'game', 'match', deployedAddress)
+    } catch (storageError) {
+      console.error('Failed to save address to backend storage:', storageError)
+    }
+    
+    return {
+      success: true,
+      address: deployedAddress,
+      transactionHash: result.txHash,
+    }
+  }
+
+  // Direct on-chain mode
+  const config = await getDeploymentConfig()
+  const { walletClient, publicClient, account } = createDeploymentClients(config)
 
   // Deploy the contract
   const hash = await walletClient.writeContract({

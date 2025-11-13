@@ -1,5 +1,6 @@
 import { PublicClient, WalletClient, Address, Hash } from 'viem'
 import { MATCH_ABI } from '../../abis/game/match'
+import type { OharaApiClient } from '../../server/oharaApiClient'
 
 /**
  * Match primitive - Core on-chain match operations
@@ -138,23 +139,29 @@ export function createClientMatchOperations(
 export function createOperations(
   contractAddress: Address,
   publicClient: PublicClient,
-  walletClient?: undefined
+  walletClient?: undefined,
+  oharaApiClient?: undefined,
+  chainId?: undefined
 ): MatchOperations
 
 // Overload: with wallet client, returns server operations (includes activate/finalize)
 export function createOperations(
   contractAddress: Address,
   publicClient: PublicClient,
-  walletClient: WalletClient
+  walletClient?: WalletClient,
+  oharaApiClient?: OharaApiClient,
+  chainId?: number
 ): ServerMatchOperations
 
 // Implementation
 export function createOperations(
   contractAddress: Address,
   publicClient: PublicClient,
-  walletClient?: WalletClient
+  walletClient?: WalletClient,
+  oharaApiClient?: OharaApiClient,
+  chainId?: number
 ): MatchOperations | ServerMatchOperations {
-  return createOperationsInternal(contractAddress, publicClient, walletClient, true)
+  return createOperationsInternal(contractAddress, publicClient, walletClient, true, oharaApiClient, chainId)
 }
 
 /**
@@ -164,7 +171,9 @@ function createOperationsInternal(
   contractAddress: Address,
   publicClient: PublicClient,
   walletClient?: WalletClient,
-  includeServerOps: boolean = true
+  includeServerOps: boolean = true,
+  oharaApiClient?: OharaApiClient,
+  chainId?: number
 ): MatchOperations | ServerMatchOperations {
   if (!publicClient) {
     throw new Error('PublicClient is required for match operations')
@@ -358,6 +367,26 @@ function createOperationsInternal(
     ...baseOperations,
 
     async activate(matchId: bigint) {
+      // If API mode is enabled, use Ohara API
+      if (oharaApiClient && chainId) {
+        const result = await oharaApiClient.executeContractFunction({
+          contractAddress,
+          functionName: 'activate',
+          params: { matchId: matchId.toString() },
+          chainId,
+        })
+        
+        // Wait for transaction confirmation
+        const status = await oharaApiClient.waitForTransaction(result.txHash)
+        
+        if (status.status === 'FAILED') {
+          throw new Error(`Transaction failed: ${status.errorMessage || 'Unknown error'}`)
+        }
+        
+        return result.txHash
+      }
+      
+      // Otherwise, use direct on-chain execution
       const wallet = requireWallet()
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
@@ -373,6 +402,29 @@ function createOperationsInternal(
     },
 
     async finalize(matchId: bigint, winner: Address) {
+      // If API mode is enabled, use Ohara API
+      if (oharaApiClient && chainId) {
+        const result = await oharaApiClient.executeContractFunction({
+          contractAddress,
+          functionName: 'finalize',
+          params: { 
+            matchId: matchId.toString(),
+            winner: winner 
+          },
+          chainId,
+        })
+        
+        // Wait for transaction confirmation
+        const status = await oharaApiClient.waitForTransaction(result.txHash)
+        
+        if (status.status === 'FAILED') {
+          throw new Error(`Transaction failed: ${status.errorMessage || 'Unknown error'}`)
+        }
+        
+        return result.txHash
+      }
+      
+      // Otherwise, use direct on-chain execution
       const wallet = requireWallet()
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')

@@ -22,6 +22,19 @@ export {
   type ServerOharaAiContext,
 } from './server/createServerContext'
 
+// Ohara API Client (for managed deployments and function calls)
+export {
+  OharaApiClient,
+  getOharaApiClient,
+  clearOharaApiClient,
+  type WalletInfo,
+  type DeployContractRequest,
+  type DeployContractResponse,
+  type ExecuteContractFunctionRequest,
+  type ExecuteContractFunctionResponse,
+  type TransactionStatus,
+} from './server/oharaApiClient'
+
 // Server-only types
 export {
   type ServerMatchOperations,
