@@ -9,18 +9,16 @@ You can test the features of contracts and SDK using tests and the `e2e-test` ap
 ### Prerequisites
 - Node.js 18+
 - npm or yarn
+- [Doppler](https://docs.doppler.com/docs)
 - Foundry - for Solidity development and local e2e-test app
 ```bash
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
-- Doppler
-We use [Doppler](https://docs.doppler.com/docs) to manage environment variables. Make sure you have an account, install the CLI, and run `doppler setup` selecting the `sdk` project.
-```bash
-doppler setup
 
-npm install
-./bin/setup-npmrc
+### Setup
+```bash
+./bin/setup
 ```
 
 ### Start the test app

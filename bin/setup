@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+doppler setup
+
+npm install
+
+./bin/setup-npmrc

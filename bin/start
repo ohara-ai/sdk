@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+npm install
+npm run forge:build
 
 anvil &
 cp .env.dev .env
 cp e2e-test/.env.example e2e-test/.env
 npm run e2e:install
 npm run e2e:setup
-npm run e2e:dev
+doppler run -- npm run e2e:dev
