@@ -115,17 +115,19 @@ describe('OharaAi Context - Specification Tests', () => {
   })
 
   describe('Specification: AppContext Structure', () => {
-    it('SPEC: AppContext - has coin and controller properties', () => {
+    it('SPEC: AppContext - has coin, controller, and chainId properties', () => {
       const context: AppContext = {
         coin: {},
         controller: {},
+        chainId: 31337,
       }
 
       expect(context).toHaveProperty('coin')
       expect(context).toHaveProperty('controller')
+      expect(context).toHaveProperty('chainId')
     })
 
-    it('SPEC: AppContext - addresses are optional', () => {
+    it('SPEC: AppContext - addresses and chainId are optional', () => {
       const context: AppContext = {
         coin: {
           address: '0x1111111111111111111111111111111111111111',
@@ -133,13 +135,15 @@ describe('OharaAi Context - Specification Tests', () => {
         controller: {
           address: '0x2222222222222222222222222222222222222222',
         },
+        chainId: 1,
       }
 
       expect(context.coin.address).toBeDefined()
       expect(context.controller.address).toBeDefined()
+      expect(context.chainId).toBe(1)
     })
 
-    it('SPEC: AppContext - can exist without addresses', () => {
+    it('SPEC: AppContext - can exist without addresses or chainId', () => {
       const context: AppContext = {
         coin: {},
         controller: {},
@@ -147,27 +151,25 @@ describe('OharaAi Context - Specification Tests', () => {
 
       expect(context.coin.address).toBeUndefined()
       expect(context.controller.address).toBeUndefined()
+      expect(context.chainId).toBeUndefined()
     })
   })
 
   describe('Specification: InternalContext Structure', () => {
-    it('SPEC: InternalContext - has chainId and factories', () => {
+    it('SPEC: InternalContext - has factories', () => {
       const context: InternalContext = {
-        chainId: 31337,
         factories: {
           gameMatch: '0x1234567890123456789012345678901234567890',
           gameScore: '0x9876543210987654321098765432109876543210',
         },
       }
 
-      expect(context.chainId).toBe(31337)
       expect(context.factories).toBeDefined()
     })
 
     it('SPEC: InternalContext - all fields are optional', () => {
       const context: InternalContext = {}
 
-      expect(context.chainId).toBeUndefined()
       expect(context.factories).toBeUndefined()
     })
 
@@ -227,9 +229,9 @@ describe('OharaAi Context - Specification Tests', () => {
           controller: {
             address: '0xCONTROL000000000000000000000000000000',
           },
+          chainId: 1,
         },
         internal: {
-          chainId: 1,
           factories: {
             gameMatch: '0xFACTORY1000000000000000000000000000',
             gameScore: '0xFACTORY2000000000000000000000000000',
@@ -243,7 +245,7 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(context.game.scores.address).toBeDefined()
       expect(context.app.coin.address).toBeDefined()
       expect(context.app.controller.address).toBeDefined()
-      expect(context.internal.chainId).toBe(1)
+      expect(context.app.chainId).toBe(1)
       expect(context.internal.factories?.gameMatch).toBeDefined()
       expect(context.internal.factories?.gameScore).toBeDefined()
     })
@@ -262,7 +264,7 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(context.game.scores.address).toBeUndefined()
       expect(context.app.coin.address).toBeUndefined()
       expect(context.app.controller.address).toBeUndefined()
-      expect(context.internal.chainId).toBeUndefined()
+      expect(context.app.chainId).toBeUndefined()
     })
   })
 

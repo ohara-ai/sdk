@@ -57,12 +57,12 @@ export interface AppContext {
   controller: {
     address?: Address
   }
+  /** Chain ID */
+  chainId?: number
 }
 
 // Internal configuration and services
 export interface InternalContext {
-  /** Chain ID */
-  chainId?: number
   /** Factory contract addresses */
   factories?: {
     gameMatch?: Address

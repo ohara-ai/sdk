@@ -149,15 +149,15 @@ export function OharaAiProvider({
     controller: {
       address: controllerAddress,
     },
-  }), [env, controllerAddress])
+    chainId: effectiveChainId,
+  }), [env, controllerAddress, effectiveChainId])
   
   const internal = useMemo<InternalContext>(() => ({
-    chainId: effectiveChainId,
     factories: {
       gameMatch: gameMatchFactory,
       gameScore: gameScoreFactory,
     },
-  }), [effectiveChainId, gameMatchFactory, gameScoreFactory])
+  }), [gameMatchFactory, gameScoreFactory])
  
   const value: OharaAiContext = {
     ohara,

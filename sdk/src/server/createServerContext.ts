@@ -55,7 +55,7 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
   const targetChainId = chainId || (await getChainIdFromRPC())
   
   // Return cached context if same chain
-  if (cachedContext && cachedContext.internal.chainId === targetChainId) {
+  if (cachedContext && cachedContext.app.chainId === targetChainId) {
     return cachedContext
   }
   
@@ -153,10 +153,10 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
     controller: {
       address: controllerAddress,
     },
+    chainId: targetChainId,
   }
   
   const internal: InternalContext = {
-    chainId: targetChainId,
     factories: {
       gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as Address | undefined,
       gameScore: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as Address | undefined,
