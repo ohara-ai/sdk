@@ -32,11 +32,6 @@ export {
   type TopPlayersResult,
 } from './core/game/scores'
 
-export {
-  type AppOperations,
-  type AppConfig,
-} from './core/app'
-
 // Hooks
 export {
   useTokenApproval,
