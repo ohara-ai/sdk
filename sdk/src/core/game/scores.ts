@@ -68,7 +68,7 @@ export interface ScoreOperations {
 /**
  * Create Score operations for a specific GameScore contract
  */
-export function createScoreOperations(
+export function createClientScoreOperations(
   contractAddress: Address,
   publicClient: PublicClient
 ): ScoreOperations {

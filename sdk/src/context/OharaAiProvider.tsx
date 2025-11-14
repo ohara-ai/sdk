@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode, useEffect, useMemo } from 'react'
 import { PublicClient, WalletClient, Address } from 'viem'
 import { createClientMatchOperations } from '../core/game/match'
-import { createScoreOperations } from '../core/game/scores'
+import { createClientScoreOperations as createClientScoreOperations } from '../core/game/scores'
 import { OharaAiContext, GameContext, AppContext, OharaContext, InternalContext } from './OharaAiContext'
 
 const OharaAiContextInstance = createContext<OharaAiContext | undefined>(undefined)
@@ -135,7 +135,7 @@ export function OharaAiProvider({
     scores: {
       address: gameScoreAddress,
       operations: gameScoreAddress && effectivePublicClient
-        ? createScoreOperations(gameScoreAddress, effectivePublicClient)
+        ? createClientScoreOperations(gameScoreAddress, effectivePublicClient)
         : undefined,
     },
   }), [gameMatchAddress, gameScoreAddress, effectivePublicClient, effectiveWalletClient])

@@ -1,7 +1,7 @@
 import { createPublicClient, createWalletClient, http, PublicClient, WalletClient, Address } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { createOperations } from '../core/game/match'
-import { createScoreOperations } from '../core/game/scores'
+import { createClientScoreOperations } from '../core/game/scores'
 import { getContracts, getControllerKey, getControllerAddress } from '../storage/contractStorage'
 import type { ServerGameContext, AppContext, OharaContext, InternalContext } from '../context/OharaAiContext'
 import { OharaApiClient, getOharaApiClient } from './oharaApiClient'
@@ -121,7 +121,7 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
     scores: {
       address: addresses.game?.score as Address | undefined,
       operations: addresses.game?.score
-        ? createScoreOperations(addresses.game.score as Address, publicClient)
+        ? createClientScoreOperations(addresses.game.score as Address, publicClient)
         : undefined,
     },
   }

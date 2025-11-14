@@ -2,9 +2,9 @@
 npm install
 npm run forge:build
 
-anvil &
+anvil --host 0.0.0.0 &
 cp .env.dev .env
-cp e2e-test/.env.example e2e-test/.env
+[ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
 npm run e2e:install
 npm run e2e:setup
 doppler run -- npm run e2e:dev
