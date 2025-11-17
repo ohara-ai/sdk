@@ -142,8 +142,8 @@ export class OharaApiClient {
    */
   async executeContractFunction(
     request: ExecuteContractFunctionRequest
-  ): Promise<ExecuteContractFunctionResponse> {
-    return this.request<ExecuteContractFunctionResponse>(
+  ): Promise<ApiResponse<ExecuteContractFunctionResponse>> {
+    return this.request<ApiResponse<ExecuteContractFunctionResponse>>(
       'POST',
       '/v2/miniapp-controller/execute',
       request

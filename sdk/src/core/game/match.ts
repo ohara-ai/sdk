@@ -377,13 +377,13 @@ function createOperationsInternal(
         })
         
         // Wait for transaction confirmation
-        const status = await oharaApiClient.waitForTransaction(result.txHash)
+        const status = await oharaApiClient.waitForTransaction(result.data.txHash)
         
         if (status.status === 'FAILED') {
           throw new Error(`Transaction failed: ${status.errorMessage || 'Unknown error'}`)
         }
         
-        return result.txHash
+        return result.data.txHash
       }
       
       // Otherwise, use direct on-chain execution
@@ -415,13 +415,13 @@ function createOperationsInternal(
         })
         
         // Wait for transaction confirmation
-        const status = await oharaApiClient.waitForTransaction(result.txHash)
+        const status = await oharaApiClient.waitForTransaction(result.data.txHash)
         
         if (status.status === 'FAILED') {
           throw new Error(`Transaction failed: ${status.errorMessage || 'Unknown error'}`)
         }
         
-        return result.txHash
+        return result.data.txHash
       }
       
       // Otherwise, use direct on-chain execution
