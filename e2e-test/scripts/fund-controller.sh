@@ -27,39 +27,9 @@ if [ -z "$RPC_URL" ]; then
   exit 1
 fi
 
-# Get or create controller address using SDK's getControllerAddress
-# This will generate and store a new key if one doesn't exist
-echo "🔑 Getting controller address from SDK..."
-CONTROLLER_ADDRESS=$(node -e "
-  // Set the NODE_PATH to include the project's node_modules
-  process.env.NODE_PATH = process.env.NODE_PATH 
-    ? process.env.NODE_PATH + ':' + process.cwd() + '/node_modules'
-    : process.cwd() + '/node_modules';
-  require('module').Module._initPaths();
-
-  try {
-    // Use the controller script which handles the server-only logic
-    const { getControllerAddress } = require('@ohara-ai/sdk/scripts/controller');
-    
-    getControllerAddress()
-      .then(address => {
-        if (!address) {
-          console.error('❌ No controller address found');
-          process.exit(1);
-        }
-        console.log(address);
-        process.exit(0);
-      })
-      .catch(error => {
-        console.error('❌ Error getting controller address:', error.message);
-        process.exit(1);
-      });
-  } catch (error) {
-    console.error('❌ Failed to load SDK:', error.message);
-    console.error('Make sure @ohara-ai/sdk is installed as a dependency');
-    process.exit(1);
-  }
-")
+# Get controller address - checks for API mode first, falls back to local SDK
+echo "🔑 Getting controller address..."
+CONTROLLER_ADDRESS=$(node ../sdk/scripts/get-controller-address.js)
 
 echo "📍 Controller address: $CONTROLLER_ADDRESS"
 echo "💰 Sending 10 ETH from Anvil default account..."

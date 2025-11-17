@@ -1,6 +1,6 @@
 {
   "name": "@ohara-ai/sdk",
-  "version": "0.8.9",
+  "version": "0.8.10",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -19,6 +19,10 @@
     "./scripts/controller": {
       "import": "./scripts/controller.js",
       "require": "./scripts/controller.js"
+    },
+    "./scripts/get-controller-address": {
+      "import": "./scripts/get-controller-address.js",
+      "require": "./scripts/get-controller-address.js"
     },
     "./styles.css": "./dist/styles.css"
   },
