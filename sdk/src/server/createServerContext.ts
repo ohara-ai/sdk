@@ -126,25 +126,8 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
     },
   }
   
-  // Get controller address
-  let controllerAddress: Address | undefined
-  
-  if (isApiMode && oharaApiClient) {
-    // In API mode, fetch controller address from Ohara API
-    try {
-      const walletInfo = await oharaApiClient.getWallet()
-      controllerAddress = walletInfo.address
-    } catch (error) {
-      console.error('Failed to fetch controller address from Ohara API:', error)
-    }
-  } else {
-    // In direct mode, get controller address from storage (derived from private key)
-    try {
-      controllerAddress = await getControllerAddress()
-    } catch (error) {
-      console.error('Failed to derive controller address from storage:', error)
-    }
-  }
+  // Get controller address (automatically handles both API mode and direct mode)
+  const controllerAddress = await getControllerAddress(oharaApiClient)
   
   const app: AppContext = {
     coin: {

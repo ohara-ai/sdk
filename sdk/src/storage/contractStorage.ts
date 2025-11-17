@@ -2,6 +2,7 @@ import fs from 'fs/promises'
 import path from 'path'
 import { privateKeyToAccount } from 'viem/accounts'
 import { Address } from 'viem'
+import type { OharaApiClient } from '../server/oharaApiClient'
 
 const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
 const CONTRACTS_PATH = path.join(STORAGE_DIR, 'contracts.json')
@@ -133,7 +134,19 @@ export async function getControllerKey(): Promise<string> {
   return newPrivateKey
 }
 
-export async function getControllerAddress(): Promise<Address | undefined> {
+export async function getControllerAddress(oharaApiClient?: OharaApiClient): Promise<Address | undefined> {
+  // If API client is provided, fetch controller address from Ohara API
+  if (oharaApiClient) {
+    try {
+      const walletInfo = await oharaApiClient.getWallet()
+      return walletInfo.address
+    } catch (error) {
+      console.error('Failed to fetch controller address from Ohara API:', error)
+      return undefined
+    }
+  }
+
+  // Otherwise, derive controller address from stored private key
   const privateKey = await getControllerKey()
   if (!privateKey) return undefined
 
