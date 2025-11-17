@@ -357,8 +357,8 @@ function createOperationsInternal(
     },
   }
 
-  // If no wallet client provided or client-only mode, return base operations only
-  if (!walletClient || !includeServerOps) {
+  // If no wallet client AND no API client provided, or client-only mode, return base operations only
+  if ((!walletClient && !oharaApiClient) || !includeServerOps) {
     return baseOperations
   }
 

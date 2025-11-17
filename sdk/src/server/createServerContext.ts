@@ -65,6 +65,7 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
   
   if (isApiMode) {
     oharaApiClient = getOharaApiClient()
+    console.log('Ohara API client configured:', oharaApiClient)
   }
   
   // Create clients
