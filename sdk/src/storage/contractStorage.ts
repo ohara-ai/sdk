@@ -147,7 +147,7 @@ export async function getControllerAddress(): Promise<Address | undefined> {
     try {
       const walletInfo = await oharaApiClient.getWallet()
       console.log('Wallet info from Ohara API:', JSON.stringify(walletInfo))
-      return walletInfo.address
+      return walletInfo.data.address
     } catch (error) {
       console.error('Failed to fetch controller address from Ohara API:', error)
       return undefined

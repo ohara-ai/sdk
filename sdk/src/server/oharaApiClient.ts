@@ -122,8 +122,8 @@ export class OharaApiClient {
   /**
    * Get the controller wallet information
    */
-  async getWallet(): Promise<WalletInfo> {
-    return this.request<WalletInfo>('GET', '/v2/miniapp-controller/wallet')
+  async getWallet(): Promise<ApiResponse<WalletInfo>> {
+    return this.request<ApiResponse<WalletInfo>>('GET', '/v2/miniapp-controller/wallet')
   }
 
   /**
