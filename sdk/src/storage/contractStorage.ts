@@ -110,6 +110,9 @@ export async function setContractAddress(
 // Keys accessors and storage
 
 export async function getControllerKey(): Promise<string> {
+  if (OharaApiClient.isConfigured()) {
+    throw new Error('Controller key is not available in API mode')
+  }
   const key = await getKey('controller')
   
   if (key) return key

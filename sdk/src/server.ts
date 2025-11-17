@@ -7,7 +7,6 @@ export type { DeploymentResult } from './deployment/deploymentService'
 // Storage (server-side only)
 export {
   getContracts,
-  getControllerKey,
   getControllerAddress,
   type ContractAddresses,
   type OharaContracts,
