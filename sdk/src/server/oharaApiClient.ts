@@ -153,8 +153,8 @@ export class OharaApiClient {
   /**
    * Get transaction status
    */
-  async getTransactionStatus(txHash: Hash): Promise<TransactionStatus> {
-    return this.request<TransactionStatus>(
+  async getTransactionStatus(txHash: Hash): Promise<ApiResponse<TransactionStatus>> {
+    return this.request<ApiResponse<TransactionStatus>>(
       'GET',
       `/v2/miniapp-controller/transaction/${txHash}`
     )
@@ -176,8 +176,9 @@ export class OharaApiClient {
     const startTime = Date.now()
 
     while (true) {
-      const status = await this.getTransactionStatus(txHash)
-      console.log(`Transaction status: <${status.status}>`)
+      const response = await this.getTransactionStatus(txHash)
+      const status = response.data
+      
       if (status.status !== 'PENDING') {
         return status
       }
