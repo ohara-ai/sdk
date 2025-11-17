@@ -127,7 +127,7 @@ export async function createServerOharaAi(chainId?: number): Promise<ServerOhara
   }
   
   // Get controller address (automatically handles both API mode and direct mode)
-  const controllerAddress = await getControllerAddress(oharaApiClient)
+  const controllerAddress = await getControllerAddress()
   
   const app: AppContext = {
     coin: {
