@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createScoreOperations } from './scores'
+import { createClientScoreOperations } from './scores'
 import type { ScoreOperations } from './scores'
 import {
   createMockPublicClient,
@@ -22,7 +22,7 @@ describe('Score Operations - Specification Tests', () => {
     it('SPEC: createScoreOperations - creates operations with all methods', () => {
       const publicClient = createMockPublicClient()
 
-      const operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      const operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
 
       assertHasOperations(operations, [
         'getPlayerScore',
@@ -38,7 +38,7 @@ describe('Score Operations - Specification Tests', () => {
 
     it('SPEC: throws error when publicClient is missing', () => {
       expect(() => {
-        createScoreOperations(CONTRACT_ADDRESS, null as any)
+        createClientScoreOperations(CONTRACT_ADDRESS, null as any)
       }).toThrow('PublicClient is required for score operations')
     })
   })
@@ -50,7 +50,7 @@ describe('Score Operations - Specification Tests', () => {
     beforeEach(() => {
       publicClient = createMockPublicClient()
       vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockPlayerScore())
-      operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
     it('SPEC: getPlayerScore() - returns complete player score object', async () => {
@@ -100,7 +100,7 @@ describe('Score Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
     it('SPEC: getTopPlayersByWins() - returns top players sorted by wins', async () => {
@@ -190,7 +190,7 @@ describe('Score Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
     it('SPEC: getTotalPlayers() - returns total number of players', async () => {
@@ -244,7 +244,7 @@ describe('Score Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
     it('SPEC: getMaxLosersPerMatch() - returns maximum losers allowed', async () => {
@@ -290,7 +290,7 @@ describe('Score Operations - Specification Tests', () => {
   describe('Specification: Read-Only Nature', () => {
     it('SPEC: score operations are read-only - no write methods exist', () => {
       const publicClient = createMockPublicClient()
-      const operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      const operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
 
       // Verify no write methods are present
       expect(operations).not.toHaveProperty('recordWin')
@@ -304,7 +304,7 @@ describe('Score Operations - Specification Tests', () => {
 
       // Should not throw - only publicClient is needed
       expect(() => {
-        createScoreOperations(CONTRACT_ADDRESS, publicClient)
+        createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
       }).not.toThrow()
     })
   })
@@ -315,7 +315,7 @@ describe('Score Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
     it('SPEC: gracefully handles contract call failures', async () => {
@@ -351,7 +351,7 @@ describe('Score Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      operations = createScoreOperations(CONTRACT_ADDRESS, publicClient)
+      operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
     it('SPEC: leaderboard data arrays maintain consistent lengths', async () => {

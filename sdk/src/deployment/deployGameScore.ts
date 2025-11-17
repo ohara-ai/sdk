@@ -28,6 +28,8 @@ export async function deployGameScore(
       factoryType: 'ScoreFactory',
       chainId,
     })
+
+    console.log('Deployed GameScore via Ohara API:', JSON.stringify(result))
     
     // Wait for transaction confirmation
     const status = await apiClient.waitForTransaction(result.txHash)
