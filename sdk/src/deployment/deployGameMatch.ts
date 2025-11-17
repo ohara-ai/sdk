@@ -56,13 +56,13 @@ export async function deployGameMatch(
     console.log('Deployed GameMatch via Ohara API:', JSON.stringify(result))
     
     // Wait for transaction confirmation
-    const status = await apiClient.waitForTransaction(result.txHash)
+    const status = await apiClient.waitForTransaction(result.data.txHash)
     
     if (status.status === 'FAILED') {
       throw new Error(`Deployment failed: ${status.errorMessage || 'Unknown error'}`)
     }
     
-    const deployedAddress = result.contractAddress
+    const deployedAddress = result.data.contractAddress
     
     // Configure fees if provided (note: in API mode, this still needs direct access)
     // This is a limitation - fee configuration typically requires owner privileges
@@ -84,7 +84,7 @@ export async function deployGameMatch(
     return {
       success: true,
       address: deployedAddress,
-      transactionHash: result.txHash,
+      transactionHash: result.data.txHash,
     }
   }
 

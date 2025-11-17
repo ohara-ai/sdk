@@ -6,6 +6,22 @@ import { Address, Hash } from 'viem'
  */
 
 // Request/Response Types
+export interface ApiResponseMeta {
+  httpStatusCode: number
+  httpStatus: string
+  timestamp: string
+  requestId: string
+  path: string
+  query: Record<string, unknown>
+  version: string
+  duration: number
+}
+
+export interface ApiResponse<T> {
+  meta: ApiResponseMeta
+  data: T
+}
+
 export interface WalletInfo {
   address: Address
   balance: string
@@ -113,8 +129,8 @@ export class OharaApiClient {
   /**
    * Deploy a contract via the Ohara API
    */
-  async deployContract(request: DeployContractRequest): Promise<DeployContractResponse> {
-    return this.request<DeployContractResponse>(
+  async deployContract(request: DeployContractRequest): Promise<ApiResponse<DeployContractResponse>> {
+    return this.request<ApiResponse<DeployContractResponse>>(
       'POST',
       '/v2/miniapp-controller/deploy',
       request

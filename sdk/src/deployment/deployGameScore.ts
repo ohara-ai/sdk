@@ -32,7 +32,7 @@ export async function deployGameScore(
     console.log('Deployed GameScore via Ohara API:', JSON.stringify(result))
     
     // Wait for transaction confirmation
-    const status = await apiClient.waitForTransaction(result.txHash)
+    const status = await apiClient.waitForTransaction(result.data.txHash)
     
     if (status.status === 'FAILED') {
       throw new Error(`Deployment failed: ${status.errorMessage || 'Unknown error'}`)
@@ -40,15 +40,15 @@ export async function deployGameScore(
     
     // Save to storage
     try {
-      await setContractAddress(chainId, 'game', 'score', result.contractAddress)
+      await setContractAddress(chainId, 'game', 'score', result.data.contractAddress)
     } catch (storageError) {
       console.error('Failed to save address to backend storage:', storageError)
     }
     
     return {
       success: true,
-      address: result.contractAddress,
-      transactionHash: result.txHash,
+      address: result.data.contractAddress,
+      transactionHash: result.data.txHash,
     }
   }
   
