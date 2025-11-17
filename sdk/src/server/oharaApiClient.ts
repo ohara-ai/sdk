@@ -177,7 +177,7 @@ export class OharaApiClient {
 
     while (true) {
       const status = await this.getTransactionStatus(txHash)
-
+      console.log(`Transaction status: <${status.status}>`)
       if (status.status !== 'PENDING') {
         return status
       }
