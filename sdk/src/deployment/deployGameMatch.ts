@@ -2,7 +2,7 @@ import { setContractAddress } from '../storage/contractStorage'
 import { MATCH_FACTORY_ABI } from '../abis/game/matchFactory'
 import { MATCH_ABI } from '../abis/game/match'
 import { SCORE_ABI } from '../abis/game/score'
-import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
+import { createDeploymentClients, createPublicClientOnly, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
 import { privateKeyToAccount } from 'viem/accounts'
 import { createWalletClient, http } from 'viem'
@@ -30,7 +30,6 @@ export async function deployGameMatch(
   let feeShares: bigint[] = []
 
   if (params.feeRecipients && params.feeShares && params.feeRecipients.length > 0) {
-    console.log('Fee configuration:', params.feeRecipients, params.feeShares)
     feeRecipients = params.feeRecipients
     feeShares = params.feeShares.map((s: string) => BigInt(s))
   }
@@ -40,8 +39,8 @@ export async function deployGameMatch(
     const apiClient = getOharaApiClient()
     
     // Get chain ID from RPC
-    const config = await getDeploymentConfig()
-    const { publicClient } = createDeploymentClients(config)
+    const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+    const publicClient = createPublicClientOnly(rpcUrl)
     const chainId = await publicClient.getChainId()
     
     // Deploy via Ohara API

@@ -83,8 +83,6 @@ export class OharaApiClient {
    * Check if the API client is configured (both token and URL are set)
    */
   static isConfigured(): boolean {
-    console.log('Checking if Ohara API client is configured...', !!(process.env.OHARA_CONTROLLER_TOKEN && process.env.OHARA_API_URL))
-    
     return !!(process.env.OHARA_CONTROLLER_TOKEN && process.env.OHARA_API_URL)
   }
 

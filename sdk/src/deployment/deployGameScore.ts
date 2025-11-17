@@ -1,6 +1,6 @@
 import { setContractAddress } from '../storage/contractStorage'
 import { SCORE_FACTORY_ABI } from '../abis/game/scoreFactory'
-import { createDeploymentClients, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
+import { createDeploymentClients, createPublicClientOnly, extractDeployedAddress, getDeploymentConfig } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
 import { OharaApiClient, getOharaApiClient } from '../server/oharaApiClient'
 
@@ -19,8 +19,8 @@ export async function deployGameScore(
     const apiClient = getOharaApiClient()
     
     // Get chain ID from RPC
-    const config = await getDeploymentConfig()
-    const { publicClient } = createDeploymentClients(config)
+    const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+    const publicClient = createPublicClientOnly(rpcUrl)
     const chainId = await publicClient.getChainId()
     
     // Deploy via Ohara API
