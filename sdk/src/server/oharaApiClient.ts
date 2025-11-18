@@ -129,6 +129,7 @@ export class OharaApiClient {
     const options: RequestInit = {
       method,
       headers,
+      cache: 'no-store', // Prevent Next.js from caching API requests
     }
 
     if (body) {
