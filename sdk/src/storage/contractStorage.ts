@@ -94,7 +94,7 @@ export async function getContracts(chainId: number): Promise<ContractAddresses> 
       for (const [contractType, contractsOfType] of Object.entries(contractsByType)) {
         // Sort by createdAt descending (newest first)
         contractsOfType.sort((a, b) => 
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         )
         newestContracts[contractType] = contractsOfType[0]
       }
