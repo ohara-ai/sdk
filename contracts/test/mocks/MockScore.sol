@@ -12,13 +12,14 @@ contract MockScore is IScore {
     }
 
     MatchResult[] public results;
+    uint256 private _matchCounter;
 
     function recordMatchResult(
-        uint256 matchId,
         address winner,
         address[] calldata losers,
         uint256 prize
     ) external override {
+        uint256 matchId = ++_matchCounter;
         MatchResult storage result = results.push();
         result.matchId = matchId;
         result.winner = winner;

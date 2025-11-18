@@ -20,7 +20,8 @@ contract ScoreFactory is OwnedFactory {
 
     event ScoreDeployed(
         address indexed instance,
-        address indexed owner
+        address indexed owner,
+        address indexed controller
     );
     event DeploymentLimitsUpdated(
         uint256 maxLosersPerMatch,
@@ -75,6 +76,6 @@ contract ScoreFactory is OwnedFactory {
             maxTotalMatches
         );
         
-        emit ScoreDeployed(instance, instanceOwnerAddress);
+        emit ScoreDeployed(instance, instanceOwnerAddress, msg.sender);
     }
 }

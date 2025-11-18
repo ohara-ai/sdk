@@ -356,7 +356,7 @@ contract Match is IMatch, IFeature, FeatureController, Initializable {
                 unchecked { ++i; }
             }
             // Use try-catch to prevent DoS from buggy score contracts
-            try score.recordMatchResult(matchId, winner, losers, winnerAmount) {
+            try score.recordMatchResult(winner, losers, winnerAmount) {
                 // Score recorded successfully
             } catch {
                 // Score recording failed, but match finalization succeeds

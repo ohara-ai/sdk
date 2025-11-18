@@ -13,7 +13,8 @@ contract ScoreFactoryTest is Test {
 
     event ScoreDeployed(
         address indexed instance,
-        address indexed owner
+        address indexed owner,
+        address indexed controller
     );
 
     function setUp() public {
@@ -21,8 +22,8 @@ contract ScoreFactoryTest is Test {
     }
 
     function test_DeployScore() public {
-        vm.expectEmit(false, true, false, false);
-        emit ScoreDeployed(address(0), factoryOwner);
+        vm.expectEmit(false, true, true, false);
+        emit ScoreDeployed(address(0), factoryOwner, address(this));
         
         address instance = factory.deployScore();
         
@@ -198,7 +199,7 @@ contract ScoreFactoryTest is Test {
         losers[0] = address(0xBBB);
         
         vm.prank(recorder);
-        score.recordMatchResult(1, winner, losers, 100 ether);
+        score.recordMatchResult(winner, losers, 100 ether);
         
         // Verify the record
         (uint256 totalWins, uint256 totalPrize, , ) = score.getPlayerScore(winner);

@@ -43,6 +43,9 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     // All match IDs
     uint256[] private _matchIds;
     
+    // Internal match counter
+    uint256 private _matchCounter;
+    
     // Authorized contracts that can record results
     mapping(address => bool) public authorizedRecorders;
 
@@ -63,7 +66,6 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
 
     error UnauthorizedRecorder();
-    error MatchAlreadyRecorded();
     error InvalidLimit();
 
     /**
@@ -216,13 +218,14 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
 
     /// @inheritdoc IScore
     function recordMatchResult(
-        uint256 matchId,
         address winner,
         address[] calldata losers,
         uint256 prize
     ) external {
         if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
-        if (_matchRecords[matchId].timestamp != 0) revert MatchAlreadyRecorded();
+        
+        // Increment internal match counter
+        uint256 matchId = ++_matchCounter;
         
         // Truncate losers array if it exceeds the limit
         uint256 losersToRecord = losers.length > maxLosersPerMatch ? maxLosersPerMatch : losers.length;
