@@ -74,7 +74,6 @@ export async function getContracts(chainId: number): Promise<ContractAddresses> 
     try {
       const oharaApiClient = getOharaApiClient()
       const response = await oharaApiClient.getContracts()
-      console.log('Contracts from API:', JSON.stringify(response.data))
       const contracts = response.data
       
       // Filter contracts by chainId and group by contractType
