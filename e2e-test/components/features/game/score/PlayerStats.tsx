@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatEther } from 'viem'
 
 interface PlayerStatsProps {
   playerScore?: readonly [bigint, bigint, bigint, bigint] // [totalWins, totalPrize, lastMatchId, lastWinTimestamp]
@@ -26,7 +27,7 @@ export function PlayerStats({ playerScore }: PlayerStatsProps) {
             <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
               <div className="text-xs font-medium text-gray-600">Total Prize</div>
               <div className="text-base font-bold text-gray-900">
-                {playerScore[1].toString()}
+                {formatEther(playerScore[1])} ETH
               </div>
             </div>
             <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">

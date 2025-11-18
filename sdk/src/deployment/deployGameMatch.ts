@@ -126,6 +126,7 @@ export async function deployGameMatch(
         account: feeAccount,
       })
       await publicClient.waitForTransactionReceipt({ hash: feeHash })
+      console.log(`GameMatch ${deployedAddress} configured with fees ${feeRecipients} and shares ${feeShares}`)
     } catch (feeError) {
       console.error('Fee configuration override error:', feeError)
     }
@@ -146,6 +147,7 @@ export async function deployGameMatch(
         account,
       })
       await publicClient.waitForTransactionReceipt({ hash: authHash })
+      console.log(`GameMatch ${deployedAddress} authorized to record scores on ${gameScoreAddress}`)
     } catch (authError_) {
       console.error('Authorization error:', authError_)
       authWarning = 'GameMatch deployed but GameScore authorization failed. You may need to manually authorize the contract.'
