@@ -63,16 +63,6 @@ export async function deployGameMatch(
     
     const deployedAddress = result.data.contractAddress
     
-    // Configure fees if provided (note: in API mode, this still needs direct access)
-    // This is a limitation - fee configuration typically requires owner privileges
-    if (feeRecipients.length > 0 && feeShares.length > 0) {
-      console.warn('Fee configuration in API mode requires direct contract access. Skipping...')
-      // TODO: Add API endpoint for fee configuration if needed
-    }
-    
-    // Note: Authorization is typically handled by the API backend
-    // The deployed contract should already be authorized if needed
-    
     // Save to storage
     try {
       await setContractAddress(chainId, 'game', 'match', deployedAddress)
