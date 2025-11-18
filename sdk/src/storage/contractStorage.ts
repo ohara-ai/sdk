@@ -2,11 +2,12 @@ import fs from 'fs/promises'
 import path from 'path'
 import { privateKeyToAccount } from 'viem/accounts'
 import { Address } from 'viem'
-import { OharaApiClient, getOharaApiClient } from '../server/oharaApiClient'
+import { OharaApiClient, getOharaApiClient, DeployedContract } from '../server/oharaApiClient'
 
 const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
 const CONTRACTS_PATH = path.join(STORAGE_DIR, 'contracts.json')
 const KEYS_PATH = path.join(STORAGE_DIR, 'keys.json')
+const API_CACHE_PATH = path.join(STORAGE_DIR, 'api-cache.json')
 
 // Contract addresses organized by context
 export interface OharaContracts {
@@ -32,6 +33,21 @@ interface ContractsStorage {
   [chainId: string]: ContractAddresses
 }
 
+// Cached contract from API
+export interface CachedContract {
+  contractType: string
+  contractAddress: Address
+  deploymentParams: Record<string, unknown>
+  chainId: number
+  createdAt: string
+}
+
+interface ApiCacheStorage {
+  [chainId: string]: {
+    [contractType: string]: CachedContract
+  }
+}
+
 export interface KeyStorage {
   [key: string]: string
 }
@@ -51,6 +67,54 @@ async function readContracts(): Promise<ContractsStorage> {
 }
 
 export async function getContracts(chainId: number): Promise<ContractAddresses> {
+  // If API client is configured, fetch from API
+  const isApiMode = OharaApiClient.isConfigured()
+  
+  if (isApiMode) {
+    try {
+      const oharaApiClient = getOharaApiClient()
+      const response = await oharaApiClient.getContracts()
+      const contracts = response.data
+      
+      // Filter contracts by chainId and group by contractType
+      const contractsByType: { [key: string]: DeployedContract[] } = {}
+      
+      for (const contract of contracts) {
+        if (contract.chainId === chainId) {
+          if (!contractsByType[contract.contractType]) {
+            contractsByType[contract.contractType] = []
+          }
+          contractsByType[contract.contractType].push(contract)
+        }
+      }
+      
+      // Select the newest contract for each type
+      const newestContracts: { [key: string]: DeployedContract } = {}
+      
+      for (const [contractType, contractsOfType] of Object.entries(contractsByType)) {
+        // Sort by createdAt descending (newest first)
+        contractsOfType.sort((a, b) => 
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        newestContracts[contractType] = contractsOfType[0]
+      }
+      
+      // Update cache with the newest contracts
+      await updateApiCache(chainId, newestContracts)
+      
+      // Convert to ContractAddresses format
+      return convertToContractAddresses(newestContracts)
+    } catch (error) {
+      console.error('Failed to fetch contracts from API, falling back to cache:', error)
+      // Try to read from cache
+      const cached = await readApiCache(chainId)
+      if (cached) {
+        return convertCacheToContractAddresses(cached)
+      }
+    }
+  }
+  
+  // Fall back to local storage
   const storage = await readContracts()
   return storage[chainId.toString()] || {}
 }
@@ -198,6 +262,113 @@ async function setKey(keyName: string, value: string): Promise<void> {
 }
 
 
+// API Cache functions
+
+async function readApiCache(chainId: number): Promise<{ [contractType: string]: CachedContract } | null> {
+  await ensureStorageExists()
+  
+  try {
+    const content = await fs.readFile(API_CACHE_PATH, 'utf-8')
+    const cache: ApiCacheStorage = JSON.parse(content)
+    return cache[chainId.toString()] || null
+  } catch (error) {
+    return null
+  }
+}
+
+async function updateApiCache(
+  chainId: number,
+  contracts: { [key: string]: DeployedContract }
+): Promise<void> {
+  await ensureStorageExists()
+  
+  let cache: ApiCacheStorage = {}
+  
+  try {
+    const content = await fs.readFile(API_CACHE_PATH, 'utf-8')
+    cache = JSON.parse(content)
+  } catch (error) {
+    // Cache file doesn't exist yet
+  }
+  
+  const chainKey = chainId.toString()
+  
+  if (!cache[chainKey]) {
+    cache[chainKey] = {}
+  }
+  
+  // Store only necessary info
+  for (const [contractType, contract] of Object.entries(contracts)) {
+    cache[chainKey][contractType] = {
+      contractType: contract.contractType,
+      contractAddress: contract.contractAddress,
+      deploymentParams: contract.deploymentParams,
+      chainId: contract.chainId,
+      createdAt: contract.createdAt,
+    }
+  }
+  
+  try {
+    await fs.writeFile(API_CACHE_PATH, JSON.stringify(cache, null, 2))
+  } catch (error) {
+    console.error('Error writing API cache:', error)
+  }
+}
+
+function convertToContractAddresses(
+  contracts: { [key: string]: DeployedContract }
+): ContractAddresses {
+  const result: ContractAddresses = {}
+  
+  for (const contract of Object.values(contracts)) {
+    const contractType = contract.contractType.toLowerCase()
+    
+    // Map contract types to the appropriate context
+    if (contractType === 'match') {
+      if (!result.game) result.game = {}
+      result.game.match = contract.contractAddress
+    } else if (contractType === 'score') {
+      if (!result.game) result.game = {}
+      result.game.score = contract.contractAddress
+    } else if (contractType === 'token') {
+      if (!result.ohara) result.ohara = {}
+      result.ohara.token = contract.contractAddress
+    } else if (contractType === 'coin') {
+      if (!result.app) result.app = {}
+      result.app.coin = contract.contractAddress
+    }
+  }
+  
+  return result
+}
+
+function convertCacheToContractAddresses(
+  cache: { [contractType: string]: CachedContract }
+): ContractAddresses {
+  const result: ContractAddresses = {}
+  
+  for (const contract of Object.values(cache)) {
+    const contractType = contract.contractType.toLowerCase()
+    
+    // Map contract types to the appropriate context
+    if (contractType === 'match') {
+      if (!result.game) result.game = {}
+      result.game.match = contract.contractAddress
+    } else if (contractType === 'score') {
+      if (!result.game) result.game = {}
+      result.game.score = contract.contractAddress
+    } else if (contractType === 'token') {
+      if (!result.ohara) result.ohara = {}
+      result.ohara.token = contract.contractAddress
+    } else if (contractType === 'coin') {
+      if (!result.app) result.app = {}
+      result.app.coin = contract.contractAddress
+    }
+  }
+  
+  return result
+}
+
 /**
  * Ensure the storage directory and files exist
  */
@@ -220,5 +391,12 @@ async function ensureStorageExists(): Promise<void> {
     await fs.access(KEYS_PATH)
   } catch {
     await fs.writeFile(KEYS_PATH, JSON.stringify({}, null, 2))
+  }
+  
+  // Ensure api-cache.json exists
+  try {
+    await fs.access(API_CACHE_PATH)
+  } catch {
+    await fs.writeFile(API_CACHE_PATH, JSON.stringify({}, null, 2))
   }
 }

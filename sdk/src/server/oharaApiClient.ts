@@ -62,6 +62,34 @@ export interface TransactionStatus {
   createdAt: string
 }
 
+export interface ContractFactory {
+  id: string
+  name: string
+  factoryType: string
+  address: Address
+  deployFunctionAbi: unknown
+  chainId: number
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DeployedContract {
+  id: string
+  controllerWalletId: string
+  factoryId: string
+  contractType: string
+  contractAddress: Address
+  deploymentTxHash: Hash
+  deploymentParams: Record<string, unknown>
+  chainId: number
+  userId: string
+  miniappId: string
+  createdAt: string
+  updatedAt: string
+  factory?: ContractFactory
+}
+
 export class OharaApiClient {
   private baseUrl: string
   private token: string
@@ -189,6 +217,16 @@ export class OharaApiClient {
 
       await new Promise(resolve => setTimeout(resolve, pollingInterval))
     }
+  }
+
+  /**
+   * Get all deployed contracts for the miniapp
+   */
+  async getContracts(): Promise<ApiResponse<DeployedContract[]>> {
+    return this.request<ApiResponse<DeployedContract[]>>(
+      'GET',
+      '/v2/miniapp-controller/contracts'
+    )
   }
 }
 
