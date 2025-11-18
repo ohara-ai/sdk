@@ -74,6 +74,7 @@ export async function getContracts(chainId: number): Promise<ContractAddresses> 
     try {
       const oharaApiClient = getOharaApiClient()
       const response = await oharaApiClient.getContracts()
+      console.log('Contracts from API:', JSON.stringify(response.data))
       const contracts = response.data
       
       // Filter contracts by chainId and group by contractType
@@ -94,13 +95,10 @@ export async function getContracts(chainId: number): Promise<ContractAddresses> 
       for (const [contractType, contractsOfType] of Object.entries(contractsByType)) {
         // Sort by createdAt descending (newest first)
         contractsOfType.sort((a, b) => 
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         )
-        console.log('Contracts of type', contractType, 'sorted:', JSON.stringify(contractsOfType))
         newestContracts[contractType] = contractsOfType[0]
       }
-
-      console.log('Newest contracts from API:', JSON.stringify(newestContracts))
       
       // Update cache with the newest contracts
       await updateApiCache(chainId, newestContracts)
