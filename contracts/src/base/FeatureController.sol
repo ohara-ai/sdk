@@ -15,13 +15,21 @@ abstract contract FeatureController is FeeCollector {
     error InvalidController();
 
     modifier onlyController() {
-        if (msg.sender != controller) revert Unauthorized();
+        _onlyController();
         _;
     }
 
+    function _onlyController() internal view {
+        if (msg.sender != controller) revert Unauthorized();
+    }
+
     modifier onlyControllerOrOwner() {
-        if (msg.sender != controller && msg.sender != owner) revert Unauthorized();
+        _onlyControllerOrOwner();
         _;
+    }
+
+    function _onlyControllerOrOwner() internal view {
+        if (msg.sender != controller && msg.sender != owner) revert Unauthorized();
     }
 
     constructor(address _owner, address _controller) FeeCollector(_owner) {

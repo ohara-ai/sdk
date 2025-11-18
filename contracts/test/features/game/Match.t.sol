@@ -402,7 +402,6 @@ contract MatchTest is Test {
 
         assertEq(gameScore.getResultCount(), 1);
         MockScore.MatchResult memory result = gameScore.getResult(0);
-        assertEq(result.matchId, matchId);
         assertEq(result.winner, player1);
         assertEq(result.losers.length, 1);
         assertEq(result.losers[0], player2);

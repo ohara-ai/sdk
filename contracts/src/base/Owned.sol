@@ -17,8 +17,12 @@ abstract contract Owned {
     error NoPendingOwner();
 
     modifier onlyOwner() {
-        if (msg.sender != owner) revert Unauthorized();
+        _onlyOwner();
         _;
+    }
+
+    function _onlyOwner() internal view {
+        if (msg.sender != owner) revert Unauthorized();
     }
 
     constructor(address _owner) {

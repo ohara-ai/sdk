@@ -479,11 +479,6 @@ export const SCORE_ABI = [
     "name": "recordMatchResult",
     "inputs": [
       {
-        "name": "matchId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
         "name": "winner",
         "type": "address",
         "internalType": "address"
@@ -927,11 +922,6 @@ export const SCORE_ABI = [
   {
     "type": "error",
     "name": "InvalidOwner",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "MatchAlreadyRecorded",
     "inputs": []
   },
   {
