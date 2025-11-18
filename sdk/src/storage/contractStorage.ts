@@ -99,7 +99,7 @@ export async function getContracts(chainId: number): Promise<ContractAddresses> 
         newestContracts[contractType] = contractsOfType[0]
       }
 
-      console.log('Newest contracts from API:', JSON.stringify(newestContracts))
+      // console.log('Newest contracts from API:', JSON.stringify(newestContracts))
       
       // Update cache with the newest contracts
       await updateApiCache(chainId, newestContracts)
