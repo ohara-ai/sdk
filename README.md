@@ -1,4 +1,4 @@
-# OharaAI SDK
+# OharaAI SDK - pre-release, alpha version
 
 A comprehensive SDK and smart contract library for modular features. This repository provides Solidity smart contracts and a code-first SDK that exposes functional primitives (Match, Scores, App) for building on-chain applications.
 
