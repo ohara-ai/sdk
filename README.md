@@ -36,6 +36,13 @@ foundryup
 ./bin/test
 ```
 
+### Cleanup
+
+```bash
+npx eslint --config eslint.config.mjs . # --fix
+npx prettier . # --write
+```
+
 ### Publish a new version of the SDK (patch|minor|major) with automated version bump, build, test, and git commit + push
 
 ```bash

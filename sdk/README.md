@@ -60,9 +60,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
 For non-Wagmi setups or custom client management, use `OharaAiProvider` directly:
 
 ```tsx
-import { OharaAiProvider } from '@ohara-ai/sdk'
-
-;<OharaAiProvider
+import { OharaAiProvider } from '@ohara-ai/sdk';
+<OharaAiProvider
   publicClient={yourPublicClient}
   walletClient={yourWalletClient}
   chainId={yourChainId}

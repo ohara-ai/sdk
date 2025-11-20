@@ -48,10 +48,8 @@ export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
 
   return (
     <OharaAiProvider
-      publicClient={isHydrated ? (publicClient as any) : undefined}
-      walletClient={
-        isHydrated ? ((walletClient || undefined) as any) : undefined
-      }
+      publicClient={isHydrated ? publicClient || undefined : undefined}
+      walletClient={isHydrated ? walletClient || undefined : undefined}
       chainId={isHydrated ? chainId : undefined}
     >
       {children}

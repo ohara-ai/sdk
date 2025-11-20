@@ -170,7 +170,7 @@ export async function setContractAddress(
     storage[chainKey][context] = {}
   }
 
-  // @ts-ignore - dynamic property assignment
+  // @ts-expect-error - dynamic property assignment
   storage[chainKey][context][contractType] = address
 
   await ensureStorageExists()
@@ -199,7 +199,7 @@ export async function getControllerKey(): Promise<string> {
     crypto.getRandomValues(randomBytes)
   } else {
     // Fallback for Node.js
-    const nodeCrypto = require('crypto')
+    const nodeCrypto = await import('crypto')
     const randomBuffer = nodeCrypto.randomBytes(32)
     randomBytes.set(randomBuffer)
   }
@@ -286,7 +286,7 @@ async function readApiCache(
     const content = await fs.readFile(API_CACHE_PATH, 'utf-8')
     const cache: ApiCacheStorage = JSON.parse(content)
     return cache[chainId.toString()] || null
-  } catch (error) {
+  } catch {
     return null
   }
 }
@@ -302,7 +302,7 @@ async function updateApiCache(
   try {
     const content = await fs.readFile(API_CACHE_PATH, 'utf-8')
     cache = JSON.parse(content)
-  } catch (error) {
+  } catch {
     // Cache file doesn't exist yet
   }
 
@@ -390,7 +390,7 @@ function convertCacheToContractAddresses(cache: {
 async function ensureStorageExists(): Promise<void> {
   try {
     await fs.mkdir(STORAGE_DIR, { recursive: true })
-  } catch (error) {
+  } catch {
     // Directory might already exist
   }
 
