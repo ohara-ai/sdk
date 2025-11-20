@@ -1,6 +1,6 @@
 {
   "name": "sdk-wrapper",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "description": "Wrapper projects for the SDK, smart contracts and e2e tests",
   "scripts": {
@@ -23,10 +23,14 @@
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^5.4.0",
+    "@seriesfi/eslint-config": "^1.3.0",
+    "@seriesfi/prettier-config": "^1.2.1",
     "@types/node": "^20.10.6",
-    "typescript": "^5.3.3",
     "chalk": "^4.1.2",
+    "eslint": "^9.39.1",
+    "minimist": "^1.2.8",
     "ora": "^5.4.1",
-    "minimist": "^1.2.8"
+    "prettier": "^3.6.2",
+    "typescript": "^5.3.3"
   }
 }
