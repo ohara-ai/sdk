@@ -1,307 +1,307 @@
 export const SCORE_FACTORY_ABI = [
   {
-    type: 'constructor',
-    inputs: [],
-    stateMutability: 'nonpayable',
+    "type": "constructor",
+    "inputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'IMPLEMENTATION',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "IMPLEMENTATION",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'acceptOwnership',
-    inputs: [],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "type": "function",
+    "name": "acceptOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'deployScore',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "deployScore",
+    "inputs": [],
+    "outputs": [
       {
-        name: 'instance',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "instance",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'nonpayable',
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'getInstanceOwner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "getInstanceOwner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'instanceOwner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "instanceOwner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'maxLosersPerMatch',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "maxLosersPerMatch",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'maxTotalMatches',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "maxTotalMatches",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'maxTotalPlayers',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "maxTotalPlayers",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'owner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'pendingOwner',
-    inputs: [],
-    outputs: [
+    "type": "function",
+    "name": "pendingOwner",
+    "inputs": [],
+    "outputs": [
       {
-        name: '',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    stateMutability: 'view',
+    "stateMutability": "view"
   },
   {
-    type: 'function',
-    name: 'setDeploymentLimits',
-    inputs: [
+    "type": "function",
+    "name": "setDeploymentLimits",
+    "inputs": [
       {
-        name: '_maxLosersPerMatch',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "_maxLosersPerMatch",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_maxTotalPlayers',
-        type: 'uint256',
-        internalType: 'uint256',
+        "name": "_maxTotalPlayers",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        name: '_maxTotalMatches',
-        type: 'uint256',
-        internalType: 'uint256',
-      },
+        "name": "_maxTotalMatches",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'setInstanceOwner',
-    inputs: [
+    "type": "function",
+    "name": "setInstanceOwner",
+    "inputs": [
       {
-        name: '_newInstanceOwner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "_newInstanceOwner",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'function',
-    name: 'transferOwnership',
-    inputs: [
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
       {
-        name: 'newOwner',
-        type: 'address',
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
     ],
-    outputs: [],
-    stateMutability: 'nonpayable',
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
-    type: 'event',
-    name: 'DeploymentLimitsUpdated',
-    inputs: [
+    "type": "event",
+    "name": "DeploymentLimitsUpdated",
+    "inputs": [
       {
-        name: 'maxLosersPerMatch',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
+        "name": "maxLosersPerMatch",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
-        name: 'maxTotalPlayers',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
+        "name": "maxTotalPlayers",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
-        name: 'maxTotalMatches',
-        type: 'uint256',
-        indexed: false,
-        internalType: 'uint256',
-      },
+        "name": "maxTotalMatches",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'InstanceOwnerUpdated',
-    inputs: [
+    "type": "event",
+    "name": "InstanceOwnerUpdated",
+    "inputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'OwnershipTransferInitiated',
-    inputs: [
+    "type": "event",
+    "name": "OwnershipTransferInitiated",
+    "inputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'OwnershipTransferred',
-    inputs: [
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
       {
-        name: 'previousOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'newOwner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'event',
-    name: 'ScoreDeployed',
-    inputs: [
+    "type": "event",
+    "name": "ScoreDeployed",
+    "inputs": [
       {
-        name: 'instance',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "instance",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'owner',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        name: 'controller',
-        type: 'address',
-        indexed: true,
-        internalType: 'address',
-      },
+        "name": "controller",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
     ],
-    anonymous: false,
+    "anonymous": false
   },
   {
-    type: 'error',
-    name: 'ERC1167FailedCreateClone',
-    inputs: [],
+    "type": "error",
+    "name": "ERC1167FailedCreateClone",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'InvalidOwner',
-    inputs: [],
+    "type": "error",
+    "name": "InvalidOwner",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'NoPendingOwner',
-    inputs: [],
+    "type": "error",
+    "name": "NoPendingOwner",
+    "inputs": []
   },
   {
-    type: 'error',
-    name: 'Unauthorized',
-    inputs: [],
-  },
-] as const
+    "type": "error",
+    "name": "Unauthorized",
+    "inputs": []
+  }
+] as const;
