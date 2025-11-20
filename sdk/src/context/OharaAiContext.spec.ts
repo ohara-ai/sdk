@@ -1,6 +1,6 @@
 /**
  * OharaAi Context Specification Tests
- * 
+ *
  * Tests the context type definitions and structure
  */
 
@@ -280,15 +280,15 @@ describe('OharaAi Context - Specification Tests', () => {
 
       // Ohara domain
       expect(context.ohara).toBeDefined()
-      
+
       // Game domain
       expect(context.game).toBeDefined()
       expect(context.game.match).toBeDefined()
       expect(context.game.scores).toBeDefined()
-      
+
       // App domain
       expect(context.app).toBeDefined()
-      
+
       // Internal domain
       expect(context.internal).toBeDefined()
     })
@@ -317,7 +317,7 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(contextWithOperations.game.match).toHaveProperty('operations')
       expect(contextWithOperations.game.scores).toHaveProperty('address')
       expect(contextWithOperations.game.scores).toHaveProperty('operations')
-      
+
       // Verify they're in the same object (not separate)
       const matchObj = contextWithOperations.game.match
       expect(Object.keys(matchObj)).toContain('address')
@@ -327,7 +327,8 @@ describe('OharaAi Context - Specification Tests', () => {
 
   describe('Specification: Type Safety', () => {
     it('SPEC: Address type is used consistently', () => {
-      const address: `0x${string}` = '0x1234567890123456789012345678901234567890'
+      const address: `0x${string}` =
+        '0x1234567890123456789012345678901234567890'
 
       expect(address.startsWith('0x')).toBe(true)
       expect(address.length).toBe(42)

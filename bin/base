@@ -56,17 +56,17 @@ function runCommand(command, args = [], minTime = 0) {
 
     const start = Date.now()
 
-    child.stdout.on('data', data => {
+    child.stdout.on('data', (data) => {
       fullOutput += data
       stdout += data
     })
 
-    child.stderr.on('data', data => {
+    child.stderr.on('data', (data) => {
       fullOutput += data
       stderr += data
     })
 
-    child.on('close', code => {
+    child.on('close', (code) => {
       const duration = Date.now() - start
       const waitTime = Math.max(0, minTime - duration)
 
@@ -90,14 +90,14 @@ const loader = function (message) {
   })
 
   const loader = {
-    start: message => {
+    start: (message) => {
       spinner.start(message)
       return loader
     },
-    succeed: message => {
+    succeed: (message) => {
       return spinner.succeed(chalk.green.bold(message))
     },
-    fail: message => {
+    fail: (message) => {
       return spinner.fail(chalk.red.bold(message))
     },
   }

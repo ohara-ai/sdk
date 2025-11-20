@@ -20,5 +20,12 @@
     }
   },
   "include": ["scripts/**/*.ts", "sdk/**/*.ts"],
-  "exclude": ["node_modules", "contracts/out", "contracts/cache", "contracts/lib", "e2e-test", "dist"]
+  "exclude": [
+    "node_modules",
+    "contracts/out",
+    "contracts/cache",
+    "contracts/lib",
+    "e2e-test",
+    "dist"
+  ]
 }

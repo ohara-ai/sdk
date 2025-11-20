@@ -52,7 +52,11 @@ async function publish() {
     spinner.succeed(`Published package @ohara-ai/sdk@${version}`)
     spinner.start('Pushing changes...')
     await runCommand('git', ['add', '.'])
-    await runCommand('git', ['commit', '-am', `@ohara-ai/sdk@${version} - ${message}`])
+    await runCommand('git', [
+      'commit',
+      '-am',
+      `@ohara-ai/sdk@${version} - ${message}`,
+    ])
     await runCommand('git', ['push', 'origin', 'main'])
     spinner.succeed(`Pushed changes to GitHub Registry`)
   } catch (error) {

@@ -38,9 +38,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <OharaAiWagmiProvider>
-          {children}
-        </OharaAiWagmiProvider>
+        <OharaAiWagmiProvider>{children}</OharaAiWagmiProvider>
       </QueryClientProvider>
     </WagmiProvider>
   )
@@ -48,6 +46,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 ```
 
 **How it works:** The `OharaAiWagmiProvider` automatically:
+
 - Detects and uses wagmi's `usePublicClient`, `useWalletClient`, and `useChainId` hooks
 - Passes these to the underlying `OharaAiProvider`
 - Fetches contract addresses from `/api/sdk/addresses?chainId=<chainId>` backend
@@ -63,7 +62,7 @@ For non-Wagmi setups or custom client management, use `OharaAiProvider` directly
 ```tsx
 import { OharaAiProvider } from '@ohara-ai/sdk'
 
-<OharaAiProvider 
+;<OharaAiProvider
   publicClient={yourPublicClient}
   walletClient={yourWalletClient}
   chainId={yourChainId}
@@ -82,32 +81,32 @@ import { parseEther } from 'viem'
 
 function GameComponent() {
   const { game } = useOharaAi()
-  
+
   // Create a match
   const createMatch = async () => {
     if (!game.match.operations) {
       throw new Error('Match operations not available')
     }
-    
+
     const hash = await game.match.operations.create({
       token: '0x0000000000000000000000000000000000000000',
       stakeAmount: parseEther('0.1'),
-      maxPlayers: 2
+      maxPlayers: 2,
     })
-    
+
     return hash
   }
-  
+
   // Get leaderboard
   const getTopPlayers = async () => {
     if (!game.scores.operations) {
       throw new Error('Score operations not available')
     }
-    
+
     const result = await game.scores.operations.getTopPlayersByWins(10)
     return result
   }
-  
+
   return (
     <div>
       <button onClick={createMatch}>Create Match</button>
@@ -151,6 +150,7 @@ OHARA_API_URL=https://api.ohara.ai
 ```
 
 When Ohara API mode is enabled:
+
 - `activate()` and `finalize()` operations are executed via the API
 - `deployGameMatch()` and `deployGameScore()` use the API for deployments
 - The controller address is fetched from `/v2/miniapp-controller/wallet`
@@ -159,18 +159,19 @@ When Ohara API mode is enabled:
 ### Entry Points
 
 #### Client Entry Point: `@ohara-ai/sdk`
+
 Use this in client components and browser code:
+
 ```typescript
-import { 
-  OharaAiProvider, 
-  useOharaAi
-} from '@ohara-ai/sdk'
+import { OharaAiProvider, useOharaAi } from '@ohara-ai/sdk'
 ```
 
 #### Server Entry Point: `@ohara-ai/sdk/server`
+
 Use this in API routes, server actions, and server components:
+
 ```typescript
-import { 
+import {
   getContracts,
   updateContracts,
   setContractAddress,
@@ -186,6 +187,7 @@ import {
 ### Examples
 
 **Client Component:**
+
 ```typescript
 'use client'
 import { useOharaAi } from '@ohara-ai/sdk'
@@ -197,18 +199,19 @@ export function MyComponent() {
 ```
 
 **API Route:**
+
 ```typescript
 import { createServerOharaAi, deployGameMatch } from '@ohara-ai/sdk/server'
 
 export async function POST(request: Request) {
   // Create server context with controller wallet
   const { game } = await createServerOharaAi()
-  
+
   // Access server-only operations (activate, finalize)
   if (game.match.operations) {
     const hash = await game.match.operations.activate(matchId)
   }
-  
+
   // Or deploy new contracts
   const result = await deployGameMatch({ gameScoreAddress: '0x...' })
   return Response.json(result)
@@ -216,6 +219,7 @@ export async function POST(request: Request) {
 ```
 
 **❌ Don't import server-only exports in client components:**
+
 ```typescript
 'use client'
 // This will cause "Module not found: Can't resolve 'fs/promises'" error
@@ -234,7 +238,7 @@ interface MatchOperations {
   create(config: MatchConfig): Promise<Hash>
   join(matchId: bigint): Promise<Hash>
   leave(matchId: bigint): Promise<Hash>
-  
+
   // Read operations
   get(matchId: bigint): Promise<Match>
   getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]>
@@ -267,7 +271,7 @@ interface ScoreOperations {
   getPlayerScore(player: Address): Promise<PlayerScore>
   getTopPlayersByWins(limit: number): Promise<TopPlayersResult>
   getTopPlayersByPrize(limit: number): Promise<TopPlayersResult>
-  
+
   // System stats
   getTotalPlayers(): Promise<bigint>
   getTotalMatches(): Promise<bigint>
@@ -294,20 +298,20 @@ interface OharaAiContext {
       operations?: ScoreOperations
     }
   }
-  
+
   // Ohara-managed contracts
   ohara: {
     contracts: {
       token?: Address
     }
   }
-  
+
   // Application-level contracts
   app: {
     coin: { address?: Address }
     controller: { address?: Address }
   }
-  
+
   // Internal config (factories, chainId)
   internal: {
     chainId?: number
@@ -316,7 +320,7 @@ interface OharaAiContext {
       gameScore?: Address
     }
   }
-  
+
   // Manually refresh addresses from backend
   loadAddresses(): Promise<void>
 }
@@ -350,6 +354,7 @@ OHARA_API_URL=https://api.ohara.ai
 ```
 
 When both `OHARA_CONTROLLER_TOKEN` and `OHARA_API_URL` are set, the SDK automatically switches to API mode for:
+
 - Controller operations (`activate`, `finalize`)
 - Contract deployments (`deployGameMatch`, `deployGameScore`)
 - Controller address resolution
@@ -360,7 +365,7 @@ When both `OHARA_CONTROLLER_TOKEN` and `OHARA_API_URL` are set, the SDK automati
 ✅ **Type-Safe** - Full TypeScript support  
 ✅ **No UI Lock-in** - Build any interface you want  
 ✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
-✅ **Fee Enforcement** - SDK coordinates on-chain requirements  
+✅ **Fee Enforcement** - SDK coordinates on-chain requirements
 
 ## Direct Usage (Advanced)
 
@@ -374,18 +379,18 @@ import { usePublicClient, useWalletClient } from 'wagmi'
 function Component() {
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
-  
+
   const matchOps = createClientMatchOperations(
     '0x...', // GameMatch address
     publicClient,
-    walletClient
+    walletClient,
   )
-  
+
   const scoreOps = createScoreOperations(
     '0x...', // GameScore address
-    publicClient
+    publicClient,
   )
-  
+
   // Use matchOps.create(), scoreOps.getTopPlayersByWins(), etc.
 }
 ```

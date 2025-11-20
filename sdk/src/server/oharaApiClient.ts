@@ -97,13 +97,17 @@ export class OharaApiClient {
   constructor(baseUrl?: string, token?: string) {
     this.baseUrl = baseUrl || process.env.OHARA_API_URL || ''
     this.token = token || process.env.OHARA_CONTROLLER_TOKEN || ''
-    
+
     if (!this.baseUrl) {
-      throw new Error('OHARA_API_URL environment variable is required when using Ohara API mode')
+      throw new Error(
+        'OHARA_API_URL environment variable is required when using Ohara API mode',
+      )
     }
-    
+
     if (!this.token) {
-      throw new Error('OHARA_CONTROLLER_TOKEN environment variable is required when using Ohara API mode')
+      throw new Error(
+        'OHARA_CONTROLLER_TOKEN environment variable is required when using Ohara API mode',
+      )
     }
   }
 
@@ -117,12 +121,12 @@ export class OharaApiClient {
   private async request<T>(
     method: string,
     path: string,
-    body?: unknown
+    body?: unknown,
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`
-    
+
     const headers: HeadersInit = {
-      'Authorization': `Bearer ${this.token}`,
+      Authorization: `Bearer ${this.token}`,
       'Content-Type': 'application/json',
     }
 
@@ -141,7 +145,7 @@ export class OharaApiClient {
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(
-        `Ohara API request failed: ${response.status} ${response.statusText} - ${errorText}`
+        `Ohara API request failed: ${response.status} ${response.statusText} - ${errorText}`,
       )
     }
 
@@ -152,17 +156,22 @@ export class OharaApiClient {
    * Get the controller wallet information
    */
   async getWallet(): Promise<ApiResponse<WalletInfo>> {
-    return this.request<ApiResponse<WalletInfo>>('GET', '/v2/miniapp-controller/wallet')
+    return this.request<ApiResponse<WalletInfo>>(
+      'GET',
+      '/v2/miniapp-controller/wallet',
+    )
   }
 
   /**
    * Deploy a contract via the Ohara API
    */
-  async deployContract(request: DeployContractRequest): Promise<ApiResponse<DeployContractResponse>> {
+  async deployContract(
+    request: DeployContractRequest,
+  ): Promise<ApiResponse<DeployContractResponse>> {
     return this.request<ApiResponse<DeployContractResponse>>(
       'POST',
       '/v2/miniapp-controller/deploy',
-      request
+      request,
     )
   }
 
@@ -170,22 +179,24 @@ export class OharaApiClient {
    * Execute a contract function via the Ohara API
    */
   async executeContractFunction(
-    request: ExecuteContractFunctionRequest
+    request: ExecuteContractFunctionRequest,
   ): Promise<ApiResponse<ExecuteContractFunctionResponse>> {
     return this.request<ApiResponse<ExecuteContractFunctionResponse>>(
       'POST',
       '/v2/miniapp-controller/execute',
-      request
+      request,
     )
   }
 
   /**
    * Get transaction status
    */
-  async getTransactionStatus(txHash: Hash): Promise<ApiResponse<TransactionStatus>> {
+  async getTransactionStatus(
+    txHash: Hash,
+  ): Promise<ApiResponse<TransactionStatus>> {
     return this.request<ApiResponse<TransactionStatus>>(
       'GET',
-      `/v2/miniapp-controller/transaction/${txHash}`
+      `/v2/miniapp-controller/transaction/${txHash}`,
     )
   }
 
@@ -198,7 +209,7 @@ export class OharaApiClient {
     options: {
       pollingInterval?: number
       timeout?: number
-    } = {}
+    } = {},
   ): Promise<TransactionStatus> {
     const pollingInterval = options.pollingInterval || 2000 // 2 seconds
     const timeout = options.timeout || 60000 // 60 seconds
@@ -207,7 +218,7 @@ export class OharaApiClient {
     while (true) {
       const response = await this.getTransactionStatus(txHash)
       const status = response.data
-      
+
       if (status.status !== 'PENDING') {
         return status
       }
@@ -216,7 +227,7 @@ export class OharaApiClient {
         throw new Error(`Transaction ${txHash} timed out after ${timeout}ms`)
       }
 
-      await new Promise(resolve => setTimeout(resolve, pollingInterval))
+      await new Promise((resolve) => setTimeout(resolve, pollingInterval))
     }
   }
 
@@ -226,7 +237,7 @@ export class OharaApiClient {
   async getContracts(): Promise<ApiResponse<DeployedContract[]>> {
     return this.request<ApiResponse<DeployedContract[]>>(
       'GET',
-      '/v2/miniapp-controller/contracts'
+      '/v2/miniapp-controller/contracts',
     )
   }
 }

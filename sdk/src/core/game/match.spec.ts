@@ -1,11 +1,15 @@
 /**
  * Match Operations Specification Tests
- * 
+ *
  * Tests the core match primitive operations following behavioral specifications
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createClientMatchOperations, createOperations, MatchStatus } from './match'
+import {
+  createClientMatchOperations,
+  createOperations,
+  MatchStatus,
+} from './match'
 import type { MatchOperations, ServerMatchOperations } from './match'
 import {
   createMockPublicClient,
@@ -13,7 +17,10 @@ import {
   createMockMatchData,
   createMockFeeConfig,
 } from '../../__tests__/mocks/clients'
-import { assertHasOperations, assertValidHash } from '../../__tests__/utils/assertions'
+import {
+  assertHasOperations,
+  assertValidHash,
+} from '../../__tests__/utils/assertions'
 
 describe('Match Operations - Specification Tests', () => {
   const CONTRACT_ADDRESS = '0x1234567890123456789012345678901234567890' as const
@@ -24,7 +31,11 @@ describe('Match Operations - Specification Tests', () => {
       const publicClient = createMockPublicClient()
       const walletClient = createMockWalletClient(PLAYER_ADDRESS)
 
-      const operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      const operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
 
       // Verify client operations are present
       assertHasOperations(operations, [
@@ -51,7 +62,11 @@ describe('Match Operations - Specification Tests', () => {
       const publicClient = createMockPublicClient()
       const walletClient = createMockWalletClient(PLAYER_ADDRESS)
 
-      const operations = createOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      const operations = createOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
 
       // Verify all operations are present
       assertHasOperations(operations, [
@@ -103,7 +118,11 @@ describe('Match Operations - Specification Tests', () => {
     beforeEach(() => {
       publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(PLAYER_ADDRESS)
-      operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: create() - successfully creates match with native token (ETH)', async () => {
@@ -122,7 +141,7 @@ describe('Match Operations - Specification Tests', () => {
           functionName: 'create',
           args: [config.token, config.stakeAmount, 2n],
           value: config.stakeAmount, // Native token requires value
-        })
+        }),
       )
     })
 
@@ -142,19 +161,22 @@ describe('Match Operations - Specification Tests', () => {
           functionName: 'create',
           args: [config.token, config.stakeAmount, 4n],
           value: 0n, // ERC20 doesn't require value
-        })
+        }),
       )
     })
 
     it('SPEC: create() - throws when wallet client is missing', async () => {
-      const opsWithoutWallet = createClientMatchOperations(CONTRACT_ADDRESS, publicClient)
-      
+      const opsWithoutWallet = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+      )
+
       await expect(
         opsWithoutWallet.create({
           token: '0x0000000000000000000000000000000000000000',
           stakeAmount: 1000000000000000000n,
           maxPlayers: 2,
-        })
+        }),
       ).rejects.toThrow('WalletClient is required for write operations')
     })
 
@@ -165,7 +187,7 @@ describe('Match Operations - Specification Tests', () => {
       const opsWithBadWallet = createClientMatchOperations(
         CONTRACT_ADDRESS,
         publicClient,
-        walletWithoutAccount
+        walletWithoutAccount,
       )
 
       await expect(
@@ -173,7 +195,7 @@ describe('Match Operations - Specification Tests', () => {
           token: '0x0000000000000000000000000000000000000000',
           stakeAmount: 1000000000000000000n,
           maxPlayers: 2,
-        })
+        }),
       ).rejects.toThrow('No account found in wallet')
     })
   })
@@ -186,11 +208,17 @@ describe('Match Operations - Specification Tests', () => {
     beforeEach(() => {
       publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(PLAYER_ADDRESS)
-      
+
       // Mock get() to return match data for join() to read
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockMatchData())
-      
-      operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockMatchData(),
+      )
+
+      operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: join() - successfully joins match with native token', async () => {
@@ -204,7 +232,7 @@ describe('Match Operations - Specification Tests', () => {
           functionName: 'join',
           args: [matchId],
           value: 1000000000000000000n, // stake amount from mocked match
-        })
+        }),
       )
     })
 
@@ -224,7 +252,11 @@ describe('Match Operations - Specification Tests', () => {
     beforeEach(() => {
       const publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(PLAYER_ADDRESS)
-      operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: leave() - successfully leaves match and withdraws stake', async () => {
@@ -237,7 +269,7 @@ describe('Match Operations - Specification Tests', () => {
           address: CONTRACT_ADDRESS,
           functionName: 'leave',
           args: [matchId],
-        })
+        }),
       )
     })
   })
@@ -248,10 +280,16 @@ describe('Match Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockMatchData())
-      
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockMatchData(),
+      )
+
       const walletClient = createMockWalletClient(PLAYER_ADDRESS)
-      operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: get() - returns complete match object with all fields', async () => {
@@ -273,7 +311,10 @@ describe('Match Operations - Specification Tests', () => {
 
     it('SPEC: get() - calculates totalPrize correctly', async () => {
       const matchData = createMockMatchData()
-      matchData[3] = [PLAYER_ADDRESS, '0x2222222222222222222222222222222222222222'] // 2 players
+      matchData[3] = [
+        PLAYER_ADDRESS,
+        '0x2222222222222222222222222222222222222222',
+      ] // 2 players
       vi.spyOn(publicClient, 'readContract').mockResolvedValue(matchData)
 
       const match = await operations.get(1n)
@@ -290,7 +331,7 @@ describe('Match Operations - Specification Tests', () => {
           address: CONTRACT_ADDRESS,
           functionName: 'getMatch',
           args: [matchId],
-        })
+        }),
       )
     })
   })
@@ -302,7 +343,11 @@ describe('Match Operations - Specification Tests', () => {
     beforeEach(() => {
       publicClient = createMockPublicClient()
       const walletClient = createMockWalletClient(PLAYER_ADDRESS)
-      operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: getActiveMatches() - fetches all matches when no limit specified', async () => {
@@ -318,7 +363,7 @@ describe('Match Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getActiveMatchIds',
           args: [0n, 5n], // offset 0, limit from count
-        })
+        }),
       )
     })
 
@@ -332,7 +377,7 @@ describe('Match Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getActiveMatchIds',
           args: [2n, 2n],
-        })
+        }),
       )
     })
 
@@ -345,7 +390,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           functionName: 'getActiveMatchCount',
-        })
+        }),
       )
     })
 
@@ -358,7 +403,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           functionName: 'maxActiveMatches',
-        })
+        }),
       )
     })
   })
@@ -369,10 +414,16 @@ describe('Match Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockFeeConfig())
-      
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockFeeConfig(),
+      )
+
       const walletClient = createMockWalletClient(PLAYER_ADDRESS)
-      operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: getFeeConfiguration() - returns fee configuration structure', async () => {
@@ -386,7 +437,9 @@ describe('Match Operations - Specification Tests', () => {
     })
 
     it('SPEC: getPlayerStake() - returns player stake for a match', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(1000000000000000000n)
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        1000000000000000000n,
+      )
 
       const stake = await operations.getPlayerStake(1n, PLAYER_ADDRESS)
 
@@ -395,13 +448,16 @@ describe('Match Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getPlayerStake',
           args: [1n, PLAYER_ADDRESS],
-        })
+        }),
       )
     })
 
     it('SPEC: getScoreboardAddress() - returns the scoreboard contract address', async () => {
-      const scoreboardAddress = '0x8888888888888888888888888888888888888888' as const
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(scoreboardAddress)
+      const scoreboardAddress =
+        '0x8888888888888888888888888888888888888888' as const
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        scoreboardAddress,
+      )
 
       const address = await operations.getScoreboardAddress()
 
@@ -409,7 +465,7 @@ describe('Match Operations - Specification Tests', () => {
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           functionName: 'score',
-        })
+        }),
       )
     })
   })
@@ -417,12 +473,17 @@ describe('Match Operations - Specification Tests', () => {
   describe('Specification: Server Operations', () => {
     let operations: ServerMatchOperations
     let walletClient: ReturnType<typeof createMockWalletClient>
-    const CONTROLLER_ADDRESS = '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' as const
+    const CONTROLLER_ADDRESS =
+      '0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC' as const
 
     beforeEach(() => {
       const publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(CONTROLLER_ADDRESS)
-      operations = createOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      operations = createOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
     })
 
     it('SPEC: activate() - controller can activate a match', async () => {
@@ -435,7 +496,7 @@ describe('Match Operations - Specification Tests', () => {
           address: CONTRACT_ADDRESS,
           functionName: 'activate',
           args: [matchId],
-        })
+        }),
       )
     })
 
@@ -451,7 +512,7 @@ describe('Match Operations - Specification Tests', () => {
           address: CONTRACT_ADDRESS,
           functionName: 'finalize',
           args: [matchId, winner],
-        })
+        }),
       )
     })
   })
@@ -460,24 +521,35 @@ describe('Match Operations - Specification Tests', () => {
     it('SPEC: operations fail gracefully when wallet operations throw', async () => {
       const publicClient = createMockPublicClient()
       const walletClient = createMockWalletClient(PLAYER_ADDRESS, {
-        writeContract: vi.fn().mockRejectedValue(new Error('User rejected transaction')),
+        writeContract: vi
+          .fn()
+          .mockRejectedValue(new Error('User rejected transaction')),
       })
-      const operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient, walletClient)
+      const operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+        walletClient,
+      )
 
       await expect(
         operations.create({
           token: '0x0000000000000000000000000000000000000000',
           stakeAmount: 1000000000000000000n,
           maxPlayers: 2,
-        })
+        }),
       ).rejects.toThrow('User rejected transaction')
     })
 
     it('SPEC: read operations fail gracefully when contract call fails', async () => {
       const publicClient = createMockPublicClient({
-        readContract: vi.fn().mockRejectedValue(new Error('Contract not found')),
+        readContract: vi
+          .fn()
+          .mockRejectedValue(new Error('Contract not found')),
       })
-      const operations = createClientMatchOperations(CONTRACT_ADDRESS, publicClient)
+      const operations = createClientMatchOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+      )
 
       await expect(operations.get(1n)).rejects.toThrow('Contract not found')
     })

@@ -1,11 +1,29 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Clock, CheckCircle2, AlertCircle, Play, Flag } from 'lucide-react'
-import { useAccount, useWaitForTransactionReceipt, useBlockNumber, useChainId } from 'wagmi'
+import {
+  Trophy,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Play,
+  Flag,
+} from 'lucide-react'
+import {
+  useAccount,
+  useWaitForTransactionReceipt,
+  useBlockNumber,
+  useChainId,
+} from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi, useTokenApproval, MatchStatus } from '@ohara-ai/sdk'
 
@@ -50,13 +68,15 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const [joinHash, setJoinHash] = useState<`0x${string}` | undefined>()
   const [isJoining, setIsJoining] = useState(false)
   const [joinError, setJoinError] = useState<Error | null>(null)
-  const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } = useWaitForTransactionReceipt({ hash: joinHash })
+  const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } =
+    useWaitForTransactionReceipt({ hash: joinHash })
 
   // State for withdraw action
   const [withdrawHash, setWithdrawHash] = useState<`0x${string}` | undefined>()
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [withdrawError, setWithdrawError] = useState<Error | null>(null)
-  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawHash })
+  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } =
+    useWaitForTransactionReceipt({ hash: withdrawHash })
 
   // Reset transaction states when matchId changes to clear success/error messages
   useEffect(() => {
@@ -107,7 +127,9 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           setMatchData(null)
           // If this happened after a successful withdrawal, clear the selection
           if (isWithdrawSuccess && onMatchDeleted) {
-            console.log('[MatchDetails] Match deleted after withdrawal, clearing selection')
+            console.log(
+              '[MatchDetails] Match deleted after withdrawal, clearing selection',
+            )
             onMatchDeleted()
           }
           return
@@ -123,7 +145,8 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         })
         setFetchError(null)
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error'
         console.error(`[MatchDetails] Error fetching match ${matchId}:`, error)
         setFetchError(errorMessage)
         setMatchData(null)
@@ -133,7 +156,16 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     }
 
     fetchMatchData()
-  }, [matchId, blockNumber, isJoinSuccess, isWithdrawSuccess, activateSuccess, finalizeSuccess, game.match.operations, onMatchDeleted])
+  }, [
+    matchId,
+    blockNumber,
+    isJoinSuccess,
+    isWithdrawSuccess,
+    activateSuccess,
+    finalizeSuccess,
+    game.match.operations,
+    onMatchDeleted,
+  ])
 
   // Token approval for joining matches with custom tokens
   const {
@@ -148,7 +180,10 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     tokenAddress: matchData?.token || zeroAddress,
     spenderAddress: game.match?.address || zeroAddress,
     amount: matchData?.stakeAmount || 0n,
-    enabled: !!matchData && !!game.match?.address && matchData.status === MatchStatus.Open,
+    enabled:
+      !!matchData &&
+      !!game.match?.address &&
+      matchData.status === MatchStatus.Open,
   })
 
   const handleJoinMatch = async () => {
@@ -205,7 +240,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          matchId
+          matchId,
         }),
       })
 
@@ -218,7 +253,8 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
       setActivateSuccess(true)
       console.log('[MatchDetails] Match activated:', data.transactionHash)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
       console.error('[MatchDetails] Activation error:', error)
       setActivateError(errorMessage)
     } finally {
@@ -239,7 +275,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           matchId,
-          winner: selectedWinner
+          winner: selectedWinner,
         }),
       })
 
@@ -251,7 +287,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
 
       setFinalizeSuccess(true)
       setShowWinnerPicker(false)
-      
+
       // Store finalization result if available
       if (data.totalPrize && data.winnerAmount) {
         setFinalizeResult({
@@ -260,10 +296,11 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           winnerAmount: data.winnerAmount,
         })
       }
-      
+
       console.log('[MatchDetails] Match finalized:', data.transactionHash)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
       console.error('[MatchDetails] Finalization error:', error)
       setFinalizeError(errorMessage)
     } finally {
@@ -276,9 +313,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
       <Card className="h-fit sticky top-8">
         <CardHeader>
           <CardTitle>Match Details</CardTitle>
-          <CardDescription>
-            Select a match to view details
-          </CardDescription>
+          <CardDescription>Select a match to view details</CardDescription>
         </CardHeader>
         <CardContent className="py-8 text-center text-muted-foreground">
           No match selected
@@ -308,9 +343,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Match #{matchId}</CardTitle>
-              <Badge className="bg-gray-500/10 text-gray-500">
-                Finalized
-              </Badge>
+              <Badge className="bg-gray-500/10 text-gray-500">Finalized</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -327,28 +360,40 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                   <div className="flex-1">
                     <p className="text-xs text-muted-foreground mb-1">Winner</p>
                     <p className="font-mono font-medium">
-                      {finalizeResult.winner.slice(0, 6)}...{finalizeResult.winner.slice(-4)}
-                      {finalizeResult.winner.toLowerCase() === address?.toLowerCase() && ' (You)'}
+                      {finalizeResult.winner.slice(0, 6)}...
+                      {finalizeResult.winner.slice(-4)}
+                      {finalizeResult.winner.toLowerCase() ===
+                        address?.toLowerCase() && ' (You)'}
                     </p>
                   </div>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-muted-foreground">Total Prize Pool:</span>
+                    <span className="text-muted-foreground">
+                      Total Prize Pool:
+                    </span>
                     <span className="font-medium">
                       {formatEther(BigInt(finalizeResult.totalPrize))} ETH
                     </span>
                   </div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-muted-foreground">Winner Received:</span>
+                    <span className="text-muted-foreground">
+                      Winner Received:
+                    </span>
                     <span className="font-semibold text-green-600">
                       {formatEther(BigInt(finalizeResult.winnerAmount))} ETH
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Fees Deducted:</span>
                     <span className="text-muted-foreground">
-                      {formatEther(BigInt(finalizeResult.totalPrize) - BigInt(finalizeResult.winnerAmount))} ETH
+                      Fees Deducted:
+                    </span>
+                    <span className="text-muted-foreground">
+                      {formatEther(
+                        BigInt(finalizeResult.totalPrize) -
+                          BigInt(finalizeResult.winnerAmount),
+                      )}{' '}
+                      ETH
                     </span>
                   </div>
                 </div>
@@ -361,7 +406,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
         </Card>
       )
     }
-    
+
     return (
       <Card className="h-fit sticky top-8">
         <CardHeader>
@@ -372,7 +417,9 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
             <div className="space-y-2">
               <p className="text-muted-foreground">Match not found</p>
               <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-left">
-                <p className="text-sm text-red-500 font-semibold mb-1">Error:</p>
+                <p className="text-sm text-red-500 font-semibold mb-1">
+                  Error:
+                </p>
                 <p className="text-xs text-red-500/90">{fetchError}</p>
               </div>
               <p className="text-xs text-muted-foreground mt-2">
@@ -389,11 +436,20 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
 
   const statusLabels = ['Open', 'Active', 'Finalized']
   const statusLabel = statusLabels[matchData.status] || 'Unknown'
-  const tokenDisplay = matchData.token === zeroAddress ? 'ETH' : `${matchData.token.slice(0, 6)}...${matchData.token.slice(-4)}`
-  const isPlayer = matchData.players.some(p => p.toLowerCase() === address?.toLowerCase())
-  const canJoin = matchData.status === MatchStatus.Open && !isPlayer && matchData.players.length < Number(matchData.maxPlayers)
+  const tokenDisplay =
+    matchData.token === zeroAddress
+      ? 'ETH'
+      : `${matchData.token.slice(0, 6)}...${matchData.token.slice(-4)}`
+  const isPlayer = matchData.players.some(
+    (p) => p.toLowerCase() === address?.toLowerCase(),
+  )
+  const canJoin =
+    matchData.status === MatchStatus.Open &&
+    !isPlayer &&
+    matchData.players.length < Number(matchData.maxPlayers)
   const canWithdraw = matchData.status === MatchStatus.Open && isPlayer
-  const canActivate = matchData.status === MatchStatus.Open && matchData.players.length >= 2
+  const canActivate =
+    matchData.status === MatchStatus.Open && matchData.players.length >= 2
   const canFinalize = matchData.status === MatchStatus.Active
 
   const getStatusColor = (status: string) => {
@@ -414,21 +470,24 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Match #{matchId}</CardTitle>
-          <Badge className={getStatusColor(statusLabel)}>
-            {statusLabel}
-          </Badge>
+          <Badge className={getStatusColor(statusLabel)}>{statusLabel}</Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Stake Amount</span>
-            <span className="font-semibold">{formatEther(matchData.stakeAmount)} {tokenDisplay}</span>
+            <span className="font-semibold">
+              {formatEther(matchData.stakeAmount)} {tokenDisplay}
+            </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm text-muted-foreground">Total Prize</span>
             <span className="font-semibold">
-              {formatEther(matchData.stakeAmount * BigInt(matchData.players.length))} {tokenDisplay}
+              {formatEther(
+                matchData.stakeAmount * BigInt(matchData.players.length),
+              )}{' '}
+              {tokenDisplay}
             </span>
           </div>
           <div className="flex justify-between items-center">
@@ -451,9 +510,10 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                   {player.slice(0, 6)}...{player.slice(-4)}
                   {player.toLowerCase() === address?.toLowerCase() && ' (You)'}
                 </span>
-                {matchData.winner !== zeroAddress && matchData.winner.toLowerCase() === player.toLowerCase() && (
-                  <Trophy className="w-4 h-4 text-yellow-500" />
-                )}
+                {matchData.winner !== zeroAddress &&
+                  matchData.winner.toLowerCase() === player.toLowerCase() && (
+                    <Trophy className="w-4 h-4 text-yellow-500" />
+                  )}
               </div>
             ))}
           </div>
@@ -469,7 +529,11 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               {matchData.winner.slice(0, 6)}...{matchData.winner.slice(-4)}
             </p>
             <p className="text-sm text-muted-foreground mt-1">
-              Prize: {formatEther(matchData.stakeAmount * BigInt(matchData.players.length))} {tokenDisplay}
+              Prize:{' '}
+              {formatEther(
+                matchData.stakeAmount * BigInt(matchData.players.length),
+              )}{' '}
+              {tokenDisplay}
             </p>
           </div>
         )}
@@ -486,7 +550,9 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                 )}
                 <div className="flex-1">
                   <p className="text-sm font-medium">
-                    {isApproveSuccess || !needsApproval ? 'Token Approved' : 'Token Approval Required'}
+                    {isApproveSuccess || !needsApproval
+                      ? 'Token Approved'
+                      : 'Token Approval Required'}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {isApproveSuccess || !needsApproval
@@ -503,29 +569,41 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                   className="w-full"
                   size="sm"
                 >
-                  {isApprovePending ? 'Confirming...' : isApproveConfirming ? 'Approving...' : 'Approve Token'}
+                  {isApprovePending
+                    ? 'Confirming...'
+                    : isApproveConfirming
+                      ? 'Approving...'
+                      : 'Approve Token'}
                 </Button>
               )}
             </div>
           )}
 
           {canJoin && (
-            <Button 
+            <Button
               className="w-full"
               onClick={handleJoinMatch}
               disabled={isJoining || isJoinConfirming || needsApproval}
             >
-              {isJoining ? 'Confirming...' : isJoinConfirming ? 'Joining...' : 'Join Match'}
+              {isJoining
+                ? 'Confirming...'
+                : isJoinConfirming
+                  ? 'Joining...'
+                  : 'Join Match'}
             </Button>
           )}
           {canWithdraw && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full"
               onClick={handleLeaveMatch}
               disabled={isWithdrawing || isWithdrawConfirming}
             >
-              {isWithdrawing ? 'Confirming...' : isWithdrawConfirming ? 'Leaving...' : 'Leave Match'}
+              {isWithdrawing
+                ? 'Confirming...'
+                : isWithdrawConfirming
+                  ? 'Leaving...'
+                  : 'Leave Match'}
             </Button>
           )}
 
@@ -536,14 +614,17 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 text-blue-500 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-blue-500">Ready to Activate</p>
+                    <p className="text-sm font-medium text-blue-500">
+                      Ready to Activate
+                    </p>
                     <p className="text-xs text-blue-500/80 mt-1">
-                      Match has {matchData.players.length} players. Activation will lock all stakes.
+                      Match has {matchData.players.length} players. Activation
+                      will lock all stakes.
                     </p>
                   </div>
                 </div>
               </div>
-              <Button 
+              <Button
                 className="w-full"
                 onClick={handleActivateMatch}
                 disabled={isActivating}
@@ -573,11 +654,12 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-blue-500" />
                       <p className="text-sm text-blue-500">
-                        Match is active. Select finalize with app selected winner.
+                        Match is active. Select finalize with app selected
+                        winner.
                       </p>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     className="w-full"
                     onClick={() => setShowWinnerPicker(true)}
                     variant="default"
@@ -599,26 +681,29 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      {matchData.players.map((player: string, index: number) => (
-                        <button
-                          key={index}
-                          onClick={() => setSelectedWinner(player)}
-                          className={`w-full p-3 rounded-md border text-left transition-colors ${
-                            selectedWinner === player
-                              ? 'bg-yellow-500/20 border-yellow-500/50'
-                              : 'bg-muted/50 border-transparent hover:border-muted-foreground/20'
-                          }`}
-                        >
-                          <span className="text-sm font-mono">
-                            {player.slice(0, 6)}...{player.slice(-4)}
-                            {player.toLowerCase() === address?.toLowerCase() && ' (You)'}
-                          </span>
-                        </button>
-                      ))}
+                      {matchData.players.map(
+                        (player: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => setSelectedWinner(player)}
+                            className={`w-full p-3 rounded-md border text-left transition-colors ${
+                              selectedWinner === player
+                                ? 'bg-yellow-500/20 border-yellow-500/50'
+                                : 'bg-muted/50 border-transparent hover:border-muted-foreground/20'
+                            }`}
+                          >
+                            <span className="text-sm font-mono">
+                              {player.slice(0, 6)}...{player.slice(-4)}
+                              {player.toLowerCase() ===
+                                address?.toLowerCase() && ' (You)'}
+                            </span>
+                          </button>
+                        ),
+                      )}
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button 
+                    <Button
                       variant="outline"
                       className="flex-1"
                       onClick={() => {
@@ -629,7 +714,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       className="flex-1"
                       onClick={handleFinalizeMatch}
                       disabled={!selectedWinner || isFinalizing}
@@ -648,7 +733,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               )}
             </div>
           )}
-          
+
           {isJoinSuccess && (
             <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
               <p className="text-sm text-green-500">
@@ -670,7 +755,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               </p>
             </div>
           )}
-          
+
           {isWithdrawSuccess && (
             <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
               <p className="text-sm text-green-500">
@@ -695,9 +780,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           )}
           {activateError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-red-500">
-                Error: {activateError}
-              </p>
+              <p className="text-sm text-red-500">Error: {activateError}</p>
             </div>
           )}
 
@@ -714,27 +797,41 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Winner:</span>
                     <span className="font-mono font-medium">
-                      {finalizeResult.winner.slice(0, 6)}...{finalizeResult.winner.slice(-4)}
-                      {finalizeResult.winner.toLowerCase() === address?.toLowerCase() && ' (You)'}
+                      {finalizeResult.winner.slice(0, 6)}...
+                      {finalizeResult.winner.slice(-4)}
+                      {finalizeResult.winner.toLowerCase() ===
+                        address?.toLowerCase() && ' (You)'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Total Prize Pool:</span>
+                    <span className="text-muted-foreground">
+                      Total Prize Pool:
+                    </span>
                     <span className="font-medium">
-                      {formatEther(BigInt(finalizeResult.totalPrize))} {tokenDisplay}
+                      {formatEther(BigInt(finalizeResult.totalPrize))}{' '}
+                      {tokenDisplay}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Winner Received:</span>
+                    <span className="text-muted-foreground">
+                      Winner Received:
+                    </span>
                     <span className="font-semibold text-green-600">
-                      {formatEther(BigInt(finalizeResult.winnerAmount))} {tokenDisplay}
+                      {formatEther(BigInt(finalizeResult.winnerAmount))}{' '}
+                      {tokenDisplay}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-green-500/20">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Fees Deducted:</span>
                       <span className="text-muted-foreground">
-                        {formatEther(BigInt(finalizeResult.totalPrize) - BigInt(finalizeResult.winnerAmount))} {tokenDisplay}
+                        Fees Deducted:
+                      </span>
+                      <span className="text-muted-foreground">
+                        {formatEther(
+                          BigInt(finalizeResult.totalPrize) -
+                            BigInt(finalizeResult.winnerAmount),
+                        )}{' '}
+                        {tokenDisplay}
                       </span>
                     </div>
                   </div>
@@ -744,9 +841,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           )}
           {finalizeError && (
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-              <p className="text-sm text-red-500">
-                Error: {finalizeError}
-              </p>
+              <p className="text-sm text-red-500">Error: {finalizeError}</p>
             </div>
           )}
 

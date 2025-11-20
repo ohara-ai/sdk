@@ -1,6 +1,6 @@
 /**
  * Mock Blockchain Clients
- * 
+ *
  * Provides mock implementations of viem PublicClient and WalletClient
  * for testing blockchain interactions without actual network calls
  */
@@ -11,7 +11,9 @@ import { vi } from 'vitest'
 /**
  * Creates a mock PublicClient with configurable return values
  */
-export function createMockPublicClient(overrides?: Partial<PublicClient>): PublicClient {
+export function createMockPublicClient(
+  overrides?: Partial<PublicClient>,
+): PublicClient {
   return {
     readContract: vi.fn(),
     getChainId: vi.fn().mockResolvedValue(31337), // Hardhat default chain ID
@@ -25,14 +27,18 @@ export function createMockPublicClient(overrides?: Partial<PublicClient>): Publi
  */
 export function createMockWalletClient(
   accountAddress: Address = '0x1111111111111111111111111111111111111111',
-  overrides?: Partial<WalletClient>
+  overrides?: Partial<WalletClient>,
 ): WalletClient {
   return {
     account: {
       address: accountAddress,
       type: 'json-rpc' as const,
     },
-    writeContract: vi.fn().mockResolvedValue('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as Hash),
+    writeContract: vi
+      .fn()
+      .mockResolvedValue(
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as Hash,
+      ),
     chain: undefined,
     ...overrides,
   } as unknown as WalletClient
@@ -42,7 +48,7 @@ export function createMockWalletClient(
  * Mock transaction receipt
  */
 export function createMockReceipt(
-  contractAddress: Address = '0x2222222222222222222222222222222222222222'
+  contractAddress: Address = '0x2222222222222222222222222222222222222222',
 ) {
   return {
     contractAddress,
@@ -52,7 +58,10 @@ export function createMockReceipt(
     logs: [
       {
         address: contractAddress,
-        topics: ['0xGameMatchDeployed', '0x0000000000000000000000002222222222222222222222222222222222222222'],
+        topics: [
+          '0xGameMatchDeployed',
+          '0x0000000000000000000000002222222222222222222222222222222222222222',
+        ],
         data: '0x',
       },
     ],
@@ -91,7 +100,10 @@ export function createMockPlayerScore() {
  */
 export function createMockTopPlayers() {
   return [
-    ['0x1111111111111111111111111111111111111111', '0x2222222222222222222222222222222222222222'], // players
+    [
+      '0x1111111111111111111111111111111111111111',
+      '0x2222222222222222222222222222222222222222',
+    ], // players
     [10n, 5n], // wins
     [20000000000000000000n, 10000000000000000000n], // prizes
   ]

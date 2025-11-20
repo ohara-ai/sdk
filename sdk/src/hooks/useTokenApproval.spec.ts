@@ -1,6 +1,6 @@
 /**
  * Token Approval Hook Specification Tests
- * 
+ *
  * Tests the useTokenApproval hook behavior following behavioral specifications
  * Note: These are unit tests for the hook logic. Integration tests with React
  * would require a more complex setup with React Testing Library.
@@ -76,7 +76,7 @@ describe('Token Approval Hook - Specification Tests', () => {
 
     it('SPEC: approve function signature is correct', () => {
       const approve = () => {}
-      
+
       expect(typeof approve).toBe('function')
       expect(approve.length).toBe(0) // No parameters
     })
@@ -85,15 +85,16 @@ describe('Token Approval Hook - Specification Tests', () => {
   describe('Specification: Native Token Detection', () => {
     it('SPEC: zero address is recognized as native token', () => {
       const tokenAddress = zeroAddress
-      const isNative = tokenAddress === '0x0000000000000000000000000000000000000000'
-      
+      const isNative =
+        tokenAddress === '0x0000000000000000000000000000000000000000'
+
       expect(isNative).toBe(true)
     })
 
     it('SPEC: non-zero address is not native token', () => {
       const tokenAddress = TOKEN_ADDRESS as `0x${string}`
       const isNative = tokenAddress === zeroAddress
-      
+
       expect(isNative).toBe(false)
     })
   })
@@ -204,25 +205,45 @@ describe('Token Approval Hook - Specification Tests', () => {
   describe('Specification: Wagmi Integration Points', () => {
     it('SPEC: should use useAccount for user address', () => {
       // This verifies the hook dependencies
-      const hookDependencies = ['useAccount', 'useReadContract', 'useWriteContract', 'useWaitForTransactionReceipt']
+      const hookDependencies = [
+        'useAccount',
+        'useReadContract',
+        'useWriteContract',
+        'useWaitForTransactionReceipt',
+      ]
 
       expect(hookDependencies).toContain('useAccount')
     })
 
     it('SPEC: should use useReadContract for allowance', () => {
-      const hookDependencies = ['useAccount', 'useReadContract', 'useWriteContract', 'useWaitForTransactionReceipt']
+      const hookDependencies = [
+        'useAccount',
+        'useReadContract',
+        'useWriteContract',
+        'useWaitForTransactionReceipt',
+      ]
 
       expect(hookDependencies).toContain('useReadContract')
     })
 
     it('SPEC: should use useWriteContract for approval', () => {
-      const hookDependencies = ['useAccount', 'useReadContract', 'useWriteContract', 'useWaitForTransactionReceipt']
+      const hookDependencies = [
+        'useAccount',
+        'useReadContract',
+        'useWriteContract',
+        'useWaitForTransactionReceipt',
+      ]
 
       expect(hookDependencies).toContain('useWriteContract')
     })
 
     it('SPEC: should use useWaitForTransactionReceipt for confirmation', () => {
-      const hookDependencies = ['useAccount', 'useReadContract', 'useWriteContract', 'useWaitForTransactionReceipt']
+      const hookDependencies = [
+        'useAccount',
+        'useReadContract',
+        'useWriteContract',
+        'useWaitForTransactionReceipt',
+      ]
 
       expect(hookDependencies).toContain('useWaitForTransactionReceipt')
     })

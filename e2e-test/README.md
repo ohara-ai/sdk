@@ -40,4 +40,3 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 - `contracts/` - Demo contracts, only for testing (DevWorldToken, etc.)
 - `lib/` - Utility functions and configuration (wagmi, etc.)
 - `scripts/*.sh` - Deployment and utility scripts
-

@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
     if (matchId === undefined || matchId === null) {
       return NextResponse.json(
         { error: 'matchId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     if (!winner) {
       return NextResponse.json(
         { error: 'winner address is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -26,25 +26,25 @@ export async function POST(request: NextRequest) {
     if (!game.match.operations) {
       return NextResponse.json(
         { error: 'Match operations not available' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     // Get match data and fee configuration before finalization
     const matchData = await game.match.operations.get(BigInt(matchId))
     const feeConfig = await game.match.operations.getFeeConfiguration()
-    
+
     const totalPrize = matchData.totalPrize
-    
+
     // Calculate actual fees based on contract configuration
     // totalShare is in basis points (100 = 1%)
     const feeAmount = (totalPrize * feeConfig.totalShare) / 10000n
     const winnerAmount = totalPrize - feeAmount
-    
+
     // Call finalize operation from SDK
     const hash = await game.match.operations.finalize(
       BigInt(matchId),
-      winner as `0x${string}`
+      winner as `0x${string}`,
     )
 
     return NextResponse.json({
@@ -60,8 +60,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Match finalization error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to finalize match' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to finalize match',
+      },
+      { status: 500 },
     )
   }
 }

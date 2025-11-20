@@ -39,37 +39,37 @@ export interface MatchOperations {
    * Create a new match with specified configuration
    */
   create(config: MatchConfig): Promise<Hash>
-  
+
   /**
    * Join an existing open match
    */
   join(matchId: bigint): Promise<Hash>
-  
+
   /**
    * Leave a match and withdraw stake (if still open)
    */
   leave(matchId: bigint): Promise<Hash>
-  
+
   /**
    * Get match details
    */
   get(matchId: bigint): Promise<Match>
-  
+
   /**
    * Get active matches (paginated)
    */
   getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]>
-  
+
   /**
    * Get the total count of active matches
    */
   getActiveMatchCount(): Promise<bigint>
-  
+
   /**
    * Get the maximum number of active matches allowed
    */
   getMaxActiveMatches(): Promise<bigint>
-  
+
   /**
    * Get fee configuration (recipients, shares, totalShare)
    */
@@ -78,23 +78,23 @@ export interface MatchOperations {
     shares: readonly bigint[]
     totalShare: bigint
   }>
-  
+
   /**
    * Get player's stake in a match
    */
   getPlayerStake(matchId: bigint, player: Address): Promise<bigint>
-  
+
   /**
    * Get the address of the scoreboard configured in this contract
    */
   getScoreboardAddress(): Promise<Address>
-  
+
   /**
    * Withdraw accumulated fees (for fee recipients only)
    * @param token The token address (use zeroAddress for native token/ETH)
    */
   withdrawFees(token: Address): Promise<Hash>
-  
+
   /**
    * Get pending fees for a recipient
    * @param recipient The fee recipient address
@@ -112,7 +112,7 @@ export interface ServerMatchOperations extends MatchOperations {
    * Activate an open match (controller only - server-side only)
    */
   activate(matchId: bigint): Promise<Hash>
-  
+
   /**
    * Finalize an active match with a winner (controller only - server-side only)
    */
@@ -126,9 +126,14 @@ export interface ServerMatchOperations extends MatchOperations {
 export function createClientMatchOperations(
   contractAddress: Address,
   publicClient: PublicClient,
-  walletClient?: WalletClient
+  walletClient?: WalletClient,
 ): MatchOperations {
-  return createOperationsInternal(contractAddress, publicClient, walletClient, false) as MatchOperations
+  return createOperationsInternal(
+    contractAddress,
+    publicClient,
+    walletClient,
+    false,
+  ) as MatchOperations
 }
 
 /**
@@ -141,7 +146,7 @@ export function createOperations(
   publicClient: PublicClient,
   walletClient?: undefined,
   oharaApiClient?: undefined,
-  chainId?: undefined
+  chainId?: undefined,
 ): MatchOperations
 
 // Overload: with wallet client, returns server operations (includes activate/finalize)
@@ -150,7 +155,7 @@ export function createOperations(
   publicClient: PublicClient,
   walletClient?: WalletClient,
   oharaApiClient?: OharaApiClient,
-  chainId?: number
+  chainId?: number,
 ): ServerMatchOperations
 
 // Implementation
@@ -159,9 +164,16 @@ export function createOperations(
   publicClient: PublicClient,
   walletClient?: WalletClient,
   oharaApiClient?: OharaApiClient,
-  chainId?: number
+  chainId?: number,
 ): MatchOperations | ServerMatchOperations {
-  return createOperationsInternal(contractAddress, publicClient, walletClient, true, oharaApiClient, chainId)
+  return createOperationsInternal(
+    contractAddress,
+    publicClient,
+    walletClient,
+    true,
+    oharaApiClient,
+    chainId,
+  )
 }
 
 /**
@@ -173,7 +185,7 @@ function createOperationsInternal(
   walletClient?: WalletClient,
   includeServerOps: boolean = true,
   oharaApiClient?: OharaApiClient,
-  chainId?: number
+  chainId?: number,
 ): MatchOperations | ServerMatchOperations {
   if (!publicClient) {
     throw new Error('PublicClient is required for match operations')
@@ -193,9 +205,10 @@ function createOperationsInternal(
       if (!account) throw new Error('No account found in wallet')
 
       // Calculate value to send (stake amount for native tokens)
-      const value = config.token === '0x0000000000000000000000000000000000000000' 
-        ? config.stakeAmount 
-        : 0n
+      const value =
+        config.token === '0x0000000000000000000000000000000000000000'
+          ? config.stakeAmount
+          : 0n
 
       return wallet.writeContract({
         address: contractAddress,
@@ -215,9 +228,10 @@ function createOperationsInternal(
 
       // Get match details to determine value
       const match = await this.get(matchId)
-      const value = match.token === '0x0000000000000000000000000000000000000000'
-        ? match.stakeAmount
-        : 0n
+      const value =
+        match.token === '0x0000000000000000000000000000000000000000'
+          ? match.stakeAmount
+          : 0n
 
       return wallet.writeContract({
         address: contractAddress,
@@ -270,13 +284,16 @@ function createOperationsInternal(
       }
     },
 
-    async getActiveMatches(offset?: number, limit?: number): Promise<readonly bigint[]> {
+    async getActiveMatches(
+      offset?: number,
+      limit?: number,
+    ): Promise<readonly bigint[]> {
       // If no limit specified, fetch all active matches
       if (limit === undefined) {
         const count = await this.getActiveMatchCount()
         limit = Number(count)
       }
-      
+
       return publicClient.readContract({
         address: contractAddress,
         abi: MATCH_ABI,
@@ -375,17 +392,21 @@ function createOperationsInternal(
           params: { matchId: matchId.toString() },
           chainId,
         })
-        
+
         // Wait for transaction confirmation
-        const status = await oharaApiClient.waitForTransaction(result.data.txHash)
-        
+        const status = await oharaApiClient.waitForTransaction(
+          result.data.txHash,
+        )
+
         if (status.status === 'FAILED') {
-          throw new Error(`Transaction failed: ${status.errorMessage || 'Unknown error'}`)
+          throw new Error(
+            `Transaction failed: ${status.errorMessage || 'Unknown error'}`,
+          )
         }
-        
+
         return result.data.txHash
       }
-      
+
       // Otherwise, use direct on-chain execution
       const wallet = requireWallet()
       const account = wallet.account
@@ -407,23 +428,27 @@ function createOperationsInternal(
         const result = await oharaApiClient.executeContractFunction({
           contractAddress,
           functionName: 'finalize',
-          params: { 
+          params: {
             matchId: matchId.toString(),
-            winner: winner 
+            winner: winner,
           },
           chainId,
         })
-        
+
         // Wait for transaction confirmation
-        const status = await oharaApiClient.waitForTransaction(result.data.txHash)
-        
+        const status = await oharaApiClient.waitForTransaction(
+          result.data.txHash,
+        )
+
         if (status.status === 'FAILED') {
-          throw new Error(`Transaction failed: ${status.errorMessage || 'Unknown error'}`)
+          throw new Error(
+            `Transaction failed: ${status.errorMessage || 'Unknown error'}`,
+          )
         }
-        
+
         return result.data.txHash
       }
-      
+
       // Otherwise, use direct on-chain execution
       const wallet = requireWallet()
       const account = wallet.account

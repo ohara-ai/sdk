@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DollarSign, CheckCircle2, AlertCircle } from 'lucide-react'
@@ -24,11 +30,12 @@ export function FeeWithdrawal() {
   const [isLoading, setIsLoading] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<`0x${string}`[]>([])
   const [isRecipient, setIsRecipient] = useState(false)
-  
+
   const [withdrawHash, setWithdrawHash] = useState<`0x${string}` | undefined>()
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [withdrawError, setWithdrawError] = useState<Error | null>(null)
-  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } = useWaitForTransactionReceipt({ hash: withdrawHash })
+  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } =
+    useWaitForTransactionReceipt({ hash: withdrawHash })
 
   // Fetch fee configuration to check if user is a recipient
   useEffect(() => {
@@ -39,7 +46,9 @@ export function FeeWithdrawal() {
         const feeConfig = await game.match.operations!.getFeeConfiguration()
         const recipients = Array.from(feeConfig.recipients)
         setFeeRecipients(recipients)
-        setIsRecipient(recipients.some(r => r.toLowerCase() === address.toLowerCase()))
+        setIsRecipient(
+          recipients.some((r) => r.toLowerCase() === address.toLowerCase()),
+        )
       } catch (error) {
         console.error('[FeeWithdrawal] Error checking fee recipient:', error)
       }
@@ -59,10 +68,13 @@ export function FeeWithdrawal() {
       setIsLoading(true)
       try {
         // Check native token (ETH) fees using SDK
-        const nativeFees = await game.match.operations!.getPendingFees(address, zeroAddress)
+        const nativeFees = await game.match.operations!.getPendingFees(
+          address,
+          zeroAddress,
+        )
 
         const fees: PendingFees[] = []
-        
+
         if (nativeFees > 0n) {
           fees.push({
             token: zeroAddress,
@@ -84,7 +96,13 @@ export function FeeWithdrawal() {
     }
 
     fetchPendingFees()
-  }, [game.match?.operations, address, isRecipient, blockNumber, isWithdrawSuccess])
+  }, [
+    game.match?.operations,
+    address,
+    isRecipient,
+    blockNumber,
+    isWithdrawSuccess,
+  ])
 
   const handleWithdrawFees = async (token: `0x${string}`) => {
     if (!game.match?.operations || !address) return
@@ -92,7 +110,7 @@ export function FeeWithdrawal() {
     try {
       setIsWithdrawing(true)
       setWithdrawError(null)
-      
+
       // Call withdrawFees using SDK
       const hash = await game.match.operations.withdrawFees(token)
       setWithdrawHash(hash)
@@ -123,8 +141,11 @@ export function FeeWithdrawal() {
     return null
   }
 
-  const totalPendingEth = pendingFees.reduce((sum, fee) => fee.token === zeroAddress ? sum + fee.amount : sum, 0n)
-  const hasPendingFees = pendingFees.some(fee => fee.amount > 0n)
+  const totalPendingEth = pendingFees.reduce(
+    (sum, fee) => (fee.token === zeroAddress ? sum + fee.amount : sum),
+    0n,
+  )
+  const hasPendingFees = pendingFees.some((fee) => fee.amount > 0n)
 
   return (
     <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
@@ -143,7 +164,10 @@ export function FeeWithdrawal() {
               </CardDescription>
             </div>
           </div>
-          <Badge variant="outline" className="bg-purple-100 text-purple-700 border-purple-300">
+          <Badge
+            variant="outline"
+            className="bg-purple-100 text-purple-700 border-purple-300"
+          >
             Recipient
           </Badge>
         </div>
@@ -156,26 +180,39 @@ export function FeeWithdrawal() {
         ) : !hasPendingFees ? (
           <div className="text-center py-4 bg-white/60 rounded-lg border border-purple-200">
             <p className="text-sm text-gray-600">No fees to withdraw</p>
-            <p className="text-xs text-gray-500 mt-1">Fees will appear here after matches are finalized</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Fees will appear here after matches are finalized
+            </p>
           </div>
         ) : (
           <>
             {/* Pending Fees Display */}
             <div className="space-y-3">
               {pendingFees.map((fee, idx) => (
-                <div key={idx} className="bg-white rounded-lg p-4 border-2 border-purple-200 shadow-sm">
+                <div
+                  key={idx}
+                  className="bg-white rounded-lg p-4 border-2 border-purple-200 shadow-sm"
+                >
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-medium text-gray-700">{fee.tokenSymbol}</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      {fee.tokenSymbol}
+                    </span>
                     <span className="text-lg font-bold text-purple-600">
                       {formatEther(fee.amount)} {fee.tokenSymbol}
                     </span>
                   </div>
                   <Button
                     onClick={() => handleWithdrawFees(fee.token)}
-                    disabled={isWithdrawing || isWithdrawConfirming || fee.amount === 0n}
+                    disabled={
+                      isWithdrawing || isWithdrawConfirming || fee.amount === 0n
+                    }
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
-                    {isWithdrawing ? 'Confirming...' : isWithdrawConfirming ? 'Withdrawing...' : `Withdraw ${fee.tokenSymbol}`}
+                    {isWithdrawing
+                      ? 'Confirming...'
+                      : isWithdrawConfirming
+                        ? 'Withdrawing...'
+                        : `Withdraw ${fee.tokenSymbol}`}
                   </Button>
                 </div>
               ))}
@@ -185,7 +222,9 @@ export function FeeWithdrawal() {
             {totalPendingEth > 0n && (
               <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-3 border border-purple-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-700">Total Pending</span>
+                  <span className="text-sm font-semibold text-gray-700">
+                    Total Pending
+                  </span>
                   <span className="text-lg font-bold text-purple-700">
                     {formatEther(totalPendingEth)} ETH
                   </span>
@@ -222,7 +261,8 @@ export function FeeWithdrawal() {
         {/* Info Box */}
         <div className="pt-3 border-t border-purple-200">
           <p className="text-xs text-gray-600">
-            <strong>Note:</strong> Fees are accumulated from finalized matches. You need to manually withdraw your fees using the button above.
+            <strong>Note:</strong> Fees are accumulated from finalized matches.
+            You need to manually withdraw your fees using the button above.
           </p>
         </div>
       </CardContent>

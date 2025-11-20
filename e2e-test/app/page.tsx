@@ -25,9 +25,12 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-8">
           <div className="flex items-start justify-between">
             <div className="space-y-3">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900">OharaAI SDK</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+                OharaAI SDK
+              </h1>
               <p className="text-lg text-gray-600 leading-relaxed">
-                Deploy and test on-chain gaming contracts. Functional primitives for Match and Scores operations.
+                Deploy and test on-chain gaming contracts. Functional primitives
+                for Match and Scores operations.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -39,11 +42,15 @@ export default function Home() {
                 className="flex items-center gap-1.5"
               >
                 Addresses
-                {showFactoryInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showFactoryInfo ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>
-          
+
           {/* Contract Addresses Info */}
           {showFactoryInfo && (
             <div className="mt-8">
@@ -55,10 +62,9 @@ export default function Home() {
 
       {/* Content Section */}
       <div className="max-w-6xl mx-auto px-6 py-12">
-        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <DeployGameMatch onDeployed={handleContractDeployed} />
-          
+
           <DeployGameScore onDeployed={handleContractDeployed} />
         </div>
       </div>

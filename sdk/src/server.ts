@@ -35,13 +35,9 @@ export {
 } from './server/oharaApiClient'
 
 // Server-only types
-export {
-  type ServerMatchOperations,
-} from './core/game/match'
+export { type ServerMatchOperations } from './core/game/match'
 
-export {
-  type ServerGameContext,
-} from './context/OharaAiContext'
+export { type ServerGameContext } from './context/OharaAiContext'
 
 // Deployment (server-side only)
 export {

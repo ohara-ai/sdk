@@ -1,6 +1,6 @@
 /**
  * Deployment Service Specification Tests
- * 
+ *
  * Tests the deployment utilities and configuration management
  */
 
@@ -116,7 +116,8 @@ describe('Deployment Service - Specification Tests', () => {
 
   describe('Specification: Create Deployment Clients', () => {
     const mockConfig: DeploymentConfig = {
-      appControllerPrivateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+      appControllerPrivateKey:
+        '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
       rpcUrl: 'http://localhost:8545',
       controllerAddress: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
       game: {
@@ -130,7 +131,8 @@ describe('Deployment Service - Specification Tests', () => {
     }
 
     it('SPEC: createDeploymentClients - creates wallet and public clients', () => {
-      const { walletClient, publicClient, account } = createDeploymentClients(mockConfig)
+      const { walletClient, publicClient, account } =
+        createDeploymentClients(mockConfig)
 
       expect(walletClient).toBeDefined()
       expect(publicClient).toBeDefined()
@@ -142,7 +144,9 @@ describe('Deployment Service - Specification Tests', () => {
       const { account } = createDeploymentClients(mockConfig)
 
       // Known address for this private key
-      expect(account.address.toLowerCase()).toBe('0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266')
+      expect(account.address.toLowerCase()).toBe(
+        '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266',
+      )
     })
 
     it('SPEC: createDeploymentClients - wallet client has account attached', () => {
@@ -157,7 +161,8 @@ describe('Deployment Service - Specification Tests', () => {
         rpcUrl: 'https://custom-rpc.example.com',
       }
 
-      const { walletClient, publicClient } = createDeploymentClients(customConfig)
+      const { walletClient, publicClient } =
+        createDeploymentClients(customConfig)
 
       // Clients should be created (transport internals not directly testable)
       expect(walletClient).toBeDefined()
@@ -168,14 +173,22 @@ describe('Deployment Service - Specification Tests', () => {
   describe('Specification: Get Deployment Config', () => {
     beforeEach(() => {
       // Mock environment variables
-      process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY = '0x1234567890123456789012345678901234567890'
-      process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY = '0x9876543210987654321098765432109876543210'
+      process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY =
+        '0x1234567890123456789012345678901234567890'
+      process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY =
+        '0x9876543210987654321098765432109876543210'
       process.env.RPC_URL = 'http://localhost:8545'
-      
+
       // Mock storage functions
       vi.mock('../storage/contractStorage', () => ({
-        getControllerKey: vi.fn().mockResolvedValue('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'),
-        getControllerAddress: vi.fn().mockResolvedValue('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'),
+        getControllerKey: vi
+          .fn()
+          .mockResolvedValue(
+            '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+          ),
+        getControllerAddress: vi
+          .fn()
+          .mockResolvedValue('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'),
         setContractAddress: vi.fn().mockResolvedValue(undefined),
       }))
     })
@@ -184,7 +197,7 @@ describe('Deployment Service - Specification Tests', () => {
       delete process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
 
       await expect(getDeploymentConfig()).rejects.toThrow(
-        'NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment'
+        'NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment',
       )
     })
 
@@ -192,7 +205,7 @@ describe('Deployment Service - Specification Tests', () => {
       delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
 
       await expect(getDeploymentConfig()).rejects.toThrow(
-        'NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment'
+        'NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment',
       )
     })
 
@@ -217,15 +230,21 @@ describe('Deployment Service - Specification Tests', () => {
 
   describe('Specification: Get Factory Addresses', () => {
     beforeEach(() => {
-      process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY = '0x1234567890123456789012345678901234567890'
-      process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY = '0x9876543210987654321098765432109876543210'
+      process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY =
+        '0x1234567890123456789012345678901234567890'
+      process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY =
+        '0x9876543210987654321098765432109876543210'
     })
 
     it('SPEC: getFactoryAddresses - returns factory addresses from environment', () => {
       const addresses = getFactoryAddresses()
 
-      expect(addresses.gameMatchFactory).toBe('0x1234567890123456789012345678901234567890')
-      expect(addresses.gameScoreFactory).toBe('0x9876543210987654321098765432109876543210')
+      expect(addresses.gameMatchFactory).toBe(
+        '0x1234567890123456789012345678901234567890',
+      )
+      expect(addresses.gameScoreFactory).toBe(
+        '0x9876543210987654321098765432109876543210',
+      )
     })
 
     it('SPEC: getFactoryAddresses - returns undefined when not set', () => {

@@ -19,17 +19,20 @@ export function ConnectWallet() {
 
   const handleConnect = async () => {
     try {
-      console.log('Available connectors:', connectors.map(c => ({ id: c.id, name: c.name, type: c.type })))
-      
+      console.log(
+        'Available connectors:',
+        connectors.map((c) => ({ id: c.id, name: c.name, type: c.type })),
+      )
+
       if (connectors.length === 0) {
         console.error('No connector available')
         return
       }
-      
+
       // Use the first available connector (MetaMask preferred)
       const connector = connectors[0]
       console.log('Connecting with:', connector.name, connector.id)
-      
+
       await connect({ connector })
       console.log('Connection initiated with:', connector.name)
     } catch (err: any) {
@@ -49,7 +52,7 @@ export function ConnectWallet() {
 
   if (isConnected && address) {
     const isWrongChain = chain?.id !== 31337
-    
+
     return (
       <div className="flex flex-col items-end gap-2">
         <div className="flex items-center gap-2">
@@ -63,8 +66,8 @@ export function ConnectWallet() {
               <AlertCircle className="w-3 h-3" />
               <span>Wrong network</span>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => switchChain({ chainId: 31337 })}
             >

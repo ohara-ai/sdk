@@ -4,7 +4,7 @@ import { SCORE_ABI } from '../../abis/game/score'
 /**
  * Scores primitive - Core on-chain score tracking operations
  * Abstracts blockchain primitives for score and leaderboard management
- * 
+ *
  * Note: Score recording is handled by the GameMatch contract automatically.
  * This module only provides read operations for querying scores and leaderboards.
  */
@@ -28,37 +28,37 @@ export interface ScoreOperations {
    * Get a player's score data
    */
   getPlayerScore(player: Address): Promise<PlayerScore>
-  
+
   /**
    * Get top players by wins
    */
   getTopPlayersByWins(limit: number): Promise<TopPlayersResult>
-  
+
   /**
    * Get top players by prize money
    */
   getTopPlayersByPrize(limit: number): Promise<TopPlayersResult>
-  
+
   /**
    * Get total number of players tracked
    */
   getTotalPlayers(): Promise<bigint>
-  
+
   /**
    * Get total number of matches played
    */
   getTotalMatches(): Promise<bigint>
-  
+
   /**
    * Get maximum losers allowed per match
    */
   getMaxLosersPerMatch(): Promise<bigint>
-  
+
   /**
    * Get maximum total players allowed
    */
   getMaxTotalPlayers(): Promise<bigint>
-  
+
   /**
    * Get maximum total matches allowed
    */
@@ -70,14 +70,13 @@ export interface ScoreOperations {
  */
 export function createClientScoreOperations(
   contractAddress: Address,
-  publicClient: PublicClient
+  publicClient: PublicClient,
 ): ScoreOperations {
   if (!publicClient) {
     throw new Error('PublicClient is required for score operations')
   }
 
   return {
-
     async getPlayerScore(player: Address): Promise<PlayerScore> {
       const result = await publicClient.readContract({
         address: contractAddress,

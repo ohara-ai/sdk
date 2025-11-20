@@ -11,7 +11,7 @@ import { Address } from 'viem'
 import { DeploymentResult } from '@ohara-ai/sdk/server'
 
 interface DeployMatchContractProps {
-  onDeployed: (address: `0x${string}`) => void 
+  onDeployed: (address: `0x${string}`) => void
 }
 
 export interface DeployMatchParams {
@@ -29,16 +29,19 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
   // Configuration state
   const [useDeployedGameScore, setUseDeployedGameScore] = useState(false)
   const [feeRecipients, setFeeRecipients] = useState<FeeRecipient[]>([])
-  
+
   const { game, loadAddresses } = useOharaAi()
-  const deployedGameScoreAddress: `0x${string}` | null = game.scores?.address || null
+  const deployedGameScoreAddress: `0x${string}` | null =
+    game.scores?.address || null
   const gameMatchAddress = game.match?.address
-  
- const deployGameMatch = async (params: DeployMatchParams): Promise<DeploymentResult> => {
+
+  const deployGameMatch = async (
+    params: DeployMatchParams,
+  ): Promise<DeploymentResult> => {
     if (typeof window === 'undefined') {
       throw new Error('Deployment can only be called from the browser')
     }
-    
+
     const response = await fetch('/testing/deploy/game/match', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -48,24 +51,22 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
         feeShares: params.feeShares,
       }),
     })
-    
+
     const data = await response.json()
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Deployment failed')
     }
-    
+
     // Refresh addresses after successful deployment
     await loadAddresses()
-    
+
     // Dispatch event for other components
     window.dispatchEvent(new CustomEvent('contractDeployed'))
-    
+
     return data
   }
-  
 
-  
   // Reset toggle when scoreboard address changes (e.g., new deployment)
   useEffect(() => {
     if (!deployedGameScoreAddress) {
@@ -81,7 +82,11 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
     setFeeRecipients(feeRecipients.filter((_, i) => i !== index))
   }
 
-  const updateFeeRecipient = (index: number, field: 'address' | 'share', value: string) => {
+  const updateFeeRecipient = (
+    index: number,
+    field: 'address' | 'share',
+    value: string,
+  ) => {
     const updated = [...feeRecipients]
     updated[index][field] = value
     setFeeRecipients(updated)
@@ -89,17 +94,18 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
 
   const getDeploymentBody = () => {
     // Validate fee recipients
-    const validFeeRecipients = feeRecipients.filter(r => r.address && r.share)
-    
+    const validFeeRecipients = feeRecipients.filter((r) => r.address && r.share)
+
     // Use deployed scoreboard if toggle is enabled and address exists
-    const finalGameScoreAddress = useDeployedGameScore && deployedGameScoreAddress 
-      ? deployedGameScoreAddress 
-      : '0x0000000000000000000000000000000000000000'
-    
+    const finalGameScoreAddress =
+      useDeployedGameScore && deployedGameScoreAddress
+        ? deployedGameScoreAddress
+        : '0x0000000000000000000000000000000000000000'
+
     return {
       gameScoreAddress: finalGameScoreAddress,
-      feeRecipients: validFeeRecipients.map(r => r.address),
-      feeShares: validFeeRecipients.map(r => r.share),
+      feeRecipients: validFeeRecipients.map((r) => r.address),
+      feeShares: validFeeRecipients.map((r) => r.share),
     }
   }
 
@@ -115,18 +121,18 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
         <div className="mt-1.5 space-y-2">
           <Button
             type="button"
-            variant={useDeployedGameScore ? "default" : "outline"}
+            variant={useDeployedGameScore ? 'default' : 'outline'}
             size="sm"
             onClick={() => setUseDeployedGameScore(!useDeployedGameScore)}
             disabled={!deployedGameScoreAddress}
             className="w-full gap-2 h-9"
           >
             <Link2 className="w-4 h-4" />
-            {useDeployedGameScore 
-              ? "GameScore Enabled (Auto-Authorized)" 
+            {useDeployedGameScore
+              ? 'GameScore Enabled (Auto-Authorized)'
               : deployedGameScoreAddress
-                ? "Enable GameScore Integration"
-                : "No GameScore Deployed"}
+                ? 'Enable GameScore Integration'
+                : 'No GameScore Deployed'}
           </Button>
           {!deployedGameScoreAddress && (
             <div className="p-2.5 bg-gray-50 border border-gray-200 rounded-lg">
@@ -137,8 +143,12 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
           )}
           {useDeployedGameScore && deployedGameScoreAddress && (
             <div className="p-2.5 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-xs font-medium text-green-900 mb-1">GameScore Address</p>
-              <code className="text-xs font-mono text-green-700 break-all">{deployedGameScoreAddress}</code>
+              <p className="text-xs font-medium text-green-900 mb-1">
+                GameScore Address
+              </p>
+              <code className="text-xs font-mono text-green-700 break-all">
+                {deployedGameScoreAddress}
+              </code>
               <p className="text-xs text-green-700 mt-2">
                 ✓ GameMatch will be automatically authorized to record results
               </p>
@@ -149,7 +159,9 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
 
       <div>
         <div className="flex items-center justify-between mb-2">
-          <Label className="text-sm font-medium text-gray-900">Fee Recipients</Label>
+          <Label className="text-sm font-medium text-gray-900">
+            Fee Recipients
+          </Label>
           <Button
             type="button"
             variant="outline"
@@ -169,18 +181,25 @@ export function DeployContract({ onDeployed }: DeployMatchContractProps) {
         ) : (
           <div className="space-y-2.5">
             {feeRecipients.map((recipient, index) => (
-              <div key={index} className="flex gap-2 items-start p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div
+                key={index}
+                className="flex gap-2 items-start p-3 bg-gray-50 rounded-lg border border-gray-200"
+              >
                 <div className="flex-1 space-y-2">
                   <Input
                     value={recipient.address}
-                    onChange={(e) => updateFeeRecipient(index, 'address', e.target.value)}
+                    onChange={(e) =>
+                      updateFeeRecipient(index, 'address', e.target.value)
+                    }
                     placeholder="Address 0x..."
                     className="font-mono text-xs h-8 border-gray-300"
                   />
                   <Input
                     type="number"
                     value={recipient.share}
-                    onChange={(e) => updateFeeRecipient(index, 'share', e.target.value)}
+                    onChange={(e) =>
+                      updateFeeRecipient(index, 'share', e.target.value)
+                    }
                     placeholder="Share (e.g., 1000 = 10%)"
                     className="text-xs h-8 border-gray-300"
                   />

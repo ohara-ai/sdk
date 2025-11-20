@@ -21,13 +21,23 @@ async function setupNpmrc() {
     logger.log('Usage: setup-npmrc [options]')
     logger.log()
     logger.log('Options:')
-    logger.log('  -f, --force                              overwrite .npmrc if it exists')
+    logger.log(
+      '  -f, --force                              overwrite .npmrc if it exists',
+    )
     logger.log()
-    logger.log('  -p, --doppler-project [doppler-project]  specify doppler project (default: ovm)')
-    logger.log('  -c, --doppler-config [doppler-config]    specify doppler config (default: development)')
-    logger.log('  --print-env                              print doppler variables to stdout')
+    logger.log(
+      '  -p, --doppler-project [doppler-project]  specify doppler project (default: ovm)',
+    )
+    logger.log(
+      '  -c, --doppler-config [doppler-config]    specify doppler config (default: development)',
+    )
+    logger.log(
+      '  --print-env                              print doppler variables to stdout',
+    )
     logger.log('')
-    logger.log('  -h, --help                               display this help message')
+    logger.log(
+      '  -h, --help                               display this help message',
+    )
     process.exit(0)
   }
 

@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,14 +26,19 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const [tokenAddress, setTokenAddress] = useState('')
   const { game } = useOharaAi()
   const contractAddress = game.match.address
-  
+
   const [hash, setHash] = useState<`0x${string}` | undefined>()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const { isLoading: isConfirming, isSuccess, data: receipt } = useWaitForTransactionReceipt({ hash })
+  const {
+    isLoading: isConfirming,
+    isSuccess,
+    data: receipt,
+  } = useWaitForTransactionReceipt({ hash })
 
   // Parse token and stake for approval hook
-  const token = tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress
+  const token =
+    tokenAddress && isAddress(tokenAddress) ? tokenAddress : zeroAddress
   const stake = stakeAmount ? parseEther(stakeAmount) : 0n
 
   // Use token approval hook
@@ -51,10 +62,11 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
     if (isSuccess && receipt && onMatchCreated && contractAddress) {
       try {
         // Find the MatchCreated event in the logs from our contract
-        const matchCreatedLog = receipt.logs.find(log => 
-          log.address.toLowerCase() === contractAddress!.toLowerCase() &&
-          log.topics && 
-          log.topics.length > 1
+        const matchCreatedLog = receipt.logs.find(
+          (log) =>
+            log.address.toLowerCase() === contractAddress!.toLowerCase() &&
+            log.topics &&
+            log.topics.length > 1,
         )
 
         if (matchCreatedLog?.topics?.[1]) {
@@ -64,7 +76,10 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
           onMatchCreated(matchId)
         }
       } catch (error) {
-        console.error('[CreateMatchForm] Error extracting matchId from logs:', error)
+        console.error(
+          '[CreateMatchForm] Error extracting matchId from logs:',
+          error,
+        )
       }
     }
   }, [isSuccess, receipt, onMatchCreated, contractAddress])
@@ -90,7 +105,7 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
         stakeAmount: stake,
         maxPlayers: maxPlayersNum,
       })
-      
+
       setHash(txHash)
     } catch (err) {
       console.error('Error creating match:', err)
@@ -166,7 +181,9 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
               )}
               <div className="flex-1">
                 <p className="text-sm font-medium">
-                  {isApproveSuccess || !needsApproval ? 'Token Approved' : 'Token Approval Required'}
+                  {isApproveSuccess || !needsApproval
+                    ? 'Token Approved'
+                    : 'Token Approval Required'}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
                   {isApproveSuccess || !needsApproval
@@ -183,24 +200,39 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
                 className="w-full"
                 size="sm"
               >
-                {isApprovePending ? 'Confirming...' : isApproveConfirming ? 'Approving...' : 'Approve Token'}
+                {isApprovePending
+                  ? 'Confirming...'
+                  : isApproveConfirming
+                    ? 'Approving...'
+                    : 'Approve Token'}
               </Button>
             )}
           </div>
         )}
 
-        <Button 
-          onClick={handleCreateMatch} 
-          disabled={!stakeAmount || !maxPlayers || isLoading || !contractAddress || needsApproval}
+        <Button
+          onClick={handleCreateMatch}
+          disabled={
+            !stakeAmount ||
+            !maxPlayers ||
+            isLoading ||
+            !contractAddress ||
+            needsApproval
+          }
           className="w-full"
         >
-          {isPending ? 'Confirming...' : isConfirming ? 'Creating...' : 'Create Match'}
+          {isPending
+            ? 'Confirming...'
+            : isConfirming
+              ? 'Creating...'
+              : 'Create Match'}
         </Button>
 
         {isSuccess && (
           <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
             <p className="text-sm text-green-500">
-              Match created successfully! Transaction hash: {hash?.slice(0, 10)}...
+              Match created successfully! Transaction hash: {hash?.slice(0, 10)}
+              ...
             </p>
           </div>
         )}
@@ -224,15 +256,16 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
         {!contractAddress && (
           <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
             <p className="text-sm text-yellow-500">
-              Contract not deployed on this network. Please switch to a supported network.
+              Contract not deployed on this network. Please switch to a
+              supported network.
             </p>
           </div>
         )}
 
         <div className="pt-4 border-t">
           <p className="text-sm text-muted-foreground">
-            <strong>Note:</strong> You will automatically join the match as the first player
-            and your stake will be locked immediately.
+            <strong>Note:</strong> You will automatically join the match as the
+            first player and your stake will be locked immediately.
           </p>
         </div>
       </CardContent>

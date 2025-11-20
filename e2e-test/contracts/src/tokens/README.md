@@ -58,23 +58,23 @@ gameMatch.create(address(token), stakeAmount, maxPlayers);
 
 ```typescript
 // After deployment, use the token address
-const DEVWORLD_ADDRESS = "0x...";
+const DEVWORLD_ADDRESS = '0x...'
 
 // Approve GameMatch to spend tokens
 await writeContract({
   address: DEVWORLD_ADDRESS,
   abi: ERC20_ABI,
-  functionName: "approve",
-  args: [gameMatchAddress, stakeAmount]
-});
+  functionName: 'approve',
+  args: [gameMatchAddress, stakeAmount],
+})
 
 // Create a match with DEVWORLD
 await writeContract({
   address: gameMatchAddress,
   abi: GAME_MATCH_ABI,
-  functionName: "create",
-  args: [DEVWORLD_ADDRESS, stakeAmount, maxPlayers]
-});
+  functionName: 'create',
+  args: [DEVWORLD_ADDRESS, stakeAmount, maxPlayers],
+})
 ```
 
 ### Testing
@@ -90,6 +90,7 @@ cd e2e-test && forge test --match-contract DevWorldTokenTest
 ```
 
 The test suite covers:
+
 - Initial state verification
 - Token transfers
 - Approve/transferFrom functionality
@@ -102,6 +103,7 @@ The test suite covers:
 ⚠️ **Development Only**: This token is designed for development and testing purposes. It includes unrestricted minting, which is appropriate for testing but not for production use.
 
 For production deployments:
+
 - Consider using audited ERC20 implementations (e.g., OpenZeppelin)
 - Implement proper supply controls
 - Add comprehensive access control

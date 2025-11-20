@@ -7,16 +7,19 @@ You can test the features of contracts and SDK using tests and the `e2e-test` ap
 ## QUICK START
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 - [Doppler](https://docs.doppler.com/docs)
 - Foundry - for Solidity development and local e2e-test app
+
 ```bash
 curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
 
 ### Setup
+
 ```bash
 ./bin/setup
 ```
@@ -45,8 +48,7 @@ foundryup
 ✅ **Type-Safe** - Full TypeScript support with hierarchical context  
 ✅ **Automatic Address Management** - Fetches contract addresses from backend  
 ✅ **No UI Lock-in** - Build your own interface on top of primitives  
-✅ **Server-Side Operations** - Separate entry point for controller operations  
-
+✅ **Server-Side Operations** - Separate entry point for controller operations
 
 ## Repository Structure
 
@@ -59,6 +61,6 @@ foundryup
 └── e2e-test/           # End-to-end testing application (Next.js)
 ```
 
-* Use [`contracts/README.md`](./contracts/README.md) for info on contracts development and use.
-* Use [`sdk/README.md`](./sdk/README.md) for info on SDK development and use.
-* Use [`e2e-test/README.md`](./e2e-test/README.md) for info on e2e-test app development and use.
+- Use [`contracts/README.md`](./contracts/README.md) for info on contracts development and use.
+- Use [`sdk/README.md`](./sdk/README.md) for info on SDK development and use.
+- Use [`e2e-test/README.md`](./e2e-test/README.md) for info on e2e-test app development and use.

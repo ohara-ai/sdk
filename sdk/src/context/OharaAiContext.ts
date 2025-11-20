@@ -76,16 +76,16 @@ export interface InternalContext {
 export interface OharaAiContext {
   /** Ohara-managed contracts (token, etc.) */
   ohara: OharaContext
-  
+
   /** Game contracts and operations */
   game: GameContext
-  
+
   /** Application contracts */
   app: AppContext
-  
+
   /** Internal configuration */
   internal: InternalContext
-  
+
   /** Manually refresh contract addresses from backend */
   loadAddresses: () => Promise<void>
 }

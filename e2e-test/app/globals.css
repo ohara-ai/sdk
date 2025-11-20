@@ -6,11 +6,11 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-white text-gray-900;
   }
-  
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;

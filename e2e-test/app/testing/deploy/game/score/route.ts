@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     console.error('Deployment error:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Deployment failed' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

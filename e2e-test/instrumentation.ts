@@ -7,69 +7,84 @@
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     console.log('📡 Initializing on-chain configuration...')
-    
+
     try {
       // Dynamically import server-only modules
-      const { 
+      const {
         getContracts,
-        deployGameScore, 
-        deployGameMatch, 
-        getFactoryAddresses 
+        deployGameScore,
+        deployGameMatch,
+        getFactoryAddresses,
       } = await import('@ohara-ai/sdk/server')
       const { createPublicClient, http } = await import('viem')
-      
+
       // Check if factory addresses are configured
       const factories = getFactoryAddresses()
       if (!factories.gameMatchFactory || !factories.gameScoreFactory) {
-        console.log('⚠️  Factory addresses not configured - skipping auto-deployment')
+        console.log(
+          '⚠️  Factory addresses not configured - skipping auto-deployment',
+        )
         return
       }
-      
+
       // Get RPC URL and chain ID
       const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
       const publicClient = createPublicClient({
         transport: http(rpcUrl),
       })
-      
+
       const chainId = await publicClient.getChainId()
       console.log(`🔗 Connected to chain ID: ${chainId}`)
-      
+
       // Helper function to check if contract exists on-chain
-      const contractExistsOnChain = async (address: string | undefined): Promise<boolean> => {
+      const contractExistsOnChain = async (
+        address: string | undefined,
+      ): Promise<boolean> => {
         if (!address) return false
         try {
-          const code = await publicClient.getCode({ address: address as `0x${string}` })
+          const code = await publicClient.getCode({
+            address: address as `0x${string}`,
+          })
           return !!code && code !== '0x'
         } catch {
           return false
         }
       }
-      
+
       // Check if contracts are already deployed
       const contracts = await getContracts(chainId)
-      
+
       // Verify stored contracts actually exist on-chain
-      const gameScoreExistsOnChain = await contractExistsOnChain(contracts.game?.score)
-      const gameMatchExistsOnChain = await contractExistsOnChain(contracts.game?.match)
-      
+      const gameScoreExistsOnChain = await contractExistsOnChain(
+        contracts.game?.score,
+      )
+      const gameMatchExistsOnChain = await contractExistsOnChain(
+        contracts.game?.match,
+      )
+
       const hasGameScore = !!contracts.game?.score && gameScoreExistsOnChain
       const hasGameMatch = !!contracts.game?.match && gameMatchExistsOnChain
-      
+
       // Log warnings for stored addresses that don't exist on-chain
       if (contracts.game?.score && !gameScoreExistsOnChain) {
-        console.log(`⚠️  Stored GameScore address ${contracts.game.score} not found on-chain (redeploying)`)
+        console.log(
+          `⚠️  Stored GameScore address ${contracts.game.score} not found on-chain (redeploying)`,
+        )
       }
       if (contracts.game?.match && !gameMatchExistsOnChain) {
-        console.log(`⚠️  Stored GameMatch address ${contracts.game.match} not found on-chain (redeploying)`)
+        console.log(
+          `⚠️  Stored GameMatch address ${contracts.game.match} not found on-chain (redeploying)`,
+        )
       }
-      
+
       // Deploy contracts if needed
       if (!hasGameScore || !hasGameMatch) {
         console.log('🚀 Deploying missing contracts with default settings...')
-        
+
         // Deploy GameScore first if needed
-        let gameScoreAddress: `0x${string}` | undefined = contracts.game?.score as `0x${string}` | undefined
-        
+        let gameScoreAddress: `0x${string}` | undefined = contracts.game
+          ?.score as `0x${string}` | undefined
+
         if (!hasGameScore) {
           console.log('📦 Deploying GameScore contract...')
           const scoreResult = await deployGameScore({})
@@ -78,7 +93,7 @@ export async function register() {
         } else {
           console.log(`✓ GameScore already deployed at: ${gameScoreAddress}`)
         }
-        
+
         // Deploy GameMatch if needed
         if (!hasGameMatch) {
           console.log('📦 Deploying GameMatch contract...')
@@ -86,14 +101,16 @@ export async function register() {
             gameScoreAddress,
           })
           console.log(`✅ GameMatch deployed at: ${matchResult.address}`)
-          
+
           if (matchResult.authorizationWarning) {
             console.warn(`⚠️  ${matchResult.authorizationWarning}`)
           }
         } else {
-          console.log(`✓ GameMatch already deployed at: ${contracts.game?.match}`)
+          console.log(
+            `✓ GameMatch already deployed at: ${contracts.game?.match}`,
+          )
         }
-        
+
         console.log('🎉 Contract deployment complete!')
       } else {
         console.log('✓ All contracts already deployed')
@@ -101,8 +118,13 @@ export async function register() {
         console.log(`  GameMatch: ${contracts.game?.match}`)
       }
     } catch (error) {
-      console.error('❌ Auto-deployment failed:', error instanceof Error ? error.message : error)
-      console.log('💡 You can manually deploy contracts using: npm run deploy-contracts')
+      console.error(
+        '❌ Auto-deployment failed:',
+        error instanceof Error ? error.message : error,
+      )
+      console.log(
+        '💡 You can manually deploy contracts using: npm run deploy-contracts',
+      )
       // Don't throw - allow build to continue even if deployment fails
     }
   } else {

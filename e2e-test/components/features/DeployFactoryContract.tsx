@@ -2,7 +2,12 @@
 
 import { useState, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Loader2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -20,7 +25,7 @@ interface DeployFactoryContractProps {
   featuresLink?: string
 }
 
-export function DeployFactoryContract({ 
+export function DeployFactoryContract({
   contractName,
   contractDescription,
   deployFunction,
@@ -28,12 +33,14 @@ export function DeployFactoryContract({
   configSection,
   getDeploymentBody,
   deployedAddress: externalDeployedAddress,
-  featuresLink
+  featuresLink,
 }: DeployFactoryContractProps) {
   const [isDeploying, setIsDeploying] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [deployedAddress, setDeployedAddress] = useState<`0x${string}` | null>(null)
+  const [deployedAddress, setDeployedAddress] = useState<`0x${string}` | null>(
+    null,
+  )
   const [authWarning, setAuthWarning] = useState<string | null>(null)
 
   const handleDeploy = async () => {
@@ -43,13 +50,15 @@ export function DeployFactoryContract({
     try {
       const body = getDeploymentBody ? getDeploymentBody() : {}
       let data: DeploymentResult
-      
+
       // Use deployFunction if provided (from OharaAiProvider), otherwise fall back to apiRoute
       if (deployFunction) {
         // Factory address is now managed server-side, only pass body params
         data = await deployFunction(body)
       } else {
-        throw new Error('No deployment method configured (deployFunction or apiRoute required)')
+        throw new Error(
+          'No deployment method configured (deployFunction or apiRoute required)',
+        )
       }
 
       if (data.address) {
@@ -77,7 +86,8 @@ export function DeployFactoryContract({
   }
 
   const currentAddress = externalDeployedAddress || deployedAddress
-  const formatAddress = (addr: string) => `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  const formatAddress = (addr: string) =>
+    `${addr.slice(0, 6)}...${addr.slice(-4)}`
 
   return (
     <TooltipProvider>
@@ -85,7 +95,9 @@ export function DeployFactoryContract({
         <CardHeader className="p-6">
           <div className="flex items-start justify-between mb-3">
             <div className="flex-1">
-              <CardTitle className="text-lg font-semibold text-gray-900 mb-2">{contractName}</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-900 mb-2">
+                {contractName}
+              </CardTitle>
               {contractDescription && (
                 <CardDescription className="text-sm text-gray-600 leading-relaxed">
                   {contractDescription}
@@ -102,7 +114,9 @@ export function DeployFactoryContract({
           <div className="space-y-3">
             {/* Contract Address - Always Shown */}
             <div className="space-y-2">
-              <div className="text-xs font-medium text-gray-700">Contract Address</div>
+              <div className="text-xs font-medium text-gray-700">
+                Contract Address
+              </div>
               {currentAddress ? (
                 <code className="inline-flex items-center px-2.5 py-1.5 rounded-md text-xs font-mono bg-green-50 text-green-700 border border-green-200 break-all">
                   {formatAddress(currentAddress)}
@@ -117,13 +131,17 @@ export function DeployFactoryContract({
             {/* Authorization Warning - When Present */}
             {authWarning && (
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs font-semibold text-amber-900 mb-1">⚠️ Authorization Warning</p>
+                <p className="text-xs font-semibold text-amber-900 mb-1">
+                  ⚠️ Authorization Warning
+                </p>
                 <p className="text-xs text-amber-800">{authWarning}</p>
               </div>
             )}
 
             <div className="flex items-center justify-between pt-2">
-              <p className="text-xs font-medium text-gray-700">Deploy New Instance</p>
+              <p className="text-xs font-medium text-gray-700">
+                Deploy New Instance
+              </p>
             </div>
 
             {configSection}
@@ -134,9 +152,13 @@ export function DeployFactoryContract({
               </div>
             )}
 
-            <Button 
-              variant="outline" 
-              onClick={handleDeploy} size="sm" className="w-full gap-2 h-9" disabled={isDeploying}>
+            <Button
+              variant="outline"
+              onClick={handleDeploy}
+              size="sm"
+              className="w-full gap-2 h-9"
+              disabled={isDeploying}
+            >
               {isDeploying ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />

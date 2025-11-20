@@ -15,7 +15,9 @@ export function ScoreContractInformation() {
   const { game, app } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
-  const [maxLosersPerMatch, setMaxLosersPerMatch] = useState<bigint | undefined>()
+  const [maxLosersPerMatch, setMaxLosersPerMatch] = useState<
+    bigint | undefined
+  >()
   const [maxTotalPlayers, setMaxTotalPlayers] = useState<bigint | undefined>()
   const [maxTotalMatches, setMaxTotalMatches] = useState<bigint | undefined>()
   const [totalPlayers, setTotalPlayers] = useState<bigint | undefined>()
@@ -35,21 +37,25 @@ export function ScoreContractInformation() {
 
     const fetchScoreData = async () => {
       try {
-        const [maxLosers, maxPlayers, maxMatches, players, matches] = await Promise.all([
-          game.scores.operations!.getMaxLosersPerMatch(),
-          game.scores.operations!.getMaxTotalPlayers(),
-          game.scores.operations!.getMaxTotalMatches(),
-          game.scores.operations!.getTotalPlayers(),
-          game.scores.operations!.getTotalMatches(),
-        ])
-        
+        const [maxLosers, maxPlayers, maxMatches, players, matches] =
+          await Promise.all([
+            game.scores.operations!.getMaxLosersPerMatch(),
+            game.scores.operations!.getMaxTotalPlayers(),
+            game.scores.operations!.getMaxTotalMatches(),
+            game.scores.operations!.getTotalPlayers(),
+            game.scores.operations!.getTotalMatches(),
+          ])
+
         setMaxLosersPerMatch(maxLosers)
         setMaxTotalPlayers(maxPlayers)
         setMaxTotalMatches(maxMatches)
         setTotalPlayers(players)
         setTotalMatches(matches)
       } catch (error) {
-        console.error('[ScoreContractInformation] Error fetching score data:', error)
+        console.error(
+          '[ScoreContractInformation] Error fetching score data:',
+          error,
+        )
       }
     }
 
@@ -61,7 +67,9 @@ export function ScoreContractInformation() {
   return (
     <Card className="border-2 border-gray-200">
       <CardHeader className="pb-4">
-        <CardTitle className="text-base font-semibold text-gray-900">Contract Information</CardTitle>
+        <CardTitle className="text-base font-semibold text-gray-900">
+          Contract Information
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -72,7 +80,9 @@ export function ScoreContractInformation() {
                 <FileCode className="w-4 h-4 text-blue-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 mb-1.5">Score Contract</p>
+                <p className="text-sm font-medium text-gray-900 mb-1.5">
+                  Score Contract
+                </p>
                 <p className="text-xs text-gray-600 font-mono break-all bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                   {!mounted ? 'Loading...' : contractAddress || 'Not deployed'}
                 </p>
@@ -83,14 +93,20 @@ export function ScoreContractInformation() {
                 <Target className="w-4 h-4 text-orange-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 mb-1.5">Match Configuration</p>
+                <p className="text-sm font-medium text-gray-900 mb-1.5">
+                  Match Configuration
+                </p>
                 <div className="bg-gray-50 px-2 py-1.5 rounded border border-gray-200">
                   {!mounted || maxLosersPerMatch === undefined ? (
                     <p className="text-xs text-gray-500">Loading...</p>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-gray-700">Max Losers Per Match</span>
-                      <span className="text-sm font-semibold text-orange-600">{maxLosersPerMatch.toString()}</span>
+                      <span className="text-xs font-medium text-gray-700">
+                        Max Losers Per Match
+                      </span>
+                      <span className="text-sm font-semibold text-orange-600">
+                        {maxLosersPerMatch.toString()}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -107,19 +123,27 @@ export function ScoreContractInformation() {
                   <div className="p-2 bg-indigo-50 rounded-lg">
                     <Users className="w-4 h-4 text-indigo-600" />
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900">Player Statistics</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Player Statistics
+                  </h3>
                 </div>
-                {!mounted || totalPlayers === undefined || maxTotalPlayers === undefined ? (
+                {!mounted ||
+                totalPlayers === undefined ||
+                maxTotalPlayers === undefined ? (
                   <p className="text-xs text-gray-500 ml-10">Loading...</p>
                 ) : (
                   <div className="ml-10 space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-gray-700">Current</span>
-                      <span className="font-semibold text-indigo-600">{totalPlayers.toString()}</span>
+                      <span className="font-semibold text-indigo-600">
+                        {totalPlayers.toString()}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-gray-700">Maximum</span>
-                      <span className="font-semibold text-gray-900">{maxTotalPlayers.toString()}</span>
+                      <span className="font-semibold text-gray-900">
+                        {maxTotalPlayers.toString()}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -131,19 +155,27 @@ export function ScoreContractInformation() {
                   <div className="p-2 bg-cyan-50 rounded-lg">
                     <BarChart3 className="w-4 h-4 text-cyan-600" />
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900">Match Statistics</h3>
+                  <h3 className="text-sm font-semibold text-gray-900">
+                    Match Statistics
+                  </h3>
                 </div>
-                {!mounted || totalMatches === undefined || maxTotalMatches === undefined ? (
+                {!mounted ||
+                totalMatches === undefined ||
+                maxTotalMatches === undefined ? (
                   <p className="text-xs text-gray-500 ml-10">Loading...</p>
                 ) : (
                   <div className="ml-10 space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-gray-700">Current</span>
-                      <span className="font-semibold text-cyan-600">{totalMatches.toString()}</span>
+                      <span className="font-semibold text-cyan-600">
+                        {totalMatches.toString()}
+                      </span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-gray-700">Maximum</span>
-                      <span className="font-semibold text-gray-900">{maxTotalMatches.toString()}</span>
+                      <span className="font-semibold text-gray-900">
+                        {maxTotalMatches.toString()}
+                      </span>
                     </div>
                   </div>
                 )}

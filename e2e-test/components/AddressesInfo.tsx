@@ -69,7 +69,7 @@ export function AddressesInfo() {
             const balance = await publicClient.getBalance({
               address: info.address as `0x${string}`,
             })
-            
+
             const result: AddressInfo = {
               ...info,
               balance: formatEther(balance),
@@ -88,9 +88,11 @@ export function AddressesInfo() {
                     address: info.address as `0x${string}`,
                     abi: MATCH_FACTORY_ABI,
                     functionName: 'getDefaultFees',
-                  }) as Promise<readonly [readonly `0x${string}`[], readonly bigint[]]>,
+                  }) as Promise<
+                    readonly [readonly `0x${string}`[], readonly bigint[]]
+                  >,
                 ])
-                
+
                 result.config = {
                   defaultMaxActiveMatches: defaultMaxActiveMatches as bigint,
                   feeRecipients: fees[0] as string[],
@@ -101,24 +103,25 @@ export function AddressesInfo() {
               }
             } else if (info.label === 'GameScore Factory') {
               try {
-                const [maxLosersPerMatch, maxTotalPlayers, maxTotalMatches] = await Promise.all([
-                  publicClient.readContract({
-                    address: info.address as `0x${string}`,
-                    abi: SCORE_FACTORY_ABI,
-                    functionName: 'maxLosersPerMatch',
-                  }),
-                  publicClient.readContract({
-                    address: info.address as `0x${string}`,
-                    abi: SCORE_FACTORY_ABI,
-                    functionName: 'maxTotalPlayers',
-                  }),
-                  publicClient.readContract({
-                    address: info.address as `0x${string}`,
-                    abi: SCORE_FACTORY_ABI,
-                    functionName: 'maxTotalMatches',
-                  }),
-                ])
-                
+                const [maxLosersPerMatch, maxTotalPlayers, maxTotalMatches] =
+                  await Promise.all([
+                    publicClient.readContract({
+                      address: info.address as `0x${string}`,
+                      abi: SCORE_FACTORY_ABI,
+                      functionName: 'maxLosersPerMatch',
+                    }),
+                    publicClient.readContract({
+                      address: info.address as `0x${string}`,
+                      abi: SCORE_FACTORY_ABI,
+                      functionName: 'maxTotalPlayers',
+                    }),
+                    publicClient.readContract({
+                      address: info.address as `0x${string}`,
+                      abi: SCORE_FACTORY_ABI,
+                      functionName: 'maxTotalMatches',
+                    }),
+                  ])
+
                 result.config = {
                   maxLosersPerMatch: maxLosersPerMatch as bigint,
                   maxTotalPlayers: maxTotalPlayers as bigint,
@@ -134,7 +137,7 @@ export function AddressesInfo() {
             console.error(`Error loading balance for ${info.label}:`, error)
             return { ...info, balance: '0' }
           }
-        })
+        }),
       )
 
       setAddresses(addressesWithBalances)
@@ -151,7 +154,9 @@ export function AddressesInfo() {
     if (btn) {
       const original = btn.innerHTML
       btn.innerHTML = '✓'
-      setTimeout(() => { btn.innerHTML = original }, 1000)
+      setTimeout(() => {
+        btn.innerHTML = original
+      }, 1000)
     }
   }
 
@@ -172,7 +177,7 @@ export function AddressesInfo() {
       {addresses.map((info, index) => {
         const hasBalance = info.balance && parseFloat(info.balance) > 0
         const isFactory = info.label.includes('Factory')
-        
+
         return (
           <div
             key={index}
@@ -184,7 +189,9 @@ export function AddressesInfo() {
                 {getIcon(info.label)}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-semibold text-gray-900 truncate">{info.label}</h3>
+                <h3 className="text-sm font-semibold text-gray-900 truncate">
+                  {info.label}
+                </h3>
               </div>
             </div>
 
@@ -192,9 +199,16 @@ export function AddressesInfo() {
             {!isFactory && (
               <div className="mb-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-600">Balance</span>
-                  <span className={`text-lg font-bold ${hasBalance ? 'text-emerald-600' : 'text-gray-400'}`}>
-                    {hasBalance ? parseFloat(info.balance!).toFixed(4) : '0.0000'} ETH
+                  <span className="text-xs font-medium text-gray-600">
+                    Balance
+                  </span>
+                  <span
+                    className={`text-lg font-bold ${hasBalance ? 'text-emerald-600' : 'text-gray-400'}`}
+                  >
+                    {hasBalance
+                      ? parseFloat(info.balance!).toFixed(4)
+                      : '0.0000'}{' '}
+                    ETH
                   </span>
                 </div>
               </div>
@@ -203,7 +217,9 @@ export function AddressesInfo() {
             {/* Configuration - Only for Factories */}
             {isFactory && info.config && (
               <div className="mb-3 bg-white/70 rounded-lg p-2.5 backdrop-blur-sm space-y-1.5">
-                <h4 className="text-xs font-semibold text-gray-700 mb-1.5">Configuration</h4>
+                <h4 className="text-xs font-semibold text-gray-700 mb-1.5">
+                  Configuration
+                </h4>
                 {info.label === 'GameMatch Factory' && (
                   <>
                     <div className="flex justify-between text-xs">
@@ -218,14 +234,21 @@ export function AddressesInfo() {
                         {info.config.feeRecipients?.length || 0}
                       </span>
                     </div>
-                    {info.config.feeShares && info.config.feeShares.length > 0 && (
-                      <div className="flex justify-between text-xs">
-                        <span className="text-gray-600">Total Fee:</span>
-                        <span className="font-mono font-semibold text-blue-700">
-                          {(info.config.feeShares.reduce((sum, share) => sum + Number(share), 0) / 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    )}
+                    {info.config.feeShares &&
+                      info.config.feeShares.length > 0 && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-gray-600">Total Fee:</span>
+                          <span className="font-mono font-semibold text-blue-700">
+                            {(
+                              info.config.feeShares.reduce(
+                                (sum, share) => sum + Number(share),
+                                0,
+                              ) / 100
+                            ).toFixed(1)}
+                            %
+                          </span>
+                        </div>
+                      )}
                   </>
                 )}
                 {info.label === 'GameScore Factory' && (
@@ -256,7 +279,9 @@ export function AddressesInfo() {
             {/* Address */}
             <div className="flex items-center gap-2 bg-white/70 rounded-lg p-2 backdrop-blur-sm">
               <code className="text-xs font-mono text-gray-700 flex-1 truncate">
-                {info.address ? truncateAddress(info.address) : '❌ Not deployed'}
+                {info.address
+                  ? truncateAddress(info.address)
+                  : '❌ Not deployed'}
               </code>
               {info.address && (
                 <div className="flex gap-1 shrink-0">

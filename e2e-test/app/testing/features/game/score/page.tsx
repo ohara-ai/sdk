@@ -3,9 +3,18 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { ConnectWallet } from '@/components/ConnectWallet'
-import { PlayerStats, Leaderboard, ScoreContractInformation } from '@/components/features/game/score'
+import {
+  PlayerStats,
+  Leaderboard,
+  ScoreContractInformation,
+} from '@/components/features/game/score'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import { useAccount } from 'wagmi'
@@ -16,11 +25,15 @@ export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()
   const { game } = useOharaAi()
   const contractAddress = game.scores.address
-  
+
   const [mounted, setMounted] = useState(false)
   const [showContractInfo, setShowContractInfo] = useState(false)
-  const [playerScore, setPlayerScore] = useState<readonly [bigint, bigint, bigint, bigint]>()
-  const [topPlayersByWins, setTopPlayersByWins] = useState<readonly [readonly `0x${string}`[], readonly bigint[], readonly bigint[]]>()
+  const [playerScore, setPlayerScore] =
+    useState<readonly [bigint, bigint, bigint, bigint]>()
+  const [topPlayersByWins, setTopPlayersByWins] =
+    useState<
+      readonly [readonly `0x${string}`[], readonly bigint[], readonly bigint[]]
+    >()
 
   useEffect(() => {
     setMounted(true)
@@ -30,21 +43,26 @@ export default function GameScorePage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!game.scores.operations) return
-      
+
       try {
         const top = await game.scores.operations.getTopPlayersByWins(10)
         setTopPlayersByWins([top.players, top.wins, top.prizes])
-        
+
         // Fetch player score if user is connected
         if (userAddress) {
           const score = await game.scores.operations.getPlayerScore(userAddress)
-          setPlayerScore([score.totalWins, score.totalPrize, score.lastMatchId, score.lastWinTimestamp])
+          setPlayerScore([
+            score.totalWins,
+            score.totalPrize,
+            score.lastMatchId,
+            score.lastWinTimestamp,
+          ])
         }
       } catch (error) {
         console.error('Error fetching score data:', error)
       }
     }
-    
+
     fetchData()
   }, [game.scores.operations, userAddress])
 
@@ -59,10 +77,12 @@ export default function GameScorePage() {
               Back to Home
             </Button>
           </Link>
-          
+
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">GameScore</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                GameScore
+              </h1>
               <p className="text-base text-gray-600">
                 Track player scores, wins, and match history
               </p>
@@ -76,7 +96,11 @@ export default function GameScorePage() {
                 className="flex items-center gap-1.5"
               >
                 Contract Info
-                {showContractInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showContractInfo ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -115,7 +139,7 @@ export default function GameScorePage() {
             <div className="lg:col-span-3">
               <Leaderboard topPlayersByWins={topPlayersByWins} />
             </div>
-            
+
             <div className="lg:col-span-1">
               <PlayerStats playerScore={playerScore} />
             </div>

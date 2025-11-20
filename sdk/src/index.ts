@@ -1,11 +1,6 @@
-export { 
-  OharaAiProvider, 
-  useOharaAi,
-} from './context/OharaAiProvider'
+export { OharaAiProvider, useOharaAi } from './context/OharaAiProvider'
 
-export {
-  OharaAiWagmiProvider,
-} from './context/OharaAiWagmiProvider'
+export { OharaAiWagmiProvider } from './context/OharaAiWagmiProvider'
 
 // Types
 export { ContractType } from './types/contracts'
@@ -45,6 +40,5 @@ export {
   SCORE_ABI,
   MATCH_FACTORY_ABI,
   SCORE_FACTORY_ABI,
-  ERC20_ABI
+  ERC20_ABI,
 } from './abis'
-

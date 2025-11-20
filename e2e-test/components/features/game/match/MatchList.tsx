@@ -1,7 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
@@ -31,7 +37,7 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
   const [matches, setMatches] = useState<MatchData[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [refreshTrigger, setRefreshTrigger] = useState(0)
-  
+
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   // Fetch match details using SDK
@@ -51,10 +57,10 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
         }
 
         console.log('[MatchList] Fetching active match IDs from SDK')
-        
+
         // Get all active match IDs from SDK (no pagination)
         const activeMatchIds = await game.match.operations.getActiveMatches()
-        
+
         console.log('[MatchList] Fetching matches for IDs:', activeMatchIds)
 
         // Fetch details for each match
@@ -62,26 +68,37 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
           try {
             const match = await game.match.operations.get(matchId)
 
-            console.log(`[MatchList] Found match ${matchId.toString()} with ${match.players.length} players, status: ${match.status}`)
+            console.log(
+              `[MatchList] Found match ${matchId.toString()} with ${match.players.length} players, status: ${match.status}`,
+            )
             const isNativeToken = match.token === zeroAddress
             fetchedMatches.push({
               id: Number(matchId),
               stakeAmount: formatEther(match.stakeAmount),
               maxPlayers: match.maxPlayers,
               currentPlayers: match.players.length,
-              status: ['Open', 'Active', 'Finalized'][match.status] || 'Unknown',
-              token: isNativeToken ? 'ETH' : `${match.token.slice(0, 6)}...${match.token.slice(-4)}`,
+              status:
+                ['Open', 'Active', 'Finalized'][match.status] || 'Unknown',
+              token: isNativeToken
+                ? 'ETH'
+                : `${match.token.slice(0, 6)}...${match.token.slice(-4)}`,
               tokenAddress: match.token,
               isNativeToken,
-              winner: match.winner !== zeroAddress ? `${match.winner.slice(0, 6)}...${match.winner.slice(-4)}` : undefined,
+              winner:
+                match.winner !== zeroAddress
+                  ? `${match.winner.slice(0, 6)}...${match.winner.slice(-4)}`
+                  : undefined,
             })
           } catch (err) {
             // Match read error, skip
-            console.error(`[MatchList] Error reading match ${matchId.toString()}:`, err)
+            console.error(
+              `[MatchList] Error reading match ${matchId.toString()}:`,
+              err,
+            )
             continue
           }
         }
-        
+
         console.log(`[MatchList] Total matches found: ${fetchedMatches.length}`)
 
         setMatches(fetchedMatches)
@@ -139,11 +156,13 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
               variant="outline"
               size="sm"
               onClick={() => {
-                setRefreshTrigger(prev => prev + 1)
+                setRefreshTrigger((prev) => prev + 1)
               }}
               disabled={isLoading}
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`}
+              />
               Refresh
             </Button>
           </div>
@@ -167,7 +186,9 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
           <Card
             key={match.id}
             className={`cursor-pointer transition-colors ${
-              selectedMatchId === match.id ? 'border-primary' : 'hover:border-primary/50'
+              selectedMatchId === match.id
+                ? 'border-primary'
+                : 'hover:border-primary/50'
             }`}
             onClick={() => {
               console.log(`[MatchList] Selected match: ${match.id}`)
@@ -179,12 +200,18 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-lg">Match #{match.id}</CardTitle>
                   {match.isNativeToken ? (
-                    <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-500/10 text-blue-500 border-blue-500/20"
+                    >
                       <Banknote className="w-3 h-3 mr-1" />
                       ETH
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20">
+                    <Badge
+                      variant="outline"
+                      className="bg-purple-500/10 text-purple-500 border-purple-500/20"
+                    >
                       <Coins className="w-3 h-3 mr-1" />
                       ERC20
                     </Badge>
@@ -205,7 +232,9 @@ export function MatchList({ onSelectMatch, selectedMatchId }: MatchListProps) {
                     ) : (
                       <Coins className="w-4 h-4 text-purple-500" />
                     )}
-                    <p className="font-semibold">{match.stakeAmount} {match.token}</p>
+                    <p className="font-semibold">
+                      {match.stakeAmount} {match.token}
+                    </p>
                   </div>
                 </div>
                 <div>

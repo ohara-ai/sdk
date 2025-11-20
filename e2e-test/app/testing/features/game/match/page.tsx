@@ -3,10 +3,20 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectWallet } from '@/components/ConnectWallet'
-import { MatchList, CreateMatchForm, MatchDetails, MatchContractInformation } from '@/components/features/game/match'
+import {
+  MatchList,
+  CreateMatchForm,
+  MatchDetails,
+  MatchContractInformation,
+} from '@/components/features/game/match'
 import { FeeWithdrawal } from '@/components/features/game/match/FeeWithdrawal'
 import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
@@ -35,10 +45,12 @@ export default function GameMatchPage() {
               Back to Home
             </Button>
           </Link>
-          
+
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">Game Match</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+                Game Match
+              </h1>
               <p className="text-base text-gray-600">
                 Escrow-based match system with stake management
               </p>
@@ -52,7 +64,11 @@ export default function GameMatchPage() {
                 className="flex items-center gap-1.5"
               >
                 Contract Info
-                {showContractInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                {showContractInfo ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
               </Button>
             </div>
           </div>
@@ -68,7 +84,6 @@ export default function GameMatchPage() {
 
       {/* Content Section */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-
         {!mounted ? (
           <Card className="border-2 border-gray-200">
             <CardHeader>
@@ -83,28 +98,46 @@ export default function GameMatchPage() {
             <CardHeader>
               <CardTitle className="text-gray-900">Connect Wallet</CardTitle>
               <CardDescription className="text-gray-600">
-                Please connect your wallet to interact with the Game Match feature
+                Please connect your wallet to interact with the Game Match
+                feature
               </CardDescription>
             </CardHeader>
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="w-full"
+              >
                 <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
-                  <TabsTrigger value="matches" className="data-[state=active]:bg-white">Matches</TabsTrigger>
-                  <TabsTrigger value="create" className="data-[state=active]:bg-white">Create Match</TabsTrigger>
+                  <TabsTrigger
+                    value="matches"
+                    className="data-[state=active]:bg-white"
+                  >
+                    Matches
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="create"
+                    className="data-[state=active]:bg-white"
+                  >
+                    Create Match
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="matches" className="mt-6">
-                  <MatchList 
+                  <MatchList
                     onSelectMatch={setSelectedMatchId}
                     selectedMatchId={selectedMatchId}
                   />
                 </TabsContent>
                 <TabsContent value="create" className="mt-6">
-                  <CreateMatchForm 
+                  <CreateMatchForm
                     onMatchCreated={(matchId) => {
-                      console.log('[GameMatchPage] Match created, selecting match:', matchId)
+                      console.log(
+                        '[GameMatchPage] Match created, selecting match:',
+                        matchId,
+                      )
                       setSelectedMatchId(matchId)
                       setActiveTab('matches')
                     }}
@@ -112,17 +145,16 @@ export default function GameMatchPage() {
                 </TabsContent>
               </Tabs>
             </div>
-            
+
             <div className="lg:col-span-1 space-y-6">
-              <MatchDetails 
-                matchId={selectedMatchId} 
+              <MatchDetails
+                matchId={selectedMatchId}
                 onMatchDeleted={() => setSelectedMatchId(null)}
               />
               <FeeWithdrawal />
             </div>
           </div>
         )}
-
       </div>
     </main>
   )

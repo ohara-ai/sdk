@@ -2,15 +2,21 @@
 
 import { useState, useMemo } from 'react'
 import { formatEther } from 'viem'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Trophy, Coins } from 'lucide-react'
 
 interface LeaderboardProps {
   topPlayersByWins?: readonly [
     readonly `0x${string}`[], // players
-    readonly bigint[],         // wins
-    readonly bigint[]          // prizes
+    readonly bigint[], // wins
+    readonly bigint[], // prizes
   ]
 }
 
@@ -21,17 +27,17 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
   // Sort players based on selected ranking
   const sortedPlayers = useMemo(() => {
     if (!hasPlayers) return null
-    
+
     const players = topPlayersByWins[0]
     const wins = topPlayersByWins[1]
     const prizes = topPlayersByWins[2]
-    
+
     const combined = players.map((player, idx) => ({
       player,
       wins: wins[idx],
-      prize: prizes[idx]
+      prize: prizes[idx],
     }))
-    
+
     combined.sort((a, b) => {
       if (rankBy === 'wins') {
         return Number(b.wins - a.wins)
@@ -39,7 +45,7 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
         return Number(b.prize - a.prize)
       }
     })
-    
+
     return combined
   }, [topPlayersByWins, rankBy, hasPlayers])
 
@@ -48,7 +54,9 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold text-gray-900">Top Players</CardTitle>
+            <CardTitle className="text-lg font-semibold text-gray-900">
+              Top Players
+            </CardTitle>
             <CardDescription className="text-gray-600">
               Ranked by {rankBy === 'wins' ? 'total wins' : 'prize pool'}
             </CardDescription>
@@ -79,8 +87,8 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
         {sortedPlayers ? (
           <div className="space-y-2">
             {sortedPlayers.map((item, index) => (
-              <div 
-                key={item.player} 
+              <div
+                key={item.player}
                 className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
               >
                 <div className="flex items-center gap-4">
@@ -111,7 +119,9 @@ export function Leaderboard({ topPlayersByWins }: LeaderboardProps) {
         ) : (
           <div className="text-center py-8 text-gray-500">
             <p className="text-sm">No players yet</p>
-            <p className="text-xs mt-2">Complete matches to populate the leaderboard</p>
+            <p className="text-xs mt-2">
+              Complete matches to populate the leaderboard
+            </p>
           </div>
         )}
       </CardContent>

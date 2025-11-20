@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     if (matchId === undefined || matchId === null) {
       return NextResponse.json(
         { error: 'matchId is required' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (!game.match.operations) {
       return NextResponse.json(
         { error: 'Match operations not available' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
@@ -34,8 +34,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Match activation error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to activate match' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error ? error.message : 'Failed to activate match',
+      },
+      { status: 500 },
     )
   }
 }

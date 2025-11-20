@@ -1,6 +1,6 @@
 /**
  * Deployment Integration Specification Tests
- * 
+ *
  * Tests the end-to-end deployment workflows
  * These tests verify the integration between deployment functions and blockchain interactions
  */
@@ -12,8 +12,14 @@ import { deployGameScore } from './deployGameScore'
 // Mock the dependencies
 vi.mock('../storage/contractStorage', () => ({
   setContractAddress: vi.fn().mockResolvedValue(undefined),
-  getControllerKey: vi.fn().mockResolvedValue('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'),
-  getControllerAddress: vi.fn().mockResolvedValue('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'),
+  getControllerKey: vi
+    .fn()
+    .mockResolvedValue(
+      '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+    ),
+  getControllerAddress: vi
+    .fn()
+    .mockResolvedValue('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'),
 }))
 
 vi.mock('viem', async () => {
@@ -21,7 +27,11 @@ vi.mock('viem', async () => {
   return {
     ...actual,
     createWalletClient: vi.fn(() => ({
-      writeContract: vi.fn().mockResolvedValue('0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'),
+      writeContract: vi
+        .fn()
+        .mockResolvedValue(
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        ),
       account: {
         address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
       },
@@ -56,10 +66,13 @@ vi.mock('viem', async () => {
 describe('Deployment Integration - Specification Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY = '0x1234567890123456789012345678901234567890'
-    process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY = '0x9876543210987654321098765432109876543210'
+    process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY =
+      '0x1234567890123456789012345678901234567890'
+    process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY =
+      '0x9876543210987654321098765432109876543210'
     process.env.RPC_URL = 'http://localhost:8545'
-    process.env.PRIVATE_KEY = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
+    process.env.PRIVATE_KEY =
+      '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
   })
 
   describe('Specification: Deploy GameMatch', () => {
@@ -156,7 +169,7 @@ describe('Deployment Integration - Specification Tests', () => {
   describe('Specification: Storage Integration', () => {
     it('SPEC: deployGameMatch - saves address to storage', async () => {
       const { setContractAddress } = await import('../storage/contractStorage')
-      
+
       await deployGameMatch({})
 
       expect(setContractAddress).toHaveBeenCalled()
@@ -164,7 +177,7 @@ describe('Deployment Integration - Specification Tests', () => {
 
     it('SPEC: deployGameScore - saves address to storage', async () => {
       const { setContractAddress } = await import('../storage/contractStorage')
-      
+
       await deployGameScore({})
 
       expect(setContractAddress).toHaveBeenCalled()

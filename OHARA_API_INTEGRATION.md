@@ -30,6 +30,7 @@ When API mode is enabled, the following operations are executed via the Ohara AP
 - **`finalize(matchId, winner)`**: Match finalization via API
 
 These operations automatically:
+
 - Submit requests to the API with authentication
 - Wait for transaction confirmation
 - Return transaction hash
@@ -45,11 +46,13 @@ Contract deployments use the API endpoints:
 ### Controller Address
 
 In API mode, the controller address is fetched from:
+
 ```
 GET /v2/miniapp-controller/wallet
 ```
 
 Returns:
+
 ```json
 {
   "address": "0x...",
@@ -61,12 +64,14 @@ Returns:
 ## API Endpoints Used
 
 ### 1. Get Wallet Info
+
 ```
 GET /v2/miniapp-controller/wallet
 Authorization: Bearer <OHARA_CONTROLLER_TOKEN>
 ```
 
 ### 2. Deploy Contract
+
 ```
 POST /v2/miniapp-controller/deploy
 Authorization: Bearer <OHARA_CONTROLLER_TOKEN>
@@ -80,6 +85,7 @@ Content-Type: application/json
 ```
 
 Returns:
+
 ```json
 {
   "contractAddress": "0x...",
@@ -90,6 +96,7 @@ Returns:
 ```
 
 ### 3. Execute Contract Function
+
 ```
 POST /v2/miniapp-controller/execute
 Authorization: Bearer <OHARA_CONTROLLER_TOKEN>
@@ -107,6 +114,7 @@ Content-Type: application/json
 ```
 
 Returns:
+
 ```json
 {
   "txHash": "0x...",
@@ -116,12 +124,14 @@ Returns:
 ```
 
 ### 4. Get Transaction Status
+
 ```
 GET /v2/miniapp-controller/transaction/:txHash
 Authorization: Bearer <OHARA_CONTROLLER_TOKEN>
 ```
 
 Returns:
+
 ```json
 {
   "txHash": "0x...",
@@ -155,7 +165,7 @@ const { game } = await createServerOharaAi()
 if (game.match.operations) {
   // Activate match
   const hash = await game.match.operations.activate(matchId)
-  
+
   // Finalize match
   const hash = await game.match.operations.finalize(matchId, winnerAddress)
 }
@@ -170,7 +180,7 @@ import { deployGameScore, deployGameMatch } from '@ohara-ai/sdk/server'
 const scoreResult = await deployGameScore({})
 
 const matchResult = await deployGameMatch({
-  gameScoreAddress: scoreResult.address
+  gameScoreAddress: scoreResult.address,
 })
 ```
 
@@ -182,24 +192,24 @@ import { OharaApiClient } from '@ohara-ai/sdk/server'
 // Check if API mode is configured
 if (OharaApiClient.isConfigured()) {
   const client = new OharaApiClient()
-  
+
   // Get wallet info
   const wallet = await client.getWallet()
-  
+
   // Deploy contract
   const result = await client.deployContract({
     factoryType: 'ScoreFactory',
-    chainId: 1
+    chainId: 1,
   })
-  
+
   // Execute function
   const tx = await client.executeContractFunction({
     contractAddress: '0x...',
     functionName: 'activate',
     params: { matchId: '1' },
-    chainId: 1
+    chainId: 1,
   })
-  
+
   // Wait for confirmation
   const status = await client.waitForTransaction(tx.txHash)
 }
@@ -242,7 +252,7 @@ The API client includes automatic transaction polling:
 // Polls every 2 seconds with 60 second timeout
 const status = await apiClient.waitForTransaction(txHash, {
   pollingInterval: 2000,
-  timeout: 60000
+  timeout: 60000,
 })
 
 if (status.status === 'FAILED') {
@@ -263,6 +273,7 @@ if (status.status === 'FAILED') {
 3. Restart your application - no code changes needed!
 
 The SDK will automatically:
+
 - Fetch controller address from API
 - Route operations through API endpoints
 - Handle transaction confirmations

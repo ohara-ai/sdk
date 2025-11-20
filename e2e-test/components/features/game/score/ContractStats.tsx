@@ -1,17 +1,28 @@
 'use client'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 interface ContractStatsProps {
   totalMatches?: bigint
   totalPlayers?: bigint
 }
 
-export function ContractStats({ totalMatches, totalPlayers }: ContractStatsProps) {
+export function ContractStats({
+  totalMatches,
+  totalPlayers,
+}: ContractStatsProps) {
   return (
     <Card className="border-2 border-gray-200">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-900">Contract Statistics</CardTitle>
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          Contract Statistics
+        </CardTitle>
         <CardDescription className="text-gray-600">
           Overall contract metrics
         </CardDescription>

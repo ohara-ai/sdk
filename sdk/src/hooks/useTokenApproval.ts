@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Address, zeroAddress } from 'viem'
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { ERC20_ABI } from '../abis/erc/erc20';
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from 'wagmi'
+import { ERC20_ABI } from '../abis/erc/erc20'
 
 export interface UseTokenApprovalParams {
   /** Token address to approve (use zeroAddress for native token) */
@@ -36,7 +41,7 @@ export interface UseTokenApprovalReturn {
 /**
  * Hook to manage ERC20 token approvals
  * Automatically checks allowance and provides approve function
- * 
+ *
  * @example
  * ```tsx
  * const { needsApproval, approve, isApprovePending } = useTokenApproval({
@@ -44,7 +49,7 @@ export interface UseTokenApprovalReturn {
  *   spenderAddress: gameMatchAddress,
  *   amount: parseEther('1.0'),
  * })
- * 
+ *
  * if (needsApproval) {
  *   return <button onClick={approve}>Approve Token</button>
  * }
@@ -67,7 +72,8 @@ export function useTokenApproval({
     address: tokenAddress,
     abi: ERC20_ABI,
     functionName: 'allowance',
-    args: userAddress && spenderAddress ? [userAddress, spenderAddress] : undefined,
+    args:
+      userAddress && spenderAddress ? [userAddress, spenderAddress] : undefined,
     query: {
       enabled: enabled && !isNativeToken && !!userAddress && !!spenderAddress,
     },
@@ -88,12 +94,10 @@ export function useTokenApproval({
     error: approveError,
   } = useWriteContract()
 
-  const {
-    isLoading: isApproveConfirming,
-    isSuccess: isApproveSuccess,
-  } = useWaitForTransactionReceipt({
-    hash: approveHash,
-  })
+  const { isLoading: isApproveConfirming, isSuccess: isApproveSuccess } =
+    useWaitForTransactionReceipt({
+      hash: approveHash,
+    })
 
   // Refetch allowance after successful approval
   useEffect(() => {
@@ -103,7 +107,8 @@ export function useTokenApproval({
   }, [isApproveSuccess, refetchAllowance])
 
   // Determine if approval is needed
-  const needsApproval = !isNativeToken && enabled && amount > 0n && allowance < amount
+  const needsApproval =
+    !isNativeToken && enabled && amount > 0n && allowance < amount
 
   // Approve function
   const approve = () => {

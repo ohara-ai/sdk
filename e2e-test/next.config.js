@@ -12,15 +12,15 @@ const nextConfig = {
       ...config.resolve.fallback,
       '@react-native-async-storage/async-storage': false,
       'pino-pretty': false,
-      'lokijs': false,
-      'encoding': false,
+      lokijs: false,
+      encoding: false,
     }
 
     // Ignore specific modules that are not needed
     config.externals.push({
       'pino-pretty': 'pino-pretty',
-      'lokijs': 'lokijs',
-      'encoding': 'encoding',
+      lokijs: 'lokijs',
+      encoding: 'encoding',
     })
 
     return config

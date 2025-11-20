@@ -1,6 +1,6 @@
 /**
  * Custom Test Assertions and Utilities
- * 
+ *
  * Provides reusable assertion helpers for SDK testing
  */
 
@@ -34,11 +34,11 @@ export function assertPositiveBigInt(value: bigint) {
  */
 export function assertHasProperties<T extends Record<string, unknown>>(
   obj: unknown,
-  properties: (keyof T)[]
+  properties: (keyof T)[],
 ): asserts obj is T {
   expect(obj).toBeTypeOf('object')
   expect(obj).not.toBeNull()
-  properties.forEach(prop => {
+  properties.forEach((prop) => {
     expect(obj).toHaveProperty(prop as string)
   })
 }
@@ -46,13 +46,10 @@ export function assertHasProperties<T extends Record<string, unknown>>(
 /**
  * Assert that operations object has expected methods
  */
-export function assertHasOperations(
-  operations: unknown,
-  methods: string[]
-) {
+export function assertHasOperations(operations: unknown, methods: string[]) {
   expect(operations).toBeTypeOf('object')
   expect(operations).not.toBeNull()
-  methods.forEach(method => {
+  methods.forEach((method) => {
     expect(operations).toHaveProperty(method)
     expect(typeof (operations as any)[method]).toBe('function')
   })

@@ -1,6 +1,15 @@
-import { createWalletClient, http, createPublicClient, PublicClient, WalletClient } from 'viem'
+import {
+  createWalletClient,
+  http,
+  createPublicClient,
+  PublicClient,
+  WalletClient,
+} from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { getControllerKey, getControllerAddress } from '../storage/contractStorage'
+import {
+  getControllerKey,
+  getControllerAddress,
+} from '../storage/contractStorage'
 import { OharaApiClient } from '../server/oharaApiClient'
 
 // Types
@@ -31,10 +40,13 @@ export interface DeploymentResult {
  */
 export function extractDeployedAddress(
   receipt: any,
-  factoryAddress: `0x${string}`
+  factoryAddress: `0x${string}`,
 ): `0x${string}` | null {
   for (const log of receipt.logs) {
-    if (log.address.toLowerCase() === factoryAddress.toLowerCase() && log.topics.length >= 2) {
+    if (
+      log.address.toLowerCase() === factoryAddress.toLowerCase() &&
+      log.topics.length >= 2
+    ) {
       const instanceTopic = log.topics[1]
       if (instanceTopic) {
         return `0x${instanceTopic.slice(-40)}` as `0x${string}`
@@ -55,8 +67,10 @@ export function createDeploymentClients(config: DeploymentConfig): {
   if (!config.appControllerPrivateKey) {
     throw new Error('Private key required for creating deployment clients')
   }
-  
-  const account = privateKeyToAccount(config.appControllerPrivateKey as `0x${string}`)
+
+  const account = privateKeyToAccount(
+    config.appControllerPrivateKey as `0x${string}`,
+  )
 
   const walletClient = createWalletClient({
     account,
@@ -90,32 +104,38 @@ export { deployGameMatch } from './deployGameMatch'
  */
 export async function getDeploymentConfig(): Promise<DeploymentConfig> {
   const isApiMode = OharaApiClient.isConfigured()
-  
+
   let appControllerPrivateKey: string | undefined
   let controllerAddress: string | undefined
-  
+
   if (!isApiMode) {
     // Only fetch private key and address in direct on-chain mode
     appControllerPrivateKey = await getControllerKey()
     controllerAddress = await getControllerAddress()
-    
+
     if (!controllerAddress) {
       throw new Error('Failed to derive controller address from private key')
     }
   }
-  
+
   const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
-  
+
   // Get factory addresses from environment
-  const gameMatchFactory = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}`
-  const gameScoreFactory = process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as `0x${string}`
-  
+  const gameMatchFactory = process.env
+    .NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}`
+  const gameScoreFactory = process.env
+    .NEXT_PUBLIC_GAME_SCORE_FACTORY as `0x${string}`
+
   if (!gameMatchFactory) {
-    throw new Error('NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment')
+    throw new Error(
+      'NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment',
+    )
   }
-  
+
   if (!gameScoreFactory) {
-    throw new Error('NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment')
+    throw new Error(
+      'NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment',
+    )
   }
 
   return {
@@ -138,7 +158,11 @@ export async function getDeploymentConfig(): Promise<DeploymentConfig> {
  */
 export function getFactoryAddresses() {
   return {
-    gameMatchFactory: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}` | undefined,
-    gameScoreFactory: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as `0x${string}` | undefined,
+    gameMatchFactory: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as
+      | `0x${string}`
+      | undefined,
+    gameScoreFactory: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as
+      | `0x${string}`
+      | undefined,
   }
 }

@@ -16,25 +16,25 @@ export function DeployContract({ onDeployed }: DeployContractProps) {
     if (typeof window === 'undefined') {
       throw new Error('Deployment can only be called from the browser')
     }
-    
+
     const response = await fetch('/testing/deploy/game/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     })
-    
+
     const data = await response.json()
-    
+
     if (!response.ok) {
       throw new Error(data.error || 'Deployment failed')
     }
-    
+
     // Refresh addresses after successful deployment
     await loadAddresses()
-    
+
     // Dispatch event for other components
     window.dispatchEvent(new CustomEvent('contractDeployed'))
-    
+
     return data
   }
 

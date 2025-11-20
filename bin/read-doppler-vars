@@ -25,11 +25,19 @@ async function getDopplerEnv() {
       logger.log('Usage: read-doppler-vars [options]')
       logger.log()
       logger.log('Options:')
-      logger.log('  -p, --doppler-project [doppler-project]  specify doppler project (default: sdk)')
-      logger.log('  -c, --doppler-config [doppler-config]    specify doppler config (default: development)')
-      logger.log('  --print-env                              print doppler variables to stdout')
+      logger.log(
+        '  -p, --doppler-project [doppler-project]  specify doppler project (default: sdk)',
+      )
+      logger.log(
+        '  -c, --doppler-config [doppler-config]    specify doppler config (default: development)',
+      )
+      logger.log(
+        '  --print-env                              print doppler variables to stdout',
+      )
       logger.log('')
-      logger.log('  -h, --help                               display this help message')
+      logger.log(
+        '  -h, --help                               display this help message',
+      )
       process.exit(0)
     }
 
@@ -47,7 +55,7 @@ async function getDopplerEnv() {
 
     const env = {}
 
-    stdout.split('\n').forEach(line => {
+    stdout.split('\n').forEach((line) => {
       if (line.trim() === '' || !line.includes('=')) return
       const [key, ...rest] = line.split('=')
       env[key] = rest.join('=')

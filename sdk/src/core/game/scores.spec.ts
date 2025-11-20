@@ -1,6 +1,6 @@
 /**
  * Score Operations Specification Tests
- * 
+ *
  * Tests the core score primitive operations following behavioral specifications
  */
 
@@ -22,7 +22,10 @@ describe('Score Operations - Specification Tests', () => {
     it('SPEC: createScoreOperations - creates operations with all methods', () => {
       const publicClient = createMockPublicClient()
 
-      const operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
+      const operations = createClientScoreOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+      )
 
       assertHasOperations(operations, [
         'getPlayerScore',
@@ -49,7 +52,9 @@ describe('Score Operations - Specification Tests', () => {
 
     beforeEach(() => {
       publicClient = createMockPublicClient()
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockPlayerScore())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockPlayerScore(),
+      )
       operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
@@ -73,7 +78,7 @@ describe('Score Operations - Specification Tests', () => {
           address: CONTRACT_ADDRESS,
           functionName: 'getPlayerScore',
           args: [PLAYER_ADDRESS],
-        })
+        }),
       )
     })
 
@@ -104,7 +109,9 @@ describe('Score Operations - Specification Tests', () => {
     })
 
     it('SPEC: getTopPlayersByWins() - returns top players sorted by wins', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockTopPlayers())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
 
       const result = await operations.getTopPlayersByWins(10)
 
@@ -119,7 +126,9 @@ describe('Score Operations - Specification Tests', () => {
     })
 
     it('SPEC: getTopPlayersByWins() - calls contract with limit parameter', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockTopPlayers())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
 
       await operations.getTopPlayersByWins(5)
 
@@ -128,24 +137,28 @@ describe('Score Operations - Specification Tests', () => {
           address: CONTRACT_ADDRESS,
           functionName: 'getTopPlayersByWins',
           args: [5n],
-        })
+        }),
       )
     })
 
     it('SPEC: getTopPlayersByWins() - converts number limit to BigInt', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockTopPlayers())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
 
       await operations.getTopPlayersByWins(25)
 
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           args: [25n],
-        })
+        }),
       )
     })
 
     it('SPEC: getTopPlayersByPrize() - returns top players sorted by prize', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockTopPlayers())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
 
       const result = await operations.getTopPlayersByPrize(10)
 
@@ -154,14 +167,16 @@ describe('Score Operations - Specification Tests', () => {
         wins: expect.any(Array),
         prizes: expect.any(Array),
       })
-      
+
       // Verify arrays have same length
       expect(result.players.length).toBe(result.wins.length)
       expect(result.players.length).toBe(result.prizes.length)
     })
 
     it('SPEC: getTopPlayersByPrize() - calls contract with correct function name', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockTopPlayers())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
 
       await operations.getTopPlayersByPrize(10)
 
@@ -169,7 +184,7 @@ describe('Score Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getTopPlayersByPrize',
           args: [10n],
-        })
+        }),
       )
     })
 
@@ -203,7 +218,7 @@ describe('Score Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getTotalPlayers',
           args: [],
-        })
+        }),
       )
     })
 
@@ -217,7 +232,7 @@ describe('Score Operations - Specification Tests', () => {
         expect.objectContaining({
           functionName: 'getTotalMatches',
           args: [],
-        })
+        }),
       )
     })
 
@@ -256,7 +271,7 @@ describe('Score Operations - Specification Tests', () => {
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           functionName: 'maxLosersPerMatch',
-        })
+        }),
       )
     })
 
@@ -269,7 +284,7 @@ describe('Score Operations - Specification Tests', () => {
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           functionName: 'maxTotalPlayers',
-        })
+        }),
       )
     })
 
@@ -282,7 +297,7 @@ describe('Score Operations - Specification Tests', () => {
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
           functionName: 'maxTotalMatches',
-        })
+        }),
       )
     })
   })
@@ -290,7 +305,10 @@ describe('Score Operations - Specification Tests', () => {
   describe('Specification: Read-Only Nature', () => {
     it('SPEC: score operations are read-only - no write methods exist', () => {
       const publicClient = createMockPublicClient()
-      const operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
+      const operations = createClientScoreOperations(
+        CONTRACT_ADDRESS,
+        publicClient,
+      )
 
       // Verify no write methods are present
       expect(operations).not.toHaveProperty('recordWin')
@@ -320,28 +338,32 @@ describe('Score Operations - Specification Tests', () => {
 
     it('SPEC: gracefully handles contract call failures', async () => {
       vi.spyOn(publicClient, 'readContract').mockRejectedValue(
-        new Error('Contract execution reverted')
+        new Error('Contract execution reverted'),
       )
 
       await expect(operations.getPlayerScore(PLAYER_ADDRESS)).rejects.toThrow(
-        'Contract execution reverted'
+        'Contract execution reverted',
       )
     })
 
     it('SPEC: handles invalid player addresses', async () => {
       vi.spyOn(publicClient, 'readContract').mockRejectedValue(
-        new Error('Invalid address format')
+        new Error('Invalid address format'),
       )
 
-      await expect(operations.getPlayerScore('invalid' as any)).rejects.toThrow()
+      await expect(
+        operations.getPlayerScore('invalid' as any),
+      ).rejects.toThrow()
     })
 
     it('SPEC: handles network errors', async () => {
       vi.spyOn(publicClient, 'readContract').mockRejectedValue(
-        new Error('Network request failed')
+        new Error('Network request failed'),
       )
 
-      await expect(operations.getTotalPlayers()).rejects.toThrow('Network request failed')
+      await expect(operations.getTotalPlayers()).rejects.toThrow(
+        'Network request failed',
+      )
     })
   })
 
@@ -370,7 +392,9 @@ describe('Score Operations - Specification Tests', () => {
     })
 
     it('SPEC: player score includes player address for verification', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(createMockPlayerScore())
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockPlayerScore(),
+      )
 
       const score = await operations.getPlayerScore(PLAYER_ADDRESS)
 

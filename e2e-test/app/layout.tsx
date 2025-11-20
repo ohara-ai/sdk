@@ -7,7 +7,8 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Ohara AI SDK - Gaming',
-  description: 'On-chain gaming SDK with production-ready components for wagered matches and leaderboards',
+  description:
+    'On-chain gaming SDK with production-ready components for wagered matches and leaderboards',
 }
 
 export const dynamic = 'force-dynamic'

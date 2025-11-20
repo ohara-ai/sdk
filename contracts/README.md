@@ -26,6 +26,7 @@ contracts/
 Escrow-based match system with stake management.
 
 **Key Features:**
+
 - Create matches with configurable stake amounts and player limits
 - Join/leave from matches before activation
 - Controller-managed activation and finalization
@@ -34,6 +35,7 @@ Escrow-based match system with stake management.
 - Capacity management with configurable active match limits
 
 **Main Functions:**
+
 - `create(token, stakeAmount, maxPlayers)` - Create a new match
 - `join(matchId)` - Join an existing match
 - `leave(matchId)` - Leave a match before activation
@@ -45,6 +47,7 @@ Escrow-based match system with stake management.
 Tracks and stores player scores from completed matches.
 
 **Key Features:**
+
 - Record match results with winner/loser tracking
 - Query player statistics (wins, total prize, last match)
 - Leaderboard queries (top players by wins/prize)
@@ -52,6 +55,7 @@ Tracks and stores player scores from completed matches.
 - Authorized recorder system for match contracts
 
 **Main Functions:**
+
 - `recordScore(matchId, winner, losers, prize)` - Record match results
 - `getScore(player)` - Get player statistics
 - `getTopPlayersByWins(count)` - Query top N players by wins
@@ -64,6 +68,7 @@ Tracks and stores player scores from completed matches.
 Factory for deploying Match contracts with configurable defaults.
 
 **Features:**
+
 - Deploy Match instances with custom parameters
 - Configure default max active matches
 - Set default fee recipients and shares
@@ -74,6 +79,7 @@ Factory for deploying Match contracts with configurable defaults.
 Factory for deploying Score contracts with storage limits.
 
 **Features:**
+
 - Deploy Score instances with capacity limits
 - Configure maximum losers per match, total players, and total matches
 - Prevent state explosion with configurable bounds
@@ -87,6 +93,7 @@ Access control base for feature contracts with separate owner and controller rol
 #### **FeeCollector** (`src/base/FeeCollector.sol`)
 
 Fee collection and distribution system supporting:
+
 - Multiple fee recipients with configurable shares (basis points)
 - ETH and ERC20 token fee distribution
 - Owner-controlled fee configuration
@@ -146,6 +153,7 @@ forge script script/DeployScoreFactory.s.sol --rpc-url http://localhost:8545 --b
 ### Testnet/Mainnet Deployment
 
 1. Configure RPC endpoints in `foundry.toml`:
+
    ```toml
    [rpc_endpoints]
    sepolia = "${SEPOLIA_RPC_URL}"
@@ -153,6 +161,7 @@ forge script script/DeployScoreFactory.s.sol --rpc-url http://localhost:8545 --b
    ```
 
 2. Set environment variables:
+
    ```bash
    export SEPOLIA_RPC_URL="your-rpc-url"
    export PRIVATE_KEY="your-private-key"
