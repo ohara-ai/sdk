@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    instrumentationHook: true,
-  },
   // Skip static optimization for pages using Wagmi
   skipTrailingSlashRedirect: true,
   webpack: (config, { isServer }) => {
