@@ -1,6 +1,6 @@
 {
   "name": "sdk-wrapper",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Wrapper projects for the SDK, smart contracts and e2e tests",
   "scripts": {
