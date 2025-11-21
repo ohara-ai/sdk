@@ -3,7 +3,7 @@ npm install
 npm run forge:build
 
 anvil --host 0.0.0.0 &
-cp .env.dev .env
+cp .env.example .env
 [ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
 npm run e2e:install
 doppler run -- npm run e2e:setup
