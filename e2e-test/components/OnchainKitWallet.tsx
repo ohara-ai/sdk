@@ -1,6 +1,6 @@
 'use client'
 
-import { useSwitchChain, useChainId } from 'wagmi'
+import { useSwitchChain, useChainId, useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
 import {
@@ -18,9 +18,17 @@ import {
 } from '@coinbase/onchainkit/identity'
 
 export function OnchainKitWallet() {
-  const { switchChain } = useSwitchChain()
+  const { switchChain, chains } = useSwitchChain()
   const chainId = useChainId()
-  const isWrongChain = chainId !== 31337
+  const { isConnected } = useAccount()
+
+  // For development, prefer Anvil (localhost)
+  const isOnAnvil = chainId === 31337
+  const isOnBaseSepolia = chainId === 84532
+  const isOnBase = chainId === 8453
+
+  // Show chain switcher if not on Anvil during development
+  const showChainSwitcher = isConnected && !isOnAnvil && switchChain
 
   return (
     <div className="flex flex-col items-end gap-2">
@@ -40,11 +48,15 @@ export function OnchainKitWallet() {
         </WalletDropdown>
       </Wallet>
 
-      {isWrongChain && switchChain && (
+      {showChainSwitcher && (
         <div className="flex items-center gap-2 mt-2">
           <div className="flex items-center gap-1 text-xs text-yellow-500">
             <AlertCircle className="w-3 h-3" />
-            <span>Wrong network</span>
+            <span>
+              {isOnBaseSepolia && 'On Base Sepolia'}
+              {isOnBase && 'On Base Mainnet'}
+              {!isOnBaseSepolia && !isOnBase && 'Wrong network'}
+            </span>
           </div>
           <Button
             variant="outline"
