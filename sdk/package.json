@@ -1,6 +1,6 @@
 {
   "name": "@ohara-ai/sdk",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -60,12 +60,7 @@
     "viem": "^2.7.0",
     "wagmi": "^2.5.0"
   },
-  "dependencies": {
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.454.0",
-    "tailwind-merge": "^2.5.5"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@types/node": "^22.9.1",
