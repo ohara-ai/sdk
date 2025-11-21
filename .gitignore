@@ -29,7 +29,9 @@ yarn-error.log*
 .env
 .env*.local
 .env.development
+.env.devnet
 .env.testing
+.env.testnet
 .env.production
 
 # Onchain configuration (contains private keys)
