@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { DeployContract as DeployGameMatch } from '@/components/features/game/match/DeployContract'
 import { DeployContract as DeployGameScore } from '@/components/features/game/score/DeployContract'
-import { ConnectWallet } from '@/components/ConnectWallet'
+import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import { Button } from '@/components/ui/button'
 import { AddressesInfo } from '@/components/AddressesInfo'
 
@@ -34,7 +34,7 @@ export default function Home() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <ConnectWallet />
+              <OnchainKitWallet />
               <Button
                 variant="outline"
                 size="sm"

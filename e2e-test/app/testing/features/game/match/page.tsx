@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ConnectWallet } from '@/components/ConnectWallet'
+import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import {
   MatchList,
   CreateMatchForm,
@@ -56,7 +56,7 @@ export default function GameMatchPage() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <ConnectWallet />
+              <OnchainKitWallet />
               <Button
                 variant="outline"
                 size="sm"
