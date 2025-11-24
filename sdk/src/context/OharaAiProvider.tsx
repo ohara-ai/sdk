@@ -71,9 +71,9 @@ export function OharaAiProvider({
     Address | undefined
   >()
 
-  const effectivePublicClient = publicClient || undefined
-  const effectiveWalletClient = walletClient || undefined
-  const effectiveChainId = chainId || undefined
+  const effectivePublicClient = publicClient
+  const effectiveWalletClient = walletClient
+  const effectiveChainId = chainId
 
   // Function to load addresses from backend
   const loadAddresses = async () => {
@@ -149,7 +149,7 @@ export function OharaAiProvider({
     return () => {
       window.removeEventListener('contractDeployed', handleCustomEvent)
     }
-  }, [chainId])
+  }, [effectiveChainId])
 
   // Build context structure
   const ohara = useMemo<OharaContext>(
