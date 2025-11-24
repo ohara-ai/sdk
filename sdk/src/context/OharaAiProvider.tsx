@@ -71,6 +71,7 @@ export function OharaAiProvider({
     Address | undefined
   >()
 
+  // Use provided clients/chainId (they should be passed as props from parent component)
   const effectivePublicClient = publicClient
   const effectiveWalletClient = walletClient
   const effectiveChainId = chainId
