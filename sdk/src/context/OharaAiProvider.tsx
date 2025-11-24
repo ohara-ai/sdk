@@ -71,15 +71,19 @@ export function OharaAiProvider({
     Address | undefined
   >()
 
+  const effectivePublicClient = publicClient || undefined
+  const effectiveWalletClient = walletClient || undefined
+  const effectiveChainId = chainId || undefined
+
   // Function to load addresses from backend
   const loadAddresses = async () => {
-    if (typeof window === 'undefined' || !chainId) {
+    if (typeof window === 'undefined' || !effectiveChainId) {
       return
     }
 
     try {
       const response = await fetch(
-        `/api/sdk/addresses?chainId=${chainId}`,
+        `/api/sdk/addresses?chainId=${effectiveChainId}`,
       )
 
       if (!response.ok) {
@@ -164,21 +168,21 @@ export function OharaAiProvider({
       match: {
         address: gameMatchAddress,
         operations:
-          gameMatchAddress && publicClient
+          gameMatchAddress && effectivePublicClient
             ? createClientMatchOperations(
                 gameMatchAddress,
-                publicClient,
-                walletClient,
+                effectivePublicClient,
+                effectiveWalletClient,
               )
             : undefined,
       },
       scores: {
         address: gameScoreAddress,
         operations:
-          gameScoreAddress && publicClient
+          gameScoreAddress && effectivePublicClient
             ? createClientScoreOperations(
                 gameScoreAddress,
-                publicClient,
+                effectivePublicClient,
               )
             : undefined,
       },
@@ -186,8 +190,8 @@ export function OharaAiProvider({
     [
       gameMatchAddress,
       gameScoreAddress,
-      publicClient,
-      walletClient,
+      effectivePublicClient,
+      effectiveWalletClient,
     ],
   )
 
@@ -201,9 +205,9 @@ export function OharaAiProvider({
       controller: {
         address: controllerAddress,
       },
-      chainId: chainId,
+      chainId: effectiveChainId,
     }),
-    [env, controllerAddress, chainId],
+    [env, controllerAddress, effectiveChainId],
   )
 
   const internal = useMemo<InternalContext>(

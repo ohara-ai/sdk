@@ -35,25 +35,21 @@ interface OharaAiWagmiProviderProps {
  * ```
  */
 export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
-  const [mounted, setMounted] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    setHydrated(true)
   }, [])
 
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   const chainId = useChainId()
 
-  if (!mounted) {
-    return null
-  }
-
   return (
     <OharaAiProvider
-      publicClient={publicClient || undefined}
-      walletClient={walletClient || undefined}
-      chainId={chainId}
+      publicClient={hydrated ? publicClient || undefined : undefined}
+      walletClient={hydrated ? walletClient || undefined : undefined}
+      chainId={hydrated ? chainId || undefined : undefined}
     >
       {children}
     </OharaAiProvider>
