@@ -3,6 +3,10 @@
   "version": "0.4.0",
   "private": true,
   "description": "Wrapper projects for the SDK, smart contracts and e2e tests",
+  "workspaces": [
+    "sdk",
+    "e2e-test"
+  ],
   "scripts": {
     "forge:build": "cd contracts && forge build",
     "forge:test": "cd contracts && forge test",
@@ -15,8 +19,6 @@
     "sdk:test": "cd sdk && npm test",
     "sdk:version": "cd sdk && npm version",
     "sdk:publish": "cd sdk && npm publish",
-    "e2e:local-sdk": "cd e2e-test && npm run use-local-sdk",
-    "e2e:published-sdk": "cd e2e-test && npm run use-published-sdk",
     "e2e:install": "cd e2e-test && npm install",
     "e2e:setup": "cd e2e-test && npm run setup",
     "e2e:dev": "cd e2e-test && npm run dev",

@@ -13,9 +13,7 @@
     "setup": "rm -f ohara-ai-data/* || true && npm run deploy-devworld-token && npm run deploy-factories && npm run fund-controller",
     "deploy-factories": "./scripts/deploy-factories.sh",
     "deploy-devworld-token": "./scripts/deploy-devworld-token.sh",
-    "fund-controller": "./scripts/fund-controller.sh",
-    "use-local-sdk": "npm install ../sdk",
-    "use-published-sdk": "npm install @ohara-ai/sdk@latest"
+    "fund-controller": "./scripts/fund-controller.sh"
   },
   "dependencies": {
     "@coinbase/onchainkit": "^1.1.2",

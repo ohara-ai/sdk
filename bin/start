@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # Check for --solo parameter
-USE_DOPPLER=true
-if [[ "$1" == "--solo" ]]; then
-  USE_DOPPLER=false
+USE_DOPPLER=false
+if [[ "$1" == "--doppler" ]]; then
+  USE_DOPPLER=true
 fi
 
-npm install
+npm install  # Installs all workspace dependencies
 npm run forge:build
 npm run sdk:build
 
@@ -14,7 +14,7 @@ anvil --host 0.0.0.0 &
 cp .env.example .env
 [ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
 
-npm run e2e:install
+# No need for e2e:install - workspace install handles all packages
 if [ "$USE_DOPPLER" = true ]; then
   doppler run -- npm run e2e:setup
   doppler run -- npm run e2e:dev

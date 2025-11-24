@@ -30,10 +30,10 @@ foundryup
 ./bin/start
 ```
 
-To run the test app **without using Doppler** (local solo mode), use the optional `--solo` flag:
+To run the test app **with Doppler** (useful for api integration tests), use the optional `--doppler` flag:
 
 ```bash
-./bin/start --solo
+./bin/start --doppler
 ```
 
 ### Run tests
