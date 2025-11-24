@@ -325,6 +325,52 @@ interface OharaAiContext {
 }
 ```
 
+## Security & Key Management
+
+### ⚠️ Controller Key Storage
+
+The SDK supports two approaches for controller operations:
+
+#### 1. **Ohara API Mode (Recommended for Production)**
+
+Use Ohara's managed API for all controller operations. This keeps private keys secure on the backend and never exposes them to your application:
+
+```bash
+OHARA_CONTROLLER_TOKEN=your_token_here
+OHARA_API_URL=https://api.ohara.ai
+```
+
+**Benefits:**
+- Keys managed securely by Ohara infrastructure
+- No private key exposure in your application
+- Automatic transaction management and monitoring
+- Suitable for production environments
+
+#### 2. **Direct Mode (Development/Backend Only)**
+
+In direct mode, the SDK stores a controller private key locally in `ohara-ai-data/keys.json`. This is intended **only** for:
+- Local development with test networks (e.g., Anvil, Hardhat)
+- Backend services where you control the infrastructure
+
+**⚠️ CRITICAL SECURITY WARNINGS:**
+- **NEVER** use direct mode in browser/frontend environments
+- **NEVER** commit `ohara-ai-data/` to version control
+- **NEVER** use direct mode in production without proper key management
+- Keys are stored on disk and accessible to anyone with filesystem access
+
+**Optional Encryption:**
+
+For backend deployments using direct mode, you can enable at-rest encryption:
+
+```bash
+# Set a strong encryption secret (32+ characters recommended)
+OHARA_KEY_ENCRYPTION_SECRET=your-very-secure-secret-key-here
+```
+
+When set, controller keys are encrypted using AES-256-GCM before being written to disk. This provides defense-in-depth but does **not** make local key storage production-safe.
+
+**Best Practice:** Use Ohara API mode for any non-development environment.
+
 ## Environment Variables
 
 ### Required Variables
@@ -357,6 +403,17 @@ When both `OHARA_CONTROLLER_TOKEN` and `OHARA_API_URL` are set, the SDK automati
 - Controller operations (`activate`, `finalize`)
 - Contract deployments (`deployGameMatch`, `deployGameScore`)
 - Controller address resolution
+
+### Key Encryption (Optional)
+
+For backend deployments using direct mode, enable at-rest encryption:
+
+```bash
+# Encryption secret for controller key storage (32+ characters recommended)
+OHARA_KEY_ENCRYPTION_SECRET=your-very-secure-secret-key-here
+```
+
+When set, controller keys are encrypted using AES-256-GCM. See the Security & Key Management section for important warnings.
 
 ## Key Features
 

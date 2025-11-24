@@ -7,6 +7,12 @@ import {
   getOharaApiClient,
   DeployedContract,
 } from '../server/oharaApiClient'
+import {
+  encrypt,
+  decrypt,
+  isEncryptionEnabled,
+  getEncryptionSecret,
+} from './encryption'
 
 const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
 const CONTRACTS_PATH = path.join(STORAGE_DIR, 'contracts.json')
@@ -185,6 +191,19 @@ export async function setContractAddress(
 
 // Keys accessors and storage
 
+/**
+ * Get the controller private key from storage
+ * 
+ * WARNING: This is a backend/dev utility. Controller keys should NEVER
+ * be stored or accessed in browser environments.
+ * 
+ * For production deployments, use Ohara API mode instead of storing keys locally.
+ * 
+ * If OHARA_KEY_ENCRYPTION_SECRET is set, keys are encrypted at rest.
+ * This provides defense-in-depth but does NOT make local key storage production-safe.
+ * 
+ * @throws {Error} If called in API mode (keys are managed by Ohara API)
+ */
 export async function getControllerKey(): Promise<string> {
   if (OharaApiClient.isConfigured()) {
     throw new Error('Controller key is not available in API mode')
@@ -258,12 +277,40 @@ async function readKeys(): Promise<KeyStorage> {
 
 async function getKey(keyName: string): Promise<string | undefined> {
   const keys = await readKeys()
-  return keys[keyName]
+  const storedValue = keys[keyName]
+  
+  if (!storedValue) return undefined
+  
+  // Decrypt if encryption is enabled
+  if (isEncryptionEnabled()) {
+    const secret = getEncryptionSecret()
+    if (!secret) return undefined
+    
+    try {
+      return decrypt(storedValue, secret)
+    } catch (error) {
+      console.error('Error decrypting key:', error)
+      throw new Error('Failed to decrypt key. Check OHARA_KEY_ENCRYPTION_SECRET.')
+    }
+  }
+  
+  return storedValue
 }
 
 async function setKey(keyName: string, value: string): Promise<void> {
   const keys = await readKeys()
-  keys[keyName] = value
+  
+  // Encrypt if encryption is enabled
+  let valueToStore = value
+  if (isEncryptionEnabled()) {
+    const secret = getEncryptionSecret()
+    if (!secret) {
+      throw new Error('OHARA_KEY_ENCRYPTION_SECRET is required for encryption')
+    }
+    valueToStore = encrypt(value, secret)
+  }
+  
+  keys[keyName] = valueToStore
 
   await ensureStorageExists()
 
