@@ -32,11 +32,6 @@ export function OnchainKitWallet() {
   // Show chain switcher if not on Anvil during development
   const showChainSwitcher = isConnected && !isOnAnvil && switchChain
 
-  // Prevent hydration mismatch by only rendering chain switcher after mount
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-
   return (
     <div className="flex flex-col items-end gap-2">
       <Wallet>
@@ -55,7 +50,7 @@ export function OnchainKitWallet() {
         </WalletDropdown>
       </Wallet>
 
-      {isMounted && showChainSwitcher && (
+      {showChainSwitcher && (
         <div className="flex items-center gap-2 mt-2">
           <div className="flex items-center gap-1 text-xs text-yellow-500">
             <AlertCircle className="w-3 h-3" />
