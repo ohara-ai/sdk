@@ -9,15 +9,7 @@ By default, this app uses the **local SDK source** (`file:../sdk`) for developme
 - Debug SDK code alongside app code
 - Iterate quickly during development
 
-To test against the **published SDK** (e.g., before releasing):
-```bash
-npm run use-published-sdk
-```
-
-To switch back to local development:
-```bash
-npm run use-local-sdk
-```
+To test against the **published SDK** remove the e2e-test app from the workspace and install the published SDK package.
 
 ## Overview
 
