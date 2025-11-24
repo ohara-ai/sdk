@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
-import { useAccount, useWaitForTransactionReceipt, useChainId } from 'wagmi'
+import { useWaitForTransactionReceipt } from 'wagmi'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { useOharaAi, useTokenApproval } from '@ohara-ai/sdk'
 

@@ -24,7 +24,6 @@ import { useOharaAi } from '@ohara-ai/sdk'
 export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()
   const { game } = useOharaAi()
-  const contractAddress = game.scores.address
 
   const [mounted, setMounted] = useState(false)
   const [showContractInfo, setShowContractInfo] = useState(false)

@@ -22,7 +22,6 @@ import {
   useAccount,
   useWaitForTransactionReceipt,
   useBlockNumber,
-  useChainId,
 } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi, useTokenApproval, MatchStatus } from '@ohara-ai/sdk'
@@ -43,7 +42,6 @@ interface MatchData {
 
 export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { address } = useAccount()
-  const chainId = useChainId()
   const { game } = useOharaAi()
   const [matchData, setMatchData] = useState<MatchData | null>(null)
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)

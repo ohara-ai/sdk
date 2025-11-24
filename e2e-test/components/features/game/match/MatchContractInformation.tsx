@@ -12,7 +12,7 @@ import { useBlockNumber } from 'wagmi'
  */
 export function MatchContractInformation() {
   const [mounted, setMounted] = useState(false)
-  const { game, app } = useOharaAi()
+  const { game } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   const [feeConfig, setFeeConfig] = useState<{

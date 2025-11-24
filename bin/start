@@ -11,7 +11,7 @@ npm run forge:build
 npm run sdk:build
 
 anvil --host 0.0.0.0 &
-cp .env.example .env
+[ ! -f .env ] && cp .env.example .env
 [ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
 
 # No need for e2e:install - workspace install handles all packages

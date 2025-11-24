@@ -2,6 +2,7 @@
 
 # Test contracts
 npm install
+
 npm run forge:build
 npm run forge:test
 npm run forge:coverage
@@ -9,6 +10,11 @@ npm run forge:coverage
 npm run update-abi
 
 # Test SDK
-npm run sdk:install
 npm run sdk:build
 npm run sdk:test
+
+[ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
+
+npm run e2e:build
+npm run e2e:test
+

@@ -17,10 +17,10 @@ interface DeployFactoryContractProps {
   contractName: string
   contractDescription?: string
   /** Deployment function from OharaAiProvider (preferred over apiRoute) */
-  deployFunction?: (params: any) => Promise<DeploymentResult>
+  deployFunction?: (params: Record<string, unknown>) => Promise<DeploymentResult>
   onDeployed: (address: `0x${string}`) => void
   configSection?: ReactNode
-  getDeploymentBody?: () => Record<string, any>
+  getDeploymentBody?: () => Record<string, unknown>
   deployedAddress?: string | null
   featuresLink?: string
 }
@@ -36,7 +36,6 @@ export function DeployFactoryContract({
   featuresLink,
 }: DeployFactoryContractProps) {
   const [isDeploying, setIsDeploying] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [deployedAddress, setDeployedAddress] = useState<`0x${string}` | null>(
     null,
@@ -63,7 +62,6 @@ export function DeployFactoryContract({
 
       if (data.address) {
         setDeployedAddress(data.address)
-        setIsSuccess(true)
         if (data.authorizationWarning) {
           setAuthWarning(data.authorizationWarning)
         }
@@ -77,12 +75,6 @@ export function DeployFactoryContract({
     } finally {
       setIsDeploying(false)
     }
-  }
-
-  const handleReset = () => {
-    setIsSuccess(false)
-    setDeployedAddress(null)
-    setAuthWarning(null)
   }
 
   const currentAddress = externalDeployedAddress || deployedAddress

@@ -28,7 +28,6 @@ export function FeeWithdrawal() {
 
   const [pendingFees, setPendingFees] = useState<PendingFees[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [feeRecipients, setFeeRecipients] = useState<`0x${string}`[]>([])
   const [isRecipient, setIsRecipient] = useState(false)
 
   const [withdrawHash, setWithdrawHash] = useState<`0x${string}` | undefined>()
@@ -45,7 +44,6 @@ export function FeeWithdrawal() {
       try {
         const feeConfig = await game.match.operations!.getFeeConfiguration()
         const recipients = Array.from(feeConfig.recipients)
-        setFeeRecipients(recipients)
         setIsRecipient(
           recipients.some((r) => r.toLowerCase() === address.toLowerCase()),
         )

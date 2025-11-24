@@ -19,7 +19,7 @@ import {
 } from '@coinbase/onchainkit/identity'
 
 export function OnchainKitWallet() {
-  const { switchChain, chains } = useSwitchChain()
+  const { switchChain } = useSwitchChain()
   const chainId = useChainId()
   const { isConnected } = useAccount()
   const [isMounted, setIsMounted] = useState(false)
