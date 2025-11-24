@@ -30,12 +30,10 @@ export async function GET(request: NextRequest) {
 
     // Get controller address (derived from stored private key)
     const controllerAddress = await getControllerAddress()
-    console.log('Controller address:', controllerAddress)
-
+    
     // Get contract addresses from storage
     const addresses = await getContracts(chainId)
-    console.log('Contract addresses:', addresses)
-
+    
     // Merge controller address into app context and include factory addresses
     const responseData = {
       addresses: {
