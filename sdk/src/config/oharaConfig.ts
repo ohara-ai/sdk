@@ -74,14 +74,6 @@ export function loadConfig(): OharaConfig {
     )
   }
 
-  // Validation: if one API var is set, both must be set
-  if ((apiUrl && !apiToken) || (!apiUrl && apiToken)) {
-    throw new ConfigError(
-      'Both OHARA_API_URL and OHARA_CONTROLLER_TOKEN must be set together for API mode',
-      { hasUrl: !!apiUrl, hasToken: !!apiToken },
-    )
-  }
-
   return {
     rpcUrl,
     factories: {
