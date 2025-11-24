@@ -1,10 +1,25 @@
 #!/usr/bin/env bash
+
+# Check for --solo parameter
+USE_DOPPLER=true
+if [[ "$1" == "--solo" ]]; then
+  USE_DOPPLER=false
+fi
+
 npm install
 npm run forge:build
 
 anvil --host 0.0.0.0 &
 cp .env.example .env
 [ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
+npm run sdk:build
 npm run e2e:install
-doppler run -- npm run e2e:setup
-doppler run -- npm run e2e:dev
+if [ "$USE_DOPPLER" = true ]; then
+  npm run sdk:build
+  doppler run -- npm run e2e:setup
+  doppler run -- npm run e2e:dev
+else
+  npm run sdk:build
+  npm run e2e:setup
+  npm run e2e:dev
+fi

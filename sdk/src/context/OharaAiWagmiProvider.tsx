@@ -35,22 +35,25 @@ interface OharaAiWagmiProviderProps {
  * ```
  */
 export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
-  const [isHydrated, setIsHydrated] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  // Defer hook subscriptions until after hydration to prevent setState-during-render warnings
   useEffect(() => {
-    setIsHydrated(true)
+    setMounted(true)
   }, [])
 
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   const chainId = useChainId()
 
+  if (!mounted) {
+    return null
+  }
+
   return (
     <OharaAiProvider
-      publicClient={isHydrated ? publicClient || undefined : undefined}
-      walletClient={isHydrated ? walletClient || undefined : undefined}
-      chainId={isHydrated ? chainId : undefined}
+      publicClient={publicClient || undefined}
+      walletClient={walletClient || undefined}
+      chainId={chainId}
     >
       {children}
     </OharaAiProvider>

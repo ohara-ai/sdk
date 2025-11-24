@@ -71,20 +71,15 @@ export function OharaAiProvider({
     Address | undefined
   >()
 
-  // Use provided clients/chainId (they should be passed as props from parent component)
-  const effectivePublicClient = publicClient
-  const effectiveWalletClient = walletClient
-  const effectiveChainId = chainId
-
   // Function to load addresses from backend
   const loadAddresses = async () => {
-    if (typeof window === 'undefined' || !effectiveChainId) {
+    if (typeof window === 'undefined' || !chainId) {
       return
     }
 
     try {
       const response = await fetch(
-        `/api/sdk/addresses?chainId=${effectiveChainId}`,
+        `/api/sdk/addresses?chainId=${chainId}`,
       )
 
       if (!response.ok) {
@@ -150,7 +145,7 @@ export function OharaAiProvider({
     return () => {
       window.removeEventListener('contractDeployed', handleCustomEvent)
     }
-  }, [effectiveChainId])
+  }, [chainId])
 
   // Build context structure
   const ohara = useMemo<OharaContext>(
@@ -169,21 +164,21 @@ export function OharaAiProvider({
       match: {
         address: gameMatchAddress,
         operations:
-          gameMatchAddress && effectivePublicClient
+          gameMatchAddress && publicClient
             ? createClientMatchOperations(
                 gameMatchAddress,
-                effectivePublicClient,
-                effectiveWalletClient,
+                publicClient,
+                walletClient,
               )
             : undefined,
       },
       scores: {
         address: gameScoreAddress,
         operations:
-          gameScoreAddress && effectivePublicClient
+          gameScoreAddress && publicClient
             ? createClientScoreOperations(
                 gameScoreAddress,
-                effectivePublicClient,
+                publicClient,
               )
             : undefined,
       },
@@ -191,8 +186,8 @@ export function OharaAiProvider({
     [
       gameMatchAddress,
       gameScoreAddress,
-      effectivePublicClient,
-      effectiveWalletClient,
+      publicClient,
+      walletClient,
     ],
   )
 
@@ -206,9 +201,9 @@ export function OharaAiProvider({
       controller: {
         address: controllerAddress,
       },
-      chainId: effectiveChainId,
+      chainId: chainId,
     }),
-    [env, controllerAddress, effectiveChainId],
+    [env, controllerAddress, chainId],
   )
 
   const internal = useMemo<InternalContext>(

@@ -3,6 +3,7 @@
 import { useSwitchChain, useChainId, useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import {
   ConnectWallet,
   Wallet,
@@ -21,6 +22,7 @@ export function OnchainKitWallet() {
   const { switchChain, chains } = useSwitchChain()
   const chainId = useChainId()
   const { isConnected } = useAccount()
+  const [isMounted, setIsMounted] = useState(false)
 
   // For development, prefer Anvil (localhost)
   const isOnAnvil = chainId === 31337
@@ -29,6 +31,11 @@ export function OnchainKitWallet() {
 
   // Show chain switcher if not on Anvil during development
   const showChainSwitcher = isConnected && !isOnAnvil && switchChain
+
+  // Prevent hydration mismatch by only rendering chain switcher after mount
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   return (
     <div className="flex flex-col items-end gap-2">
@@ -48,7 +55,7 @@ export function OnchainKitWallet() {
         </WalletDropdown>
       </Wallet>
 
-      {showChainSwitcher && (
+      {isMounted && showChainSwitcher && (
         <div className="flex items-center gap-2 mt-2">
           <div className="flex items-center gap-1 text-xs text-yellow-500">
             <AlertCircle className="w-3 h-3" />

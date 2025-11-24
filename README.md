@@ -30,6 +30,12 @@ foundryup
 ./bin/start
 ```
 
+To run the test app **without using Doppler** (local solo mode), use the optional `--solo` flag:
+
+```bash
+./bin/start --solo
+```
+
 ### Run tests
 
 ```bash
