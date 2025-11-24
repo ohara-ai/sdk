@@ -1,14 +1,31 @@
 // Server-only exports - DO NOT import from client components
 import 'server-only'
 
+// Errors (available on both client and server)
+export {
+  OharaError,
+  ConfigError,
+  StorageError,
+  ApiError,
+  ContractExecutionError,
+  ValidationError,
+  isOharaError,
+  isConfigError,
+  isApiError,
+  isContractExecutionError,
+} from './errors'
+
 // Deployment types
 export type { DeploymentResult } from './deployment/deploymentService'
 
 // Storage (server-side only)
 export {
   getContracts,
+  getContractsWithMetadata,
   getControllerAddress,
   type ContractAddresses,
+  type ContractAddressesWithMetadata,
+  type ContractSource,
   type OharaContracts,
   type GameContracts,
   type AppContracts,

@@ -415,13 +415,52 @@ OHARA_KEY_ENCRYPTION_SECRET=your-very-secure-secret-key-here
 
 When set, controller keys are encrypted using AES-256-GCM. See the Security & Key Management section for important warnings.
 
+## Error Handling
+
+The SDK provides typed error classes for better error handling and debugging:
+
+```typescript
+import { 
+  ConfigError, 
+  ApiError, 
+  ContractExecutionError,
+  isConfigError,
+  isApiError 
+} from '@ohara-ai/sdk'
+
+try {
+  await game.match.operations.create(config)
+} catch (error) {
+  if (isConfigError(error)) {
+    console.error('Configuration issue:', error.message, error.details)
+  } else if (isApiError(error)) {
+    console.error('API error:', error.statusCode, error.message)
+  } else if (error instanceof ContractExecutionError) {
+    console.error('Transaction failed:', error.txHash, error.message)
+  }
+}
+```
+
+**Available Error Types:**
+- `ConfigError` - Configuration or environment variable issues
+- `ApiError` - Ohara API communication failures (includes status code)
+- `StorageError` - File system or storage errors
+- `ContractExecutionError` - Blockchain transaction errors (includes tx hash)
+- `ValidationError` - Invalid parameters or validation failures
+
+All errors extend `OharaError` and include:
+- `code` - Error code string for programmatic handling
+- `details` - Additional context as key-value pairs
+- Type guards like `isConfigError()`, `isApiError()`, etc.
+
 ## Key Features
 
 ✅ **Functional Primitives** - Simple async functions, not React components  
-✅ **Type-Safe** - Full TypeScript support  
+✅ **Type-Safe** - Full TypeScript support with typed errors  
 ✅ **No UI Lock-in** - Build any interface you want  
 ✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
-✅ **Fee Enforcement** - SDK coordinates on-chain requirements
+✅ **Fee Enforcement** - SDK coordinates on-chain requirements  
+✅ **Comprehensive Error Handling** - Typed error classes for better debugging
 
 ## Direct Usage (Advanced)
 

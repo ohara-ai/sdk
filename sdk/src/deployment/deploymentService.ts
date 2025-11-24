@@ -10,7 +10,7 @@ import {
   getControllerKey,
   getControllerAddress,
 } from '../storage/contractStorage'
-import { OharaApiClient } from '../server/oharaApiClient'
+import { getConfig } from '../config/oharaConfig'
 
 // Types
 export interface DeploymentConfig {
@@ -103,12 +103,12 @@ export { deployGameMatch } from './deployGameMatch'
  * In API mode, private key is not fetched since deployments go through the API
  */
 export async function getDeploymentConfig(): Promise<DeploymentConfig> {
-  const isApiMode = OharaApiClient.isConfigured()
+  const config = getConfig()
 
   let appControllerPrivateKey: string | undefined
   let controllerAddress: string | undefined
 
-  if (!isApiMode) {
+  if (!config.isApiMode) {
     // Only fetch private key and address in direct on-chain mode
     appControllerPrivateKey = await getControllerKey()
     controllerAddress = await getControllerAddress()
@@ -118,51 +118,28 @@ export async function getDeploymentConfig(): Promise<DeploymentConfig> {
     }
   }
 
-  const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
-
-  // Get factory addresses from environment
-  const gameMatchFactory = process.env
-    .NEXT_PUBLIC_GAME_MATCH_FACTORY as `0x${string}`
-  const gameScoreFactory = process.env
-    .NEXT_PUBLIC_GAME_SCORE_FACTORY as `0x${string}`
-
-  if (!gameMatchFactory) {
-    throw new Error(
-      'NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment',
-    )
-  }
-
-  if (!gameScoreFactory) {
-    throw new Error(
-      'NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment',
-    )
-  }
-
   return {
     appControllerPrivateKey,
-    rpcUrl,
+    rpcUrl: config.rpcUrl,
     controllerAddress,
     game: {
       match: {
-        factoryAddress: gameMatchFactory,
+        factoryAddress: config.factories.gameMatch!,
       },
       score: {
-        factoryAddress: gameScoreFactory,
+        factoryAddress: config.factories.gameScore!,
       },
     },
   }
 }
 
 /**
- * Get factory addresses from environment variables
+ * Get factory addresses from configuration
  */
 export function getFactoryAddresses() {
+  const config = getConfig()
   return {
-    gameMatchFactory: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as
-      | `0x${string}`
-      | undefined,
-    gameScoreFactory: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as
-      | `0x${string}`
-      | undefined,
+    gameMatchFactory: config.factories.gameMatch,
+    gameScoreFactory: config.factories.gameScore,
   }
 }

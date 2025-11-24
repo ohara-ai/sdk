@@ -2,6 +2,8 @@ import {
   createPublicClient,
   createWalletClient,
   http,
+} from 'viem'
+import type {
   PublicClient,
   WalletClient,
   Address,
@@ -21,6 +23,7 @@ import type {
   InternalContext,
 } from '../context/OharaAiContext'
 import { OharaApiClient, getOharaApiClient } from './oharaApiClient'
+import { getConfig } from '../config/oharaConfig'
 
 /**
  * Server-side OharaAi Context
@@ -70,6 +73,7 @@ let cachedContext: ServerOharaAiContext | null = null
 export async function createServerOharaAi(
   chainId?: number,
 ): Promise<ServerOharaAiContext> {
+  const config = getConfig()
   const targetChainId = chainId || (await getChainIdFromRPC())
 
   // Return cached context if same chain
@@ -78,7 +82,7 @@ export async function createServerOharaAi(
   }
 
   // Check if we're in API mode
-  const isApiMode = OharaApiClient.isConfigured()
+  const isApiMode = config.isApiMode
   let oharaApiClient: OharaApiClient | undefined
 
   if (isApiMode) {
@@ -87,7 +91,7 @@ export async function createServerOharaAi(
   }
 
   // Create clients
-  const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+  const rpcUrl = config.rpcUrl
 
   const publicClient = createPublicClient({
     transport: http(rpcUrl),
@@ -122,7 +126,7 @@ export async function createServerOharaAi(
   // Build hierarchical context structure
   const ohara: OharaContext = {
     contracts: {
-      token: process.env.NEXT_PUBLIC_HELLOWORLD_TOKEN as Address | undefined,
+      token: config.publicAddresses.token,
     },
   }
 
@@ -159,7 +163,7 @@ export async function createServerOharaAi(
 
   const app: AppContext = {
     coin: {
-      address: process.env.NEXT_PUBLIC_APP_COIN as Address | undefined,
+      address: config.publicAddresses.coin,
     },
     controller: {
       address: controllerAddress,
@@ -169,12 +173,8 @@ export async function createServerOharaAi(
 
   const internal: InternalContext = {
     factories: {
-      gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as
-        | Address
-        | undefined,
-      gameScore: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as
-        | Address
-        | undefined,
+      gameMatch: config.factories.gameMatch,
+      gameScore: config.factories.gameScore,
     },
   }
 
