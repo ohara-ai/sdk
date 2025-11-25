@@ -1,6 +1,6 @@
 {
   "name": "@ohara-ai/sdk",
-  "version": "0.9.9",
+  "version": "0.10.0",
   "description": "",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -31,9 +31,9 @@
     "scripts",
     "README.md"
   ],
-  "repository": "https://github.com/ohara-ai/sdk.git",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ohara-ai/sdk.git"
   },
   "scripts": {
     "build": "tsup src/index.ts src/server.ts --format cjs,esm --dts --external react --external react-dom --external viem --external wagmi --external 'server-only'",

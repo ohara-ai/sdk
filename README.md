@@ -52,6 +52,8 @@ npx prettier . # --write
 ### Publish a new version of the SDK (patch|minor|major) with automated version bump, build, test, and git commit + push
 
 ```bash
+npm login
+
 ./bin/publish patch "Some commit message"
 ```
 
