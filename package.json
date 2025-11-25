@@ -18,7 +18,7 @@
     "sdk:install": "cd sdk && npm install",
     "sdk:test": "cd sdk && npm test",
     "sdk:version": "cd sdk && npm version",
-    "sdk:publish": "cd sdk && npm publish",
+    "sdk:publish": "cd sdk && npm publish --tag alpha --access public",
     "e2e:install": "cd e2e-test && npm install",
     "e2e:setup": "cd e2e-test && npm run setup",
     "e2e:dev": "cd e2e-test && npm run dev",
