@@ -24,7 +24,7 @@ contract OwnedTest is Test {
         vm.stopPrank();
     }
 
-    function test_InitialOwner() public {
+    function test_InitialOwner() public view {
         assertEq(gameMatch.owner(), owner);
         assertEq(gameMatch.pendingOwner(), address(0));
     }
