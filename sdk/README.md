@@ -325,6 +325,52 @@ interface OharaAiContext {
 }
 ```
 
+## Security & Key Management
+
+### ⚠️ Controller Key Storage
+
+The SDK supports two approaches for controller operations:
+
+#### 1. **Ohara API Mode (Recommended for Production)**
+
+Use Ohara's managed API for all controller operations. This keeps private keys secure on the backend and never exposes them to your application:
+
+```bash
+OHARA_CONTROLLER_TOKEN=your_token_here
+OHARA_API_URL=https://api.ohara.ai
+```
+
+**Benefits:**
+- Keys managed securely by Ohara infrastructure
+- No private key exposure in your application
+- Automatic transaction management and monitoring
+- Suitable for production environments
+
+#### 2. **Direct Mode (Development/Backend Only)**
+
+In direct mode, the SDK stores a controller private key locally in `ohara-ai-data/keys.json`. This is intended **only** for:
+- Local development with test networks (e.g., Anvil, Hardhat)
+- Backend services where you control the infrastructure
+
+**⚠️ CRITICAL SECURITY WARNINGS:**
+- **NEVER** use direct mode in browser/frontend environments
+- **NEVER** commit `ohara-ai-data/` to version control
+- **NEVER** use direct mode in production without proper key management
+- Keys are stored on disk and accessible to anyone with filesystem access
+
+**Optional Encryption:**
+
+For backend deployments using direct mode, you can enable at-rest encryption:
+
+```bash
+# Set a strong encryption secret (32+ characters recommended)
+OHARA_KEY_ENCRYPTION_SECRET=your-very-secure-secret-key-here
+```
+
+When set, controller keys are encrypted using AES-256-GCM before being written to disk. This provides defense-in-depth but does **not** make local key storage production-safe.
+
+**Best Practice:** Use Ohara API mode for any non-development environment.
+
 ## Environment Variables
 
 ### Required Variables
@@ -358,13 +404,63 @@ When both `OHARA_CONTROLLER_TOKEN` and `OHARA_API_URL` are set, the SDK automati
 - Contract deployments (`deployGameMatch`, `deployGameScore`)
 - Controller address resolution
 
+### Key Encryption (Optional)
+
+For backend deployments using direct mode, enable at-rest encryption:
+
+```bash
+# Encryption secret for controller key storage (32+ characters recommended)
+OHARA_KEY_ENCRYPTION_SECRET=your-very-secure-secret-key-here
+```
+
+When set, controller keys are encrypted using AES-256-GCM. See the Security & Key Management section for important warnings.
+
+## Error Handling
+
+The SDK provides typed error classes for better error handling and debugging:
+
+```typescript
+import { 
+  ConfigError, 
+  ApiError, 
+  ContractExecutionError,
+  isConfigError,
+  isApiError 
+} from '@ohara-ai/sdk'
+
+try {
+  await game.match.operations.create(config)
+} catch (error) {
+  if (isConfigError(error)) {
+    console.error('Configuration issue:', error.message, error.details)
+  } else if (isApiError(error)) {
+    console.error('API error:', error.statusCode, error.message)
+  } else if (error instanceof ContractExecutionError) {
+    console.error('Transaction failed:', error.txHash, error.message)
+  }
+}
+```
+
+**Available Error Types:**
+- `ConfigError` - Configuration or environment variable issues
+- `ApiError` - Ohara API communication failures (includes status code)
+- `StorageError` - File system or storage errors
+- `ContractExecutionError` - Blockchain transaction errors (includes tx hash)
+- `ValidationError` - Invalid parameters or validation failures
+
+All errors extend `OharaError` and include:
+- `code` - Error code string for programmatic handling
+- `details` - Additional context as key-value pairs
+- Type guards like `isConfigError()`, `isApiError()`, etc.
+
 ## Key Features
 
 ✅ **Functional Primitives** - Simple async functions, not React components  
-✅ **Type-Safe** - Full TypeScript support  
+✅ **Type-Safe** - Full TypeScript support with typed errors  
 ✅ **No UI Lock-in** - Build any interface you want  
 ✅ **Automatic Dependency Resolution** - Provider handles contract coordination  
-✅ **Fee Enforcement** - SDK coordinates on-chain requirements
+✅ **Fee Enforcement** - SDK coordinates on-chain requirements  
+✅ **Comprehensive Error Handling** - Typed error classes for better debugging
 
 ## Direct Usage (Advanced)
 

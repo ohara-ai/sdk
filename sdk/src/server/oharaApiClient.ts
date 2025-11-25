@@ -1,4 +1,6 @@
 import { Address, Hash } from 'viem'
+import { getConfig } from '../config/oharaConfig'
+import { ApiError, ConfigError, ContractExecutionError } from '../errors'
 
 /**
  * Ohara API Client - Server-side only
@@ -95,19 +97,19 @@ export class OharaApiClient {
   private token: string
 
   constructor(baseUrl?: string, token?: string) {
-    this.baseUrl = baseUrl || process.env.OHARA_API_URL || ''
-    this.token = token || process.env.OHARA_CONTROLLER_TOKEN || ''
-
-    if (!this.baseUrl) {
-      throw new Error(
-        'OHARA_API_URL environment variable is required when using Ohara API mode',
-      )
-    }
-
-    if (!this.token) {
-      throw new Error(
-        'OHARA_CONTROLLER_TOKEN environment variable is required when using Ohara API mode',
-      )
+    // Use provided values or fall back to config
+    if (baseUrl && token) {
+      this.baseUrl = baseUrl
+      this.token = token
+    } else {
+      const config = getConfig()
+      if (!config.api) {
+        throw new ConfigError(
+          'Ohara API mode is not configured. Set OHARA_API_URL and OHARA_CONTROLLER_TOKEN environment variables.',
+        )
+      }
+      this.baseUrl = config.api.url
+      this.token = config.api.token
     }
   }
 
@@ -115,7 +117,7 @@ export class OharaApiClient {
    * Check if the API client is configured (both token and URL are set)
    */
   static isConfigured(): boolean {
-    return !!(process.env.OHARA_CONTROLLER_TOKEN && process.env.OHARA_API_URL)
+    return getConfig().isApiMode
   }
 
   private async request<T>(
@@ -144,8 +146,10 @@ export class OharaApiClient {
 
     if (!response.ok) {
       const errorText = await response.text()
-      throw new Error(
+      throw new ApiError(
         `Ohara API request failed: ${response.status} ${response.statusText} - ${errorText}`,
+        response.status,
+        { url, method, statusText: response.statusText },
       )
     }
 
@@ -224,7 +228,11 @@ export class OharaApiClient {
       }
 
       if (Date.now() - startTime > timeout) {
-        throw new Error(`Transaction ${txHash} timed out after ${timeout}ms`)
+        throw new ContractExecutionError(
+          `Transaction ${txHash} timed out after ${timeout}ms`,
+          txHash,
+          { timeout, elapsed: Date.now() - startTime },
+        )
       }
 
       await new Promise((resolve) => setTimeout(resolve, pollingInterval))

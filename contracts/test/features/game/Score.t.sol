@@ -566,6 +566,8 @@ contract ScoreTest is Test {
         // Create array with exactly 50 losers (at the limit)
         address[] memory losers = new address[](50);
         for (uint256 i = 0; i < 50; i++) {
+            // casting to 'uint160' is safe because i is bounded to 0-49, so i + 100 will never exceed uint160
+            // forge-lint: disable-next-line(unsafe-typecast)
             losers[i] = address(uint160(i + 100));
         }
         
@@ -588,6 +590,8 @@ contract ScoreTest is Test {
         // Create array with 51 losers (over the limit of 50)
         address[] memory losers = new address[](51);
         for (uint256 i = 0; i < 51; i++) {
+            // casting to 'uint160' is safe because i is bounded to 0-50, so i + 100 will never exceed uint160
+            // forge-lint: disable-next-line(unsafe-typecast)
             losers[i] = address(uint160(i + 100));
         }
         

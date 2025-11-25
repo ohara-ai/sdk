@@ -30,6 +30,12 @@ foundryup
 ./bin/start
 ```
 
+To run the test app **with Doppler** (useful for api integration tests), use the optional `--doppler` flag:
+
+```bash
+./bin/start --doppler
+```
+
 ### Run tests
 
 ```bash
@@ -55,7 +61,18 @@ npx prettier . # --write
 ✅ **Type-Safe** - Full TypeScript support with hierarchical context  
 ✅ **Automatic Address Management** - Fetches contract addresses from backend  
 ✅ **No UI Lock-in** - Build your own interface on top of primitives  
-✅ **Server-Side Operations** - Separate entry point for controller operations
+✅ **Server-Side Operations** - Separate entry point for controller operations  
+✅ **Secure by Default** - API mode for production, optional encryption for dev/backend
+
+## Security Notes
+
+⚠️ **Controller Key Storage:** The SDK stores controller keys locally in `ohara-ai-data/` for development. For production:
+- Use **Ohara API mode** (recommended) - keys managed securely by Ohara infrastructure
+- Or enable **key encryption** with `OHARA_KEY_ENCRYPTION_SECRET` for backend deployments
+- **Never** use local key storage in browser/frontend environments
+- **Never** commit `ohara-ai-data/` to version control
+
+See [`sdk/README.md`](./sdk/README.md) for detailed security guidance.
 
 ## Repository Structure
 

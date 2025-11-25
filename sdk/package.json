@@ -50,15 +50,17 @@
     "gaming",
     "blockchain",
     "react",
-    "ethereum"
+    "ethereum",
+    "base",
+    "ai"
   ],
   "author": "Ohara AI",
   "license": "MIT",
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
-    "viem": "^2.7.0",
-    "wagmi": "^2.5.0"
+    "viem": "^2.21.45",
+    "wagmi": "^2.12.29"
   },
   "dependencies": {},
   "devDependencies": {

@@ -197,7 +197,7 @@ describe('Deployment Service - Specification Tests', () => {
       delete process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
 
       await expect(getDeploymentConfig()).rejects.toThrow(
-        'NEXT_PUBLIC_GAME_MATCH_FACTORY not configured in environment',
+        'NEXT_PUBLIC_GAME_MATCH_FACTORY environment variable is required',
       )
     })
 
@@ -205,7 +205,7 @@ describe('Deployment Service - Specification Tests', () => {
       delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
 
       await expect(getDeploymentConfig()).rejects.toThrow(
-        'NEXT_PUBLIC_GAME_SCORE_FACTORY not configured in environment',
+        'NEXT_PUBLIC_GAME_SCORE_FACTORY environment variable is required',
       )
     })
 
@@ -247,23 +247,19 @@ describe('Deployment Service - Specification Tests', () => {
       )
     })
 
-    it('SPEC: getFactoryAddresses - returns undefined when not set', () => {
-      delete process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
-      delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
-
-      const addresses = getFactoryAddresses()
-
-      expect(addresses.gameMatchFactory).toBeUndefined()
-      expect(addresses.gameScoreFactory).toBeUndefined()
-    })
-
-    it('SPEC: getFactoryAddresses - handles partial configuration', () => {
-      delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
-
+    it('SPEC: getFactoryAddresses - returns values from config', () => {
+      // Config is cached and validated on load, so factories are always present
+      // This test verifies the function returns what's in the config
       const addresses = getFactoryAddresses()
 
       expect(addresses.gameMatchFactory).toBeDefined()
-      expect(addresses.gameScoreFactory).toBeUndefined()
+      expect(addresses.gameScoreFactory).toBeDefined()
+      expect(addresses.gameMatchFactory).toBe(
+        '0x1234567890123456789012345678901234567890',
+      )
+      expect(addresses.gameScoreFactory).toBe(
+        '0x9876543210987654321098765432109876543210',
+      )
     })
   })
 

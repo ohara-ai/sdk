@@ -22,6 +22,20 @@ async function publish() {
     process.exit(0)
   }
 
+  // Check if we're on the main branch
+  try {
+    const { stdout } = await runCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { captureOutput: true })
+    const currentBranch = stdout.trim()
+    if (currentBranch !== 'main') {
+      logger.error(`This script can only be run on the main branch. Current branch: ${currentBranch}`)
+      process.exit(1)
+    }
+  } catch (error) {
+    logger.error('Failed to check current Git branch')
+    logger.error(error)
+    process.exit(1)
+  }
+
   const versionType = args._[0]
   const message = args._[1]
 

@@ -87,6 +87,8 @@ contract FeeCollectorTest is Test {
         uint256[] memory shares = new uint256[](11);
         
         for (uint256 i = 0; i < 11; i++) {
+            // casting to 'uint160' is safe because i is bounded to 0-10, so 0x100 + i will never exceed uint160
+            // forge-lint: disable-next-line(unsafe-typecast)
             recipients[i] = address(uint160(0x100 + i));
             shares[i] = 100;
         }

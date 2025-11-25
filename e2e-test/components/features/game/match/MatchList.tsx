@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Users, Trophy, RefreshCw, Coins, Banknote } from 'lucide-react'
-import { useBlockNumber, useChainId } from 'wagmi'
+import { useBlockNumber } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi } from '@ohara-ai/sdk'
 

@@ -43,10 +43,9 @@ async function setupNpmrc() {
 
   const SCRIPT_DIR = path.dirname(__filename)
   const PROJECT_DIR = path.join(SCRIPT_DIR, '..')
-  const npmrcTestPath = path.join(PROJECT_DIR, 'e2e-test/.npmrc')
-  const npmrcSdkPath = path.join(PROJECT_DIR, 'sdk/.npmrc')
+  const npmrcPath = path.join(PROJECT_DIR, '.npmrc')
 
-  if (fs.existsSync(npmrcTestPath) && !force) {
+  if (fs.existsSync(npmrcPath) && !force) {
     logger.error('.npmrc already exists. Use --force to overwrite.')
     process.exit(1)
   }
@@ -65,11 +64,8 @@ async function setupNpmrc() {
       `//npm.pkg.github.com/:_authToken=${env.GH_PERSONAL_ACCESS_TOKEN}`,
     ].join('\n')
 
-    fs.writeFileSync(npmrcTestPath, npmrcContent, 'utf8')
-    spinner.succeed('Created .npmrc test file')
-
-    fs.writeFileSync(npmrcSdkPath, npmrcContent, 'utf8')
-    spinner.succeed('Created .npmrc sdk file')
+    fs.writeFileSync(npmrcPath, npmrcContent, 'utf8')
+    spinner.succeed('Created .npmrc file at workspace root')
   } catch (error) {
     spinner.fail('Failed to create .npmrc file')
     logger.error(error)

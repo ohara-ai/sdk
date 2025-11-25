@@ -1,6 +1,15 @@
 # E2E Test Application
 
-This directory contains the end-to-end testing application for the SDK.
+This is a Next.js application that serves as an end-to-end testing environment for the OharaAI SDK. It demonstrates real-world usage patterns and validates SDK functionality in a production-like setting.
+
+## SDK Source Strategy
+
+By default, this app uses the **local SDK source** (`file:../sdk`) for development. This allows you to:
+- Test SDK changes immediately without publishing
+- Debug SDK code alongside app code
+- Iterate quickly during development
+
+To test against the **published SDK** remove the e2e-test app from the workspace and install the published SDK package.
 
 ## Overview
 

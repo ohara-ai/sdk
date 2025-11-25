@@ -1,11 +1,60 @@
 // This file provides script-friendly access to controller functionality
 // It bypasses the 'server-only' restriction for Node.js scripts
+//
+// WARNING: Controller keys are for backend/dev use only.
+// For production, use Ohara API mode instead of storing keys locally.
 const path = require('path')
 const fs = require('fs/promises')
+const crypto = require('crypto')
 const { privateKeyToAccount } = require('viem/accounts')
 
 const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
 const KEYS_PATH = path.join(STORAGE_DIR, 'keys.json')
+
+// Encryption support (matches SDK implementation)
+const ALGORITHM = 'aes-256-gcm'
+const IV_LENGTH = 16
+
+function isEncryptionEnabled() {
+  return !!process.env.OHARA_KEY_ENCRYPTION_SECRET
+}
+
+function deriveKey(secret) {
+  return crypto.createHash('sha256').update(secret).digest()
+}
+
+function encrypt(plaintext, secret) {
+  const key = deriveKey(secret)
+  const iv = crypto.randomBytes(IV_LENGTH)
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv)
+  
+  let encrypted = cipher.update(plaintext, 'utf8', 'base64')
+  encrypted += cipher.final('base64')
+  
+  const authTag = cipher.getAuthTag()
+  return `${iv.toString('base64')}:${authTag.toString('base64')}:${encrypted}`
+}
+
+function decrypt(ciphertext, secret) {
+  const key = deriveKey(secret)
+  const parts = ciphertext.split(':')
+  
+  if (parts.length !== 3) {
+    throw new Error('Invalid encrypted data format')
+  }
+  
+  const iv = Buffer.from(parts[0], 'base64')
+  const authTag = Buffer.from(parts[1], 'base64')
+  const encrypted = parts[2]
+  
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, iv)
+  decipher.setAuthTag(authTag)
+  
+  let decrypted = decipher.update(encrypted, 'base64', 'utf8')
+  decrypted += decipher.final('utf8')
+  
+  return decrypted
+}
 
 async function ensureStorageExists() {
   try {
@@ -27,17 +76,38 @@ async function getControllerKey() {
   try {
     const content = await fs.readFile(KEYS_PATH, 'utf-8')
     const keys = JSON.parse(content)
-    const key = keys.controller
+    let key = keys.controller
 
-    if (key) return key
+    if (key) {
+      // Decrypt if encryption is enabled
+      if (isEncryptionEnabled()) {
+        const secret = process.env.OHARA_KEY_ENCRYPTION_SECRET
+        try {
+          key = decrypt(key, secret)
+        } catch (error) {
+          console.error('Error decrypting key:', error)
+          throw new Error('Failed to decrypt key. Check OHARA_KEY_ENCRYPTION_SECRET.')
+        }
+      }
+      return key
+    }
 
     // Generate a new random private key if none exists
-    const nodeCrypto = require('crypto')
-    const randomBytes = nodeCrypto.randomBytes(32)
+    const randomBytes = crypto.randomBytes(32)
     const newPrivateKey = '0x' + randomBytes.toString('hex')
 
+    // Encrypt if encryption is enabled
+    let valueToStore = newPrivateKey
+    if (isEncryptionEnabled()) {
+      const secret = process.env.OHARA_KEY_ENCRYPTION_SECRET
+      if (!secret) {
+        throw new Error('OHARA_KEY_ENCRYPTION_SECRET is required for encryption')
+      }
+      valueToStore = encrypt(newPrivateKey, secret)
+    }
+
     // Save the new key
-    keys.controller = newPrivateKey
+    keys.controller = valueToStore
     await fs.writeFile(KEYS_PATH, JSON.stringify(keys, null, 2))
 
     return newPrivateKey

@@ -6,8 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { deployGameMatch } from './deployGameMatch'
-import { deployGameScore } from './deployGameScore'
+import { deployGameMatch, deployGameScore } from './deploymentService'
+import type { DeploymentResult } from './deploymentService'
+import { getConfig, clearConfigCache } from '../config/oharaConfig'
 
 // Mock the dependencies
 vi.mock('../storage/contractStorage', () => ({
@@ -20,6 +21,11 @@ vi.mock('../storage/contractStorage', () => ({
   getControllerAddress: vi
     .fn()
     .mockResolvedValue('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'),
+}))
+
+vi.mock('../config/oharaConfig', () => ({
+  getConfig: vi.fn(),
+  clearConfigCache: vi.fn(),
 }))
 
 vi.mock('viem', async () => {
@@ -73,6 +79,17 @@ describe('Deployment Integration - Specification Tests', () => {
     process.env.RPC_URL = 'http://localhost:8545'
     process.env.PRIVATE_KEY =
       '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
+    
+    // Mock config with default values
+    vi.mocked(getConfig).mockReturnValue({
+      rpcUrl: 'http://localhost:8545',
+      factories: {
+        gameMatch: '0x1234567890123456789012345678901234567890' as `0x${string}`,
+        gameScore: '0x9876543210987654321098765432109876543210' as `0x${string}`,
+      },
+      publicAddresses: {},
+      isApiMode: false,
+    })
   })
 
   describe('Specification: Deploy GameMatch', () => {
@@ -155,12 +172,20 @@ describe('Deployment Integration - Specification Tests', () => {
   describe('Specification: Error Handling', () => {
     it('SPEC: deployment fails gracefully when environment not configured', async () => {
       delete process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
+      vi.mocked(clearConfigCache).mockImplementation(() => {})
+      vi.mocked(getConfig).mockImplementation(() => {
+        throw new Error('NEXT_PUBLIC_GAME_MATCH_FACTORY environment variable is required')
+      })
 
       await expect(deployGameMatch({})).rejects.toThrow()
     })
 
     it('SPEC: deployment fails when factory address missing', async () => {
       delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
+      vi.mocked(clearConfigCache).mockImplementation(() => {})
+      vi.mocked(getConfig).mockImplementation(() => {
+        throw new Error('NEXT_PUBLIC_GAME_SCORE_FACTORY environment variable is required')
+      })
 
       await expect(deployGameScore({})).rejects.toThrow()
     })

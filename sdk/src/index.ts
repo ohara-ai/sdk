@@ -5,6 +5,20 @@ export { OharaAiWagmiProvider } from './context/OharaAiWagmiProvider'
 // Types
 export { ContractType } from './types/contracts'
 
+// Errors
+export {
+  OharaError,
+  ConfigError,
+  StorageError,
+  ApiError,
+  ContractExecutionError,
+  ValidationError,
+  isOharaError,
+  isConfigError,
+  isApiError,
+  isContractExecutionError,
+} from './errors'
+
 export type {
   OharaAiContext,
   OharaContext,

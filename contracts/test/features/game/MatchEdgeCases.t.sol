@@ -3,7 +3,6 @@ pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {Match} from "../../../src/features/game/Match.sol";
-import {IMatch} from "../../../src/interfaces/game/IMatch.sol";
 import {MockERC20} from "../../mocks/MockERC20.sol";
 import {MockScore} from "../../mocks/MockScore.sol";
 
