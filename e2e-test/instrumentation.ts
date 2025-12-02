@@ -103,7 +103,7 @@ export async function register() {
     } catch (error) {
       console.error(
         '❌ Auto-deployment failed:',
-        error instanceof Error ? error.message : error,
+        error instanceof Error ? `${error.message}\n${error.stack}` : error,
       )
       console.log(
         '💡 You can manually deploy contracts using: npm run deploy-contracts',

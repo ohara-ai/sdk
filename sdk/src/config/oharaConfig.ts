@@ -59,21 +59,6 @@ export function loadConfig(): OharaConfig {
   // Key encryption (optional)
   const keyEncryptionSecret = process.env.OHARA_KEY_ENCRYPTION_SECRET
 
-  // Validation: factories are required
-  if (!gameMatchFactory) {
-    throw new ConfigError(
-      'NEXT_PUBLIC_GAME_MATCH_FACTORY environment variable is required',
-      { variable: 'NEXT_PUBLIC_GAME_MATCH_FACTORY' },
-    )
-  }
-
-  if (!gameScoreFactory) {
-    throw new ConfigError(
-      'NEXT_PUBLIC_GAME_SCORE_FACTORY environment variable is required',
-      { variable: 'NEXT_PUBLIC_GAME_SCORE_FACTORY' },
-    )
-  }
-
   return {
     rpcUrl,
     factories: {
