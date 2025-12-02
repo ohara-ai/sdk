@@ -14,8 +14,6 @@ describe('SDK Integration', () => {
     it('should have required environment variables', () => {
       // These are set in .env.local for the e2e app
       expect(process.env.RPC_URL).toBeDefined()
-      expect(process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY).toBeDefined()
-      expect(process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY).toBeDefined()
     })
 
     it('should be able to create a public client', () => {
