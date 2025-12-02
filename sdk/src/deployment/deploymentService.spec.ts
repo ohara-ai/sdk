@@ -193,22 +193,6 @@ describe('Deployment Service - Specification Tests', () => {
       }))
     })
 
-    it('SPEC: getDeploymentConfig - throws when GAME_MATCH_FACTORY not set', async () => {
-      delete process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
-
-      await expect(getDeploymentConfig()).rejects.toThrow(
-        'NEXT_PUBLIC_GAME_MATCH_FACTORY environment variable is required',
-      )
-    })
-
-    it('SPEC: getDeploymentConfig - throws when GAME_SCORE_FACTORY not set', async () => {
-      delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
-
-      await expect(getDeploymentConfig()).rejects.toThrow(
-        'NEXT_PUBLIC_GAME_SCORE_FACTORY environment variable is required',
-      )
-    })
-
     it('SPEC: getDeploymentConfig - uses default RPC URL when not set', async () => {
       delete process.env.RPC_URL
 

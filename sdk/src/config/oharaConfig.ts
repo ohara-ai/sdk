@@ -43,7 +43,7 @@ export interface OharaConfig {
 export function loadConfig(): OharaConfig {
   const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
 
-  // Factory addresses (required)
+  // Factory addresses (optional)
   const gameMatchFactory = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as Address | undefined
   const gameScoreFactory = process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as Address | undefined
 

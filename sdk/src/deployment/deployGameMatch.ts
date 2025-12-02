@@ -165,9 +165,6 @@ export async function deployGameMatch(
         account,
       })
       await publicClient.waitForTransactionReceipt({ hash: authHash })
-      console.log(
-        `GameMatch ${deployedAddress} authorized to record scores on ${gameScoreAddress}`,
-      )
     } catch (authError_) {
       console.error('Authorization error:', authError_)
       authWarning =
