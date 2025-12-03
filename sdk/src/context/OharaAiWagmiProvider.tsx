@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
-import { usePublicClient, useWalletClient, useChainId, useSwitchChain } from 'wagmi'
+import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
 import { OharaAiProvider } from './OharaAiProvider'
 import { getPreferredChainId } from '../config/oharaConfig'
 
@@ -51,34 +51,13 @@ export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   const chainId = useChainId()
-  const { switchChain } = useSwitchChain()
-
-  // Switch to preferred chain when user hasn't connected wallet
-  useEffect(() => {
-    if (!isHydrated) return
-
-    const preferredChainId = getPreferredChainId()
-    
-    // Only switch if:
-    // 1. There's a preferred chain ID configured
-    // 2. User hasn't connected their wallet (no walletClient)
-    // 3. Current chain differs from preferred chain
-    // 4. switchChain function is available
-    if (
-      preferredChainId &&
-      !walletClient &&
-      chainId !== preferredChainId &&
-      switchChain
-    ) {
-      switchChain({ chainId: preferredChainId })
-    }
-  }, [isHydrated, walletClient, chainId, switchChain])
+  const preferredChainId = getPreferredChainId()
 
   return (
     <OharaAiProvider
       publicClient={isHydrated ? publicClient || undefined : undefined}
       walletClient={isHydrated ? walletClient || undefined : undefined}
-      chainId={isHydrated ? chainId : undefined}
+      chainId={isHydrated ? preferredChainId || chainId : undefined}
     >
       {children}
     </OharaAiProvider>

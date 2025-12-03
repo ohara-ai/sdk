@@ -37,7 +37,7 @@ export const config = createConfig({
   ],
   transports: {
     [anvil.id]: http(rpcUrl),
-    [baseSepolia.id]: http(),
-    [base.id]: http(),
+    [baseSepolia.id]: http(rpcUrl),
+    [base.id]: http(rpcUrl),
   },
 })

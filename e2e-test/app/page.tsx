@@ -29,8 +29,7 @@ export default function Home() {
                 OharaAI SDK
               </h1>
               <p className="text-lg text-gray-600 leading-relaxed">
-                Deploy and test on-chain gaming contracts. Functional primitives
-                for Match and Scores operations.
+                Deploy and test on-chain gaming contracts.
               </p>
             </div>
             <div className="flex items-center gap-3">
