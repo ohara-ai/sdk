@@ -49,23 +49,45 @@ export function createMockWalletClient(
  */
 export function createMockReceipt(
   contractAddress: Address = '0x2222222222222222222222222222222222222222',
+  matchId: bigint = 1n,
 ) {
-  return {
-    contractAddress,
-    transactionHash: '0xmockhash',
+  return ({
+    blockHash:
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890' as Hash,
     blockNumber: 1n,
-    status: 'success',
+    contractAddress,
+    cumulativeGasUsed: 100000n,
+    effectiveGasPrice: 1000000000n,
+    from: '0x1111111111111111111111111111111111111111' as Address,
+    gasUsed: 50000n,
     logs: [
       {
         address: contractAddress,
         topics: [
-          '0xGameMatchDeployed',
-          '0x0000000000000000000000002222222222222222222222222222222222222222',
+          // MatchCreated event signature
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as `0x${string}`,
+          // matchId as first indexed parameter (topics[1])
+          `0x${matchId.toString(16).padStart(64, '0')}` as `0x${string}`,
         ],
-        data: '0x',
+        data: '0x' as `0x${string}`,
+        blockNumber: 1n,
+        transactionHash:
+          '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as Hash,
+        transactionIndex: 0,
+        blockHash:
+          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890' as Hash,
+        logIndex: 0,
+        removed: false,
       },
     ],
-  }
+    logsBloom: '0x00' as `0x${string}`,
+    status: 'success' as const,
+    to: contractAddress,
+    transactionHash:
+      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef' as Hash,
+    transactionIndex: 0,
+    type: 'eip1559' as const,
+  }) as any
 }
 
 /**

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
-import { useWaitForTransactionReceipt } from 'wagmi'
 import { CheckCircle2, AlertCircle } from 'lucide-react'
 import { useOharaAi, useTokenApproval } from '@ohara-ai/sdk'
 
@@ -27,14 +26,9 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const { game } = useOharaAi()
   const contractAddress = game.match.address
 
-  const [hash, setHash] = useState<`0x${string}` | undefined>()
+  const [matchId, setMatchId] = useState<number | undefined>()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const {
-    isLoading: isConfirming,
-    isSuccess,
-    data: receipt,
-  } = useWaitForTransactionReceipt({ hash })
 
   // Parse token and stake for approval hook
   const token =
@@ -57,33 +51,6 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
     enabled: !!stakeAmount && !!contractAddress,
   })
 
-  // Extract matchId from transaction logs when match is created successfully
-  useEffect(() => {
-    if (isSuccess && receipt && onMatchCreated && contractAddress) {
-      try {
-        // Find the MatchCreated event in the logs from our contract
-        const matchCreatedLog = receipt.logs.find(
-          (log) =>
-            log.address.toLowerCase() === contractAddress!.toLowerCase() &&
-            log.topics &&
-            log.topics.length > 1,
-        )
-
-        if (matchCreatedLog?.topics?.[1]) {
-          // The matchId is the first indexed parameter (topics[1])
-          const matchId = Number(BigInt(matchCreatedLog.topics[1]))
-          console.log('[CreateMatchForm] New match created with ID:', matchId)
-          onMatchCreated(matchId)
-        }
-      } catch (error) {
-        console.error(
-          '[CreateMatchForm] Error extracting matchId from logs:',
-          error,
-        )
-      }
-    }
-  }, [isSuccess, receipt, onMatchCreated, contractAddress])
-
   const handleCreateMatch = async () => {
     if (!contractAddress) {
       alert('Contract not deployed on this network')
@@ -98,15 +65,24 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
     try {
       setIsPending(true)
       setError(null)
+      setMatchId(undefined)
       const maxPlayersNum = Number(maxPlayers)
 
-      const txHash = await game.match.operations.create({
+      // SDK now handles waiting for receipt and extracting matchId internally
+      const createdMatchId = await game.match.operations.create({
         token,
         stakeAmount: stake,
         maxPlayers: maxPlayersNum,
       })
 
-      setHash(txHash)
+      const matchIdNum = Number(createdMatchId)
+      setMatchId(matchIdNum)
+      console.log('[CreateMatchForm] New match created with ID:', matchIdNum)
+
+      // Call the callback with the matchId
+      if (onMatchCreated) {
+        onMatchCreated(matchIdNum)
+      }
     } catch (err) {
       console.error('Error creating match:', err)
       setError(err instanceof Error ? err : new Error('Unknown error'))
@@ -115,7 +91,7 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
     }
   }
 
-  const isLoading = isPending || isConfirming
+  const isLoading = isPending
   const isApprovalLoading = isApprovePending || isApproveConfirming
 
   return (
@@ -221,18 +197,13 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
           }
           className="w-full"
         >
-          {isPending
-            ? 'Confirming...'
-            : isConfirming
-              ? 'Creating...'
-              : 'Create Match'}
+          {isPending ? 'Creating Match...' : 'Create Match'}
         </Button>
 
-        {isSuccess && (
+        {matchId !== undefined && (
           <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
             <p className="text-sm text-green-500">
-              Match created successfully! Transaction hash: {hash?.slice(0, 10)}
-              ...
+              Match created successfully! Match ID: {matchId}
             </p>
           </div>
         )}

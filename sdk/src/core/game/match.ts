@@ -37,18 +37,21 @@ export enum MatchStatus {
 export interface MatchOperations {
   /**
    * Create a new match with specified configuration
+   * Returns the created match ID
    */
-  create(config: MatchConfig): Promise<Hash>
+  create(config: MatchConfig): Promise<bigint>
 
   /**
    * Join an existing open match
+   * Returns true on success
    */
-  join(matchId: bigint): Promise<Hash>
+  join(matchId: bigint): Promise<boolean>
 
   /**
    * Leave a match and withdraw stake (if still open)
+   * Returns true on success
    */
-  leave(matchId: bigint): Promise<Hash>
+  leave(matchId: bigint): Promise<boolean>
 
   /**
    * Get match details
@@ -199,7 +202,7 @@ function createOperationsInternal(
   }
 
   const baseOperations: MatchOperations = {
-    async create(config: MatchConfig) {
+    async create(config: MatchConfig): Promise<bigint> {
       const wallet = requireWallet()
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
@@ -210,7 +213,8 @@ function createOperationsInternal(
           ? config.stakeAmount
           : 0n
 
-      return wallet.writeContract({
+      // Submit the transaction
+      const hash = await wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'create',
@@ -219,9 +223,31 @@ function createOperationsInternal(
         account,
         chain: undefined,
       })
+
+      // Wait for the transaction receipt
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      })
+
+      // Extract matchId from the MatchCreated event
+      const matchCreatedLog = receipt.logs.find(
+        (log) =>
+          log.address.toLowerCase() === contractAddress.toLowerCase() &&
+          log.topics &&
+          log.topics.length > 1,
+      )
+
+      if (!matchCreatedLog?.topics?.[1]) {
+        throw new Error(
+          'MatchCreated event not found in transaction receipt',
+        )
+      }
+
+      // The matchId is the first indexed parameter (topics[1])
+      return BigInt(matchCreatedLog.topics[1])
     },
 
-    async join(matchId: bigint) {
+    async join(matchId: bigint): Promise<boolean> {
       const wallet = requireWallet()
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
@@ -233,7 +259,7 @@ function createOperationsInternal(
           ? match.stakeAmount
           : 0n
 
-      return wallet.writeContract({
+      const hash = await wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'join',
@@ -242,14 +268,19 @@ function createOperationsInternal(
         account,
         chain: undefined,
       })
+
+      // Wait for the transaction receipt
+      await publicClient.waitForTransactionReceipt({ hash })
+
+      return true
     },
 
-    async leave(matchId: bigint) {
+    async leave(matchId: bigint): Promise<boolean> {
       const wallet = requireWallet()
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
 
-      return wallet.writeContract({
+      const hash = await wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'leave',
@@ -257,6 +288,11 @@ function createOperationsInternal(
         account,
         chain: undefined,
       })
+
+      // Wait for the transaction receipt
+      await publicClient.waitForTransactionReceipt({ hash })
+
+      return true
     },
 
     async get(matchId: bigint) {

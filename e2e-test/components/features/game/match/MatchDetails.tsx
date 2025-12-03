@@ -18,11 +18,7 @@ import {
   Play,
   Flag,
 } from 'lucide-react'
-import {
-  useAccount,
-  useWaitForTransactionReceipt,
-  useBlockNumber,
-} from 'wagmi'
+import { useAccount, useBlockNumber } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi, useTokenApproval, MatchStatus } from '@ohara-ai/sdk'
 
@@ -63,24 +59,20 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   // State for join action
-  const [joinHash, setJoinHash] = useState<`0x${string}` | undefined>()
   const [isJoining, setIsJoining] = useState(false)
+  const [isJoinSuccess, setIsJoinSuccess] = useState(false)
   const [joinError, setJoinError] = useState<Error | null>(null)
-  const { isLoading: isJoinConfirming, isSuccess: isJoinSuccess } =
-    useWaitForTransactionReceipt({ hash: joinHash })
 
   // State for withdraw action
-  const [withdrawHash, setWithdrawHash] = useState<`0x${string}` | undefined>()
   const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [isWithdrawSuccess, setIsWithdrawSuccess] = useState(false)
   const [withdrawError, setWithdrawError] = useState<Error | null>(null)
-  const { isLoading: isWithdrawConfirming, isSuccess: isWithdrawSuccess } =
-    useWaitForTransactionReceipt({ hash: withdrawHash })
 
   // Reset transaction states when matchId changes to clear success/error messages
   useEffect(() => {
-    setJoinHash(undefined)
+    setIsJoinSuccess(false)
     setJoinError(null)
-    setWithdrawHash(undefined)
+    setIsWithdrawSuccess(false)
     setWithdrawError(null)
     setActivateSuccess(false)
     setActivateError(null)
@@ -195,8 +187,11 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     try {
       setIsJoining(true)
       setJoinError(null)
-      const txHash = await game.match.operations.join(BigInt(matchId))
-      setJoinHash(txHash)
+      setIsJoinSuccess(false)
+      
+      // SDK now waits for receipt internally and returns boolean
+      const success = await game.match.operations.join(BigInt(matchId))
+      setIsJoinSuccess(success)
     } catch (err) {
       console.error('Error joining match:', err)
       setJoinError(err instanceof Error ? err : new Error('Unknown error'))
@@ -216,8 +211,11 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     try {
       setIsWithdrawing(true)
       setWithdrawError(null)
-      const txHash = await game.match.operations.leave(BigInt(matchId))
-      setWithdrawHash(txHash)
+      setIsWithdrawSuccess(false)
+      
+      // SDK now waits for receipt internally and returns boolean
+      const success = await game.match.operations.leave(BigInt(matchId))
+      setIsWithdrawSuccess(success)
     } catch (err) {
       console.error('Error leaving match:', err)
       setWithdrawError(err instanceof Error ? err : new Error('Unknown error'))
@@ -581,13 +579,9 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
             <Button
               className="w-full"
               onClick={handleJoinMatch}
-              disabled={isJoining || isJoinConfirming || needsApproval}
+              disabled={isJoining || needsApproval}
             >
-              {isJoining
-                ? 'Confirming...'
-                : isJoinConfirming
-                  ? 'Joining...'
-                  : 'Join Match'}
+              {isJoining ? 'Joining Match...' : 'Join Match'}
             </Button>
           )}
           {canWithdraw && (
@@ -595,13 +589,9 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               variant="outline"
               className="w-full"
               onClick={handleLeaveMatch}
-              disabled={isWithdrawing || isWithdrawConfirming}
+              disabled={isWithdrawing}
             >
-              {isWithdrawing
-                ? 'Confirming...'
-                : isWithdrawConfirming
-                  ? 'Leaving...'
-                  : 'Leave Match'}
+              {isWithdrawing ? 'Leaving Match...' : 'Leave Match'}
             </Button>
           )}
 

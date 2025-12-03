@@ -16,6 +16,7 @@ import {
   createMockWalletClient,
   createMockMatchData,
   createMockFeeConfig,
+  createMockReceipt,
 } from '../../__tests__/mocks/clients'
 import {
   assertHasOperations,
@@ -118,6 +119,12 @@ describe('Match Operations - Specification Tests', () => {
     beforeEach(() => {
       publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(PLAYER_ADDRESS)
+      
+      // Mock waitForTransactionReceipt to return a receipt with MatchCreated event
+      vi.spyOn(publicClient, 'waitForTransactionReceipt').mockResolvedValue(
+        createMockReceipt(CONTRACT_ADDRESS, 1n),
+      )
+      
       operations = createClientMatchOperations(
         CONTRACT_ADDRESS,
         publicClient,
@@ -132,9 +139,9 @@ describe('Match Operations - Specification Tests', () => {
         maxPlayers: 2,
       }
 
-      const hash = await operations.create(config)
+      const matchId = await operations.create(config)
 
-      assertValidHash(hash)
+      expect(matchId).toBe(1n)
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
@@ -143,6 +150,7 @@ describe('Match Operations - Specification Tests', () => {
           value: config.stakeAmount, // Native token requires value
         }),
       )
+      expect(publicClient.waitForTransactionReceipt).toHaveBeenCalled()
     })
 
     it('SPEC: create() - successfully creates match with ERC20 token', async () => {
@@ -152,9 +160,9 @@ describe('Match Operations - Specification Tests', () => {
         maxPlayers: 4,
       }
 
-      const hash = await operations.create(config)
+      const matchId = await operations.create(config)
 
-      assertValidHash(hash)
+      expect(matchId).toBe(1n)
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
@@ -213,6 +221,11 @@ describe('Match Operations - Specification Tests', () => {
       vi.spyOn(publicClient, 'readContract').mockResolvedValue(
         createMockMatchData(),
       )
+      
+      // Mock waitForTransactionReceipt
+      vi.spyOn(publicClient, 'waitForTransactionReceipt').mockResolvedValue(
+        createMockReceipt(CONTRACT_ADDRESS, 1n),
+      )
 
       operations = createClientMatchOperations(
         CONTRACT_ADDRESS,
@@ -223,9 +236,9 @@ describe('Match Operations - Specification Tests', () => {
 
     it('SPEC: join() - successfully joins match with native token', async () => {
       const matchId = 1n
-      const hash = await operations.join(matchId)
+      const result = await operations.join(matchId)
 
-      assertValidHash(hash)
+      expect(result).toBe(true)
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
@@ -234,6 +247,7 @@ describe('Match Operations - Specification Tests', () => {
           value: 1000000000000000000n, // stake amount from mocked match
         }),
       )
+      expect(publicClient.waitForTransactionReceipt).toHaveBeenCalled()
     })
 
     it('SPEC: join() - reads match data before joining to get stake amount', async () => {
@@ -247,11 +261,18 @@ describe('Match Operations - Specification Tests', () => {
 
   describe('Specification: Write Operations - Withdraw', () => {
     let operations: MatchOperations
+    let publicClient: ReturnType<typeof createMockPublicClient>
     let walletClient: ReturnType<typeof createMockWalletClient>
 
     beforeEach(() => {
-      const publicClient = createMockPublicClient()
+      publicClient = createMockPublicClient()
       walletClient = createMockWalletClient(PLAYER_ADDRESS)
+      
+      // Mock waitForTransactionReceipt
+      vi.spyOn(publicClient, 'waitForTransactionReceipt').mockResolvedValue(
+        createMockReceipt(CONTRACT_ADDRESS, 1n),
+      )
+      
       operations = createClientMatchOperations(
         CONTRACT_ADDRESS,
         publicClient,
@@ -261,9 +282,9 @@ describe('Match Operations - Specification Tests', () => {
 
     it('SPEC: leave() - successfully leaves match and withdraws stake', async () => {
       const matchId = 1n
-      const hash = await operations.leave(matchId)
+      const result = await operations.leave(matchId)
 
-      assertValidHash(hash)
+      expect(result).toBe(true)
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
@@ -271,6 +292,7 @@ describe('Match Operations - Specification Tests', () => {
           args: [matchId],
         }),
       )
+      expect(publicClient.waitForTransactionReceipt).toHaveBeenCalled()
     })
   })
 
@@ -520,6 +542,9 @@ describe('Match Operations - Specification Tests', () => {
   describe('Specification: Error Handling', () => {
     it('SPEC: operations fail gracefully when wallet operations throw', async () => {
       const publicClient = createMockPublicClient()
+      vi.spyOn(publicClient, 'waitForTransactionReceipt').mockResolvedValue(
+        createMockReceipt(CONTRACT_ADDRESS, 1n),
+      )
       const walletClient = createMockWalletClient(PLAYER_ADDRESS, {
         writeContract: vi
           .fn()
