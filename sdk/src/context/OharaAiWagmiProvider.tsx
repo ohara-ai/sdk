@@ -1,8 +1,9 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
-import { usePublicClient, useWalletClient, useChainId } from 'wagmi'
+import { usePublicClient, useWalletClient, useChainId, useSwitchChain } from 'wagmi'
 import { OharaAiProvider } from './OharaAiProvider'
+import { getPreferredChainId } from '../config/oharaConfig'
 
 interface OharaAiWagmiProviderProps {
   children: ReactNode
@@ -14,6 +15,11 @@ interface OharaAiWagmiProviderProps {
  * This component must be used inside WagmiProvider context.
  * It automatically detects and passes the public client, wallet client, and chain ID
  * from wagmi hooks to the OharaAiProvider.
+ * 
+ * **Chain Selection:**
+ * When users haven't connected their wallet, the provider automatically switches to the
+ * preferred chain ID configured via `NEXT_PUBLIC_SDK_CHAIN_ID` environment variable.
+ * Once a wallet is connected, the user's selected chain takes precedence.
  *
  * @example
  * ```tsx
@@ -45,6 +51,28 @@ export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
   const chainId = useChainId()
+  const { switchChain } = useSwitchChain()
+
+  // Switch to preferred chain when user hasn't connected wallet
+  useEffect(() => {
+    if (!isHydrated) return
+
+    const preferredChainId = getPreferredChainId()
+    
+    // Only switch if:
+    // 1. There's a preferred chain ID configured
+    // 2. User hasn't connected their wallet (no walletClient)
+    // 3. Current chain differs from preferred chain
+    // 4. switchChain function is available
+    if (
+      preferredChainId &&
+      !walletClient &&
+      chainId !== preferredChainId &&
+      switchChain
+    ) {
+      switchChain({ chainId: preferredChainId })
+    }
+  }, [isHydrated, walletClient, chainId, switchChain])
 
   return (
     <OharaAiProvider

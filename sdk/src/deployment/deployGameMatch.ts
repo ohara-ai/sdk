@@ -142,9 +142,6 @@ export async function deployGameMatch(
         account: feeAccount,
       })
       await publicClient.waitForTransactionReceipt({ hash: feeHash })
-      console.log(
-        `GameMatch ${deployedAddress} configured with fees ${feeRecipients} and shares ${feeShares}`,
-      )
     } catch (feeError) {
       console.error('Fee configuration override error:', feeError)
     }

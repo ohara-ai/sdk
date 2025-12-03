@@ -1,5 +1,4 @@
 import { Address } from 'viem'
-import { ConfigError } from '../errors'
 
 /**
  * Ohara SDK Configuration
@@ -8,6 +7,9 @@ import { ConfigError } from '../errors'
 export interface OharaConfig {
   /** RPC URL for blockchain network */
   rpcUrl: string
+
+  /** Chain ID for blockchain network */
+  sdkChainId: number
 
   /** Factory contract addresses */
   factories: {
@@ -42,6 +44,7 @@ export interface OharaConfig {
  */
 export function loadConfig(): OharaConfig {
   const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+  const sdkChainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID as unknown as number
 
   // Factory addresses (optional)
   const gameMatchFactory = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as Address | undefined
@@ -61,6 +64,7 @@ export function loadConfig(): OharaConfig {
 
   return {
     rpcUrl,
+    sdkChainId,
     factories: {
       gameMatch: gameMatchFactory,
       gameScore: gameScoreFactory,
@@ -107,4 +111,15 @@ export function clearConfigCache(): void {
  */
 export function isApiMode(): boolean {
   return getConfig().isApiMode
+}
+
+/**
+ * Get the preferred SDK chain ID
+ * Safe to call from both client and server code
+ * 
+ * @returns The preferred chain ID, or undefined if not set
+ */
+export function getPreferredChainId(): number | undefined {
+  const chainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID
+  return chainId ? Number(chainId) : undefined
 }
