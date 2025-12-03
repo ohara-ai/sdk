@@ -221,7 +221,7 @@ function createOperationsInternal(
         args: [config.token, config.stakeAmount, BigInt(config.maxPlayers)],
         value,
         account,
-        chain: undefined,
+        chain: wallet.chain || publicClient.chain,
       })
 
       // Wait for the transaction receipt
@@ -266,7 +266,7 @@ function createOperationsInternal(
         args: [matchId],
         value,
         account,
-        chain: undefined,
+        chain: wallet.chain || publicClient.chain,
       })
 
       // Wait for the transaction receipt
@@ -286,7 +286,7 @@ function createOperationsInternal(
         functionName: 'leave',
         args: [matchId],
         account,
-        chain: undefined,
+        chain: wallet.chain || publicClient.chain,
       })
 
       // Wait for the transaction receipt

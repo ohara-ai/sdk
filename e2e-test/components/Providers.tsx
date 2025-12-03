@@ -11,6 +11,11 @@ import '@coinbase/onchainkit/styles.css'
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
 
+  // Get chain ID from environment
+  const chainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID 
+    ? Number(process.env.NEXT_PUBLIC_SDK_CHAIN_ID)
+    : undefined
+
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
@@ -26,7 +31,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             },
           }}
         >
-          <OharaAiWagmiProvider>{children}</OharaAiWagmiProvider>
+          <OharaAiWagmiProvider chainId={chainId}>{children}</OharaAiWagmiProvider>
         </OnchainKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

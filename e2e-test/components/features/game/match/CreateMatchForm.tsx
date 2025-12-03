@@ -62,7 +62,7 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
     }
 
     if (!game.match.operations) {
-      alert('Match operations not available')
+      alert('Cant create match, Match operations not available')
       return
     }
 

@@ -78,7 +78,13 @@ export function OharaAiProvider({
 
   // Function to load addresses from backend
   const loadAddresses = async () => {
+    console.log('[OharaAiProvider] loadAddresses called:', {
+      isWindow: typeof window !== 'undefined',
+      effectiveChainId,
+    })
+    
     if (typeof window === 'undefined' || !effectiveChainId) {
+      console.log('[OharaAiProvider] Skipping loadAddresses - no chainId or not in browser')
       return
     }
 
@@ -141,6 +147,9 @@ export function OharaAiProvider({
 
   // Read addresses from backend API (shared across all clients)
   useEffect(() => {
+    // Only run in browser
+    if (typeof window === 'undefined') return
+    
     loadAddresses()
 
     // Listen for custom events (for immediate updates after deployment)
@@ -165,29 +174,39 @@ export function OharaAiProvider({
   )
 
   const game = useMemo<GameContext>(
-    () => ({
-      match: {
-        address: gameMatchAddress,
-        operations:
-          gameMatchAddress && effectivePublicClient
-            ? createClientMatchOperations(
-                gameMatchAddress,
-                effectivePublicClient,
-                effectiveWalletClient,
-              )
-            : undefined,
-      },
-      scores: {
-        address: gameScoreAddress,
-        operations:
-          gameScoreAddress && effectivePublicClient
-            ? createClientScoreOperations(
-                gameScoreAddress,
-                effectivePublicClient,
-              )
-            : undefined,
-      },
-    }),
+    () => {
+      console.log('[OharaAiProvider] Building game context:', {
+        gameMatchAddress,
+        gameScoreAddress,
+        hasPublicClient: !!effectivePublicClient,
+        hasWalletClient: !!effectiveWalletClient,
+        chainId: effectiveChainId,
+      })
+
+      return {
+        match: {
+          address: gameMatchAddress,
+          operations:
+            gameMatchAddress && effectivePublicClient
+              ? createClientMatchOperations(
+                  gameMatchAddress,
+                  effectivePublicClient,
+                  effectiveWalletClient,
+                )
+              : undefined,
+        },
+        scores: {
+          address: gameScoreAddress,
+          operations:
+            gameScoreAddress && effectivePublicClient
+              ? createClientScoreOperations(
+                  gameScoreAddress,
+                  effectivePublicClient,
+                )
+              : undefined,
+        },
+      }
+    },
     [
       gameMatchAddress,
       gameScoreAddress,
