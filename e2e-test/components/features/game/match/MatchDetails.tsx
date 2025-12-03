@@ -18,7 +18,7 @@ import {
   Play,
   Flag,
 } from 'lucide-react'
-import { useAccount, useBlockNumber } from 'wagmi'
+import { useAccount, useBlockNumber, useWalletClient } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi, useTokenApproval, MatchStatus } from '@ohara-ai/sdk'
 
@@ -38,8 +38,11 @@ interface MatchData {
 
 export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
   const { address } = useAccount()
+  const { status: walletStatus } = useWalletClient()
   const { game } = useOharaAi()
   const [matchData, setMatchData] = useState<MatchData | null>(null)
+  
+  const isWalletReady = walletStatus === 'success'
   const [isLoadingMatch, setIsLoadingMatch] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [isActivating, setIsActivating] = useState(false)
@@ -579,7 +582,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
             <Button
               className="w-full"
               onClick={handleJoinMatch}
-              disabled={isJoining || needsApproval}
+              disabled={isJoining || needsApproval || !isWalletReady}
             >
               {isJoining ? 'Joining Match...' : 'Join Match'}
             </Button>
@@ -589,7 +592,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               variant="outline"
               className="w-full"
               onClick={handleLeaveMatch}
-              disabled={isWithdrawing}
+              disabled={isWithdrawing || !isWalletReady}
             >
               {isWithdrawing ? 'Leaving Match...' : 'Leave Match'}
             </Button>
@@ -615,7 +618,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               <Button
                 className="w-full"
                 onClick={handleActivateMatch}
-                disabled={isActivating}
+                disabled={isActivating || !isWalletReady}
                 variant="default"
               >
                 {isActivating ? (
@@ -705,7 +708,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                     <Button
                       className="flex-1"
                       onClick={handleFinalizeMatch}
-                      disabled={!selectedWinner || isFinalizing}
+                      disabled={!selectedWinner || isFinalizing || !isWalletReady}
                     >
                       {isFinalizing ? (
                         <>

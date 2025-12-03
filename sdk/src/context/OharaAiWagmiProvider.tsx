@@ -53,10 +53,12 @@ export function OharaAiWagmiProvider({ children }: OharaAiWagmiProviderProps) {
   const chainId = useChainId()
   const preferredChainId = getPreferredChainId()
 
+  const effectiveWalletClient = isHydrated ? walletClient : undefined
+
   return (
     <OharaAiProvider
       publicClient={isHydrated ? publicClient || undefined : undefined}
-      walletClient={isHydrated ? walletClient || undefined : undefined}
+      walletClient={effectiveWalletClient}
       chainId={isHydrated ? preferredChainId || chainId : undefined}
     >
       {children}

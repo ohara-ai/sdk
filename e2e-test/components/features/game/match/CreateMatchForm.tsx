@@ -12,8 +12,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { parseEther, isAddress, zeroAddress } from 'viem'
-import { CheckCircle2, AlertCircle } from 'lucide-react'
+import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { useOharaAi, useTokenApproval } from '@ohara-ai/sdk'
+import { useWalletClient } from 'wagmi'
 
 interface CreateMatchFormProps {
   onMatchCreated?: (matchId: number) => void
@@ -25,10 +26,13 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
   const [tokenAddress, setTokenAddress] = useState('')
   const { game } = useOharaAi()
   const contractAddress = game.match.address
+  const { status: walletStatus } = useWalletClient()
 
   const [matchId, setMatchId] = useState<number | undefined>()
   const [isPending, setIsPending] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+  
+  const isWalletReady = walletStatus === 'success'
 
   // Parse token and stake for approval hook
   const token =
@@ -186,6 +190,22 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
           </div>
         )}
 
+        {!isWalletReady && (
+          <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <div className="flex items-start gap-2">
+              <Loader2 className="w-5 h-5 text-blue-500 mt-0.5 animate-spin" />
+              <div>
+                <p className="text-sm font-medium text-blue-500">
+                  Initializing Wallet
+                </p>
+                <p className="text-xs text-blue-500/80 mt-1">
+                  Please wait while we connect to your wallet...
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <Button
           onClick={handleCreateMatch}
           disabled={
@@ -193,7 +213,8 @@ export function CreateMatchForm({ onMatchCreated }: CreateMatchFormProps) {
             !maxPlayers ||
             isLoading ||
             !contractAddress ||
-            needsApproval
+            needsApproval ||
+            !isWalletReady
           }
           className="w-full"
         >

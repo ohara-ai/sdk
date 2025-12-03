@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DollarSign, CheckCircle2, AlertCircle } from 'lucide-react'
-import { useAccount, useWaitForTransactionReceipt, useBlockNumber } from 'wagmi'
+import { useAccount, useWaitForTransactionReceipt, useBlockNumber, useWalletClient } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
 import { useOharaAi } from '@ohara-ai/sdk'
 
@@ -23,8 +23,11 @@ interface PendingFees {
 
 export function FeeWithdrawal() {
   const { address } = useAccount()
+  const { status: walletStatus } = useWalletClient()
   const { game } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
+  
+  const isWalletReady = walletStatus === 'success'
 
   const [pendingFees, setPendingFees] = useState<PendingFees[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -202,7 +205,7 @@ export function FeeWithdrawal() {
                   <Button
                     onClick={() => handleWithdrawFees(fee.token)}
                     disabled={
-                      isWithdrawing || isWithdrawConfirming || fee.amount === 0n
+                      isWithdrawing || isWithdrawConfirming || fee.amount === 0n || !isWalletReady
                     }
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                   >
