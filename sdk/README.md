@@ -131,7 +131,7 @@ The SDK supports two modes for server-side operations:
 In this mode, the SDK executes transactions directly using a controller private key stored locally. This is the default mode when `OHARA_CONTROLLER_TOKEN` is not set.
 
 ```bash
-# Controller private key is stored in ohara-ai-data/keys.json
+# Controller private key is stored in public/ohara-ai-data/keys.json
 # RPC_URL determines which network to use
 RPC_URL=http://localhost:8545
 ```
@@ -348,13 +348,13 @@ OHARA_API_URL=https://api.ohara.ai
 
 #### 2. **Direct Mode (Development/Backend Only)**
 
-In direct mode, the SDK stores a controller private key locally in `ohara-ai-data/keys.json`. This is intended **only** for:
+In direct mode, the SDK stores a controller private key locally in `public/ohara-ai-data/keys.json`. This is intended **only** for:
 - Local development with test networks (e.g., Anvil, Hardhat)
 - Backend services where you control the infrastructure
 
 **⚠️ CRITICAL SECURITY WARNINGS:**
 - **NEVER** use direct mode in browser/frontend environments
-- **NEVER** commit `ohara-ai-data/` to version control
+- **NEVER** commit `public/ohara-ai-data/` to version control
 - **NEVER** use direct mode in production without proper key management
 - Keys are stored on disk and accessible to anyone with filesystem access
 

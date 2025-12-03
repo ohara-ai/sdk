@@ -1,5 +1,4 @@
 import fs from 'fs/promises'
-import path from 'path'
 import { privateKeyToAccount } from 'viem/accounts'
 import { Address } from 'viem'
 import {
@@ -8,9 +7,10 @@ import {
   isEncryptionEnabled,
   getEncryptionSecret,
 } from './encryption'
+import { getStorageDir, storagePaths } from '../config'
 
-const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
-const KEYS_PATH = path.join(STORAGE_DIR, 'keys.json')
+const STORAGE_DIR = getStorageDir()
+const KEYS_PATH = storagePaths.keys()
 
 export interface KeyStorage {
   [key: string]: string

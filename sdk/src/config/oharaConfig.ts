@@ -1,4 +1,5 @@
 import { Address } from 'viem'
+import path from 'path'
 
 /**
  * Ohara SDK Configuration
@@ -147,4 +148,23 @@ export function getPreferredChainId(): number | undefined {
     parsed: chainId ? Number(chainId) : undefined,
   })
   return chainId ? Number(chainId) : undefined
+}
+
+/**
+ * Get the storage directory path for local data
+ * Centralized configuration for where the SDK stores local data
+ * 
+ * @returns Absolute path to the storage directory
+ */
+export function getStorageDir(): string {
+  return path.join(process.cwd(), 'public', 'ohara-ai-data')
+}
+
+/**
+ * Get specific storage file paths
+ */
+export const storagePaths = {
+  keys: () => path.join(getStorageDir(), 'keys.json'),
+  contracts: () => path.join(getStorageDir(), 'contracts.json'),
+  apiCache: () => path.join(getStorageDir(), 'api-cache.json'),
 }

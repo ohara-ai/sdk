@@ -8,7 +8,9 @@ const fs = require('fs/promises')
 const crypto = require('crypto')
 const { privateKeyToAccount } = require('viem/accounts')
 
-const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
+// Storage configuration (mirrors oharaConfig.ts)
+// See: src/config/oharaConfig.ts -> getStorageDir() and storagePaths
+const STORAGE_DIR = path.join(process.cwd(), 'public', 'ohara-ai-data')
 const KEYS_PATH = path.join(STORAGE_DIR, 'keys.json')
 
 // Encryption support (matches SDK implementation)

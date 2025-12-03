@@ -1,8 +1,8 @@
 import fs from 'fs/promises'
-import path from 'path'
+import { getStorageDir, storagePaths } from '../config'
 
-const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
-const CONTRACTS_PATH = path.join(STORAGE_DIR, 'contracts.json')
+const STORAGE_DIR = getStorageDir()
+const CONTRACTS_PATH = storagePaths.contracts()
 
 // Contract addresses organized by context
 export interface OharaContracts {

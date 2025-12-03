@@ -1,12 +1,12 @@
 import fs from 'fs/promises'
-import path from 'path'
 import { Address } from 'viem'
 import type { DeployedContract } from '../server/oharaApiClient'
 import type { ContractAddresses } from './contractsStorage'
 import { normalizeContractType, type DeployedContractType } from '../types/contracts'
+import { getStorageDir, storagePaths } from '../config'
 
-const STORAGE_DIR = path.join(process.cwd(), 'ohara-ai-data')
-const API_CACHE_PATH = path.join(STORAGE_DIR, 'api-cache.json')
+const STORAGE_DIR = getStorageDir()
+const API_CACHE_PATH = storagePaths.apiCache()
 
 // Cached contract from API
 export interface CachedContract {
