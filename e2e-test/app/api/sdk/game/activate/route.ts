@@ -24,11 +24,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Call activate operation from SDK
-    const hash = await game.match.operations.activate(BigInt(matchId))
+    const success = await game.match.operations.activate(BigInt(matchId))
 
     return NextResponse.json({
-      success: true,
-      transactionHash: hash,
+      success,
       matchId,
     })
   } catch (error) {

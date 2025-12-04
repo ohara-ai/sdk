@@ -42,14 +42,13 @@ export async function POST(request: NextRequest) {
     const winnerAmount = totalPrize - feeAmount
 
     // Call finalize operation from SDK
-    const hash = await game.match.operations.finalize(
+    const success = await game.match.operations.finalize(
       BigInt(matchId),
       winner as `0x${string}`,
     )
 
     return NextResponse.json({
-      success: true,
-      transactionHash: hash,
+      success,
       matchId,
       winner,
       totalPrize: totalPrize.toString(),

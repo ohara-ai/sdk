@@ -113,13 +113,15 @@ export interface MatchOperations {
 export interface ServerMatchOperations extends MatchOperations {
   /**
    * Activate an open match (controller only - server-side only)
+   * Returns true on success
    */
-  activate(matchId: bigint): Promise<Hash>
+  activate(matchId: bigint): Promise<boolean>
 
   /**
    * Finalize an active match with a winner (controller only - server-side only)
+   * Returns true on success
    */
-  finalize(matchId: bigint, winner: Address): Promise<Hash>
+  finalize(matchId: bigint, winner: Address): Promise<boolean>
 }
 
 /**
@@ -419,7 +421,7 @@ function createOperationsInternal(
   const serverOperations: ServerMatchOperations = {
     ...baseOperations,
 
-    async activate(matchId: bigint) {
+    async activate(matchId: bigint): Promise<boolean> {
       // If API mode is enabled, use Ohara API
       if (oharaApiClient && chainId) {
         const result = await oharaApiClient.executeContractFunction({
@@ -440,7 +442,7 @@ function createOperationsInternal(
           )
         }
 
-        return result.data.txHash
+        return true
       }
 
       // Otherwise, use direct on-chain execution
@@ -448,7 +450,7 @@ function createOperationsInternal(
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
 
-      return wallet.writeContract({
+      const hash = await wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'activate',
@@ -456,9 +458,14 @@ function createOperationsInternal(
         account,
         chain: undefined,
       })
+
+      // Wait for the transaction receipt
+      await publicClient.waitForTransactionReceipt({ hash })
+
+      return true
     },
 
-    async finalize(matchId: bigint, winner: Address) {
+    async finalize(matchId: bigint, winner: Address): Promise<boolean> {
       // If API mode is enabled, use Ohara API
       if (oharaApiClient && chainId) {
         const result = await oharaApiClient.executeContractFunction({
@@ -482,7 +489,7 @@ function createOperationsInternal(
           )
         }
 
-        return result.data.txHash
+        return true
       }
 
       // Otherwise, use direct on-chain execution
@@ -490,7 +497,7 @@ function createOperationsInternal(
       const account = wallet.account
       if (!account) throw new Error('No account found in wallet')
 
-      return wallet.writeContract({
+      const hash = await wallet.writeContract({
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'finalize',
@@ -498,6 +505,11 @@ function createOperationsInternal(
         account,
         chain: undefined,
       })
+
+      // Wait for the transaction receipt
+      await publicClient.waitForTransactionReceipt({ hash })
+
+      return true
     },
   }
 

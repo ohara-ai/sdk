@@ -510,9 +510,9 @@ describe('Match Operations - Specification Tests', () => {
 
     it('SPEC: activate() - controller can activate a match', async () => {
       const matchId = 1n
-      const hash = await operations.activate(matchId)
+      const result = await operations.activate(matchId)
 
-      assertValidHash(hash)
+      expect(result).toBe(true)
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
@@ -526,9 +526,9 @@ describe('Match Operations - Specification Tests', () => {
       const matchId = 1n
       const winner = PLAYER_ADDRESS
 
-      const hash = await operations.finalize(matchId, winner)
+      const result = await operations.finalize(matchId, winner)
 
-      assertValidHash(hash)
+      expect(result).toBe(true)
       expect(walletClient.writeContract).toHaveBeenCalledWith(
         expect.objectContaining({
           address: CONTRACT_ADDRESS,
