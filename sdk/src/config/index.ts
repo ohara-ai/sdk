@@ -6,7 +6,6 @@ export {
   type OharaConfig,
   loadConfig,
   getConfig,
-  clearConfigCache,
   isApiMode,
   getPreferredChainId,
   getStorageDir,

@@ -36,7 +36,11 @@ async function ensureApiCacheExists(): Promise<void> {
   try {
     await fs.access(API_CACHE_PATH)
   } catch {
-    await fs.writeFile(API_CACHE_PATH, JSON.stringify({}, null, 2))
+    try {
+      await fs.writeFile(API_CACHE_PATH, JSON.stringify({}, null, 2))
+    } catch (error) {
+      console.error('Error writing API cache:', error)
+    }
   }
 }
 

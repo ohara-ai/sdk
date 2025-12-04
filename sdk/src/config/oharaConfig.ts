@@ -83,27 +83,12 @@ export function loadConfig(): OharaConfig {
 }
 
 /**
- * Cached config instance (loaded once per process)
- */
-let cachedConfig: OharaConfig | null = null
-
-/**
- * Get the current configuration (cached)
- * Loads from environment on first call
+ * Get the current configuration
+ * Always reads fresh from environment variables to avoid timing issues
+ * where config is cached before env vars are loaded
  */
 export function getConfig(): OharaConfig {
-  if (!cachedConfig) {
-    cachedConfig = loadConfig()
-  }
-  return cachedConfig
-}
-
-/**
- * Clear the cached configuration
- * Useful for testing or when environment changes
- */
-export function clearConfigCache(): void {
-  cachedConfig = null
+  return loadConfig()
 }
 
 /**
