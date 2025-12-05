@@ -44,6 +44,10 @@ export interface OharaConfig {
  * @throws {Error} If required configuration is missing
  */
 export function loadConfig(): OharaConfig {
+  if (!process.env.RPC_URL) {
+    console.warn('RPC_URL is not set, defaulting to http://localhost:8545')
+  }
+
   const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
   const sdkChainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID as unknown as number
 

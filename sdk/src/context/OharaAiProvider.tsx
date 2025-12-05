@@ -84,7 +84,7 @@ export function OharaAiProvider({
     })
     
     if (typeof window === 'undefined' || !effectiveChainId) {
-      console.log('[OharaAiProvider] Skipping loadAddresses - no chainId or not in browser')
+      console.log(`[OharaAiProvider] Skipping loadAddresses - no chainId(${effectiveChainId}) or not in browser`)
       return
     }
 
