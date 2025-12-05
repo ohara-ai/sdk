@@ -81,9 +81,17 @@ export async function getContractsWithMetadata(
         }
       }
 
-      // Update cache with the newest contracts
-      await updateApiCache(chainId, newestContracts)
-
+      try {
+        // Update cache with the newest contracts
+        await updateApiCache(chainId, newestContracts)
+      } catch (error) {
+        // Ignore because failures common in serverless environments
+        console.error(
+          'Failed to update API cache:',
+          error,
+        )
+      }
+      
       // Convert to ContractAddresses format
       return {
         addresses: convertToContractAddresses(newestContracts),
