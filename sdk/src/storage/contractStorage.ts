@@ -86,8 +86,8 @@ export async function getContractsWithMetadata(
         await updateApiCache(chainId, newestContracts)
       } catch (error) {
         // Ignore because failures common in serverless environments
-        console.error(
-          'Failed to update API cache:',
+        console.warn(
+          'Ignore in serverless environments, failed to update API cache:',
           error,
         )
       }
