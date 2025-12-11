@@ -61,5 +61,3 @@ contracts/lib/
 *.swp
 *.swo
 *~
-
-.npmrc

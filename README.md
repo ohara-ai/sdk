@@ -52,9 +52,10 @@ npx prettier . # --write
 ### Publish a new version of the SDK (patch|minor|major) with automated version bump, build, test, and git commit + push
 
 ```bash
-npm login
+# Generate an access token with 2fa bypass enabled at https://npmjs.com/settings/
+# Use it with NPM_TOKEN environment variable
 
-./bin/publish patch "Some commit message"
+NPM_TOKEN=your_token_here ./bin/publish patch "Some commit message"
 ```
 
 ## Key Features
