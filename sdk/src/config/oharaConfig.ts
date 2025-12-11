@@ -118,7 +118,7 @@ export function getPreferredChainId(): number | undefined {
   if (typeof window !== 'undefined') {
     // Try to access via process.env (will be defined by consuming app's webpack config)
     try {
-      const envValue = (process.env as Record<string, string | undefined>)['NEXT_PUBLIC_SDK_CHAIN_ID']
+      const envValue = process.env.NEXT_PUBLIC_SDK_CHAIN_ID as string | undefined
       console.log('[oharaConfig] getPreferredChainId (client):', {
         envValue,
         parsed: envValue ? Number(envValue) : undefined,
