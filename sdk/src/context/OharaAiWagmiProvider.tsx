@@ -65,10 +65,6 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
     
     const targetChainId = propChainId || preferredChainId
     if (targetChainId && wagmiChainId !== targetChainId) {
-      console.log('[OharaAiWagmiProvider] Switching chain:', {
-        from: wagmiChainId,
-        to: targetChainId,
-      })
       switchChain({ chainId: targetChainId })
     }
   }, [isHydrated, wagmiChainId, propChainId, preferredChainId, switchChain])
@@ -98,10 +94,6 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
     if (!effectiveChainId || wagmiPublicClient) return undefined
     
     // Find the chain config from wagmi config
-    console.log('[OharaAiWagmiProvider] Looking for chain:', {
-      effectiveChainId,
-      availableChains: wagmiConfig.chains.map(c => ({ id: c.id, name: c.name })),
-    })
     let chain = wagmiConfig.chains.find(c => c.id === effectiveChainId)
     
     if (!chain) {

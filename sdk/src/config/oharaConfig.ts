@@ -119,10 +119,6 @@ export function getPreferredChainId(): number | undefined {
     // Try to access via process.env (will be defined by consuming app's webpack config)
     try {
       const envValue = process.env.NEXT_PUBLIC_SDK_CHAIN_ID as string | undefined
-      console.log('[oharaConfig] getPreferredChainId (client):', {
-        envValue,
-        parsed: envValue ? Number(envValue) : undefined,
-      })
       return envValue ? Number(envValue) : undefined
     } catch (e) {
       console.warn('[oharaConfig] Failed to read NEXT_PUBLIC_SDK_CHAIN_ID:', e)
@@ -132,10 +128,6 @@ export function getPreferredChainId(): number | undefined {
   
   // Server-side: read directly
   const chainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID
-  console.log('[oharaConfig] getPreferredChainId (server):', {
-    envValue: process.env.NEXT_PUBLIC_SDK_CHAIN_ID,
-    parsed: chainId ? Number(chainId) : undefined,
-  })
   return chainId ? Number(chainId) : undefined
 }
 

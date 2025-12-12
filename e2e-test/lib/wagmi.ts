@@ -1,6 +1,6 @@
 import { createConfig, http } from 'wagmi'
 import { anvil, baseSepolia, base } from 'wagmi/chains'
-import { injected, metaMask } from 'wagmi/connectors'
+import { coinbaseWallet, injected, metaMask } from 'wagmi/connectors'
 
 // Use custom RPC URL if provided, otherwise use default
 const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
@@ -40,6 +40,7 @@ export const config = createConfig({
   chains: chains as [typeof anvil, ...typeof allChains],
   connectors: [
     metaMask(),
+    coinbaseWallet(),
     injected({
       shimDisconnect: true,
       target: 'phantom',
@@ -53,4 +54,5 @@ export const config = createConfig({
     [baseSepolia.id]: http(rpcUrl),
     [base.id]: http(rpcUrl),
   },
+  ssr: true,
 })
