@@ -156,4 +156,5 @@ export const storagePaths = {
   keys: () => path.join(getStorageDir(), 'keys.json'),
   contracts: () => path.join(getStorageDir(), 'contracts.json'),
   apiCache: () => path.join(getStorageDir(), 'api-cache.json'),
+  requirements: () => path.join(getStorageDir(), 'requirements.json'),
 }

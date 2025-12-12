@@ -1,4 +1,8 @@
-import { getContracts, getControllerAddress } from '@ohara-ai/sdk/server'
+import {
+  getContracts,
+  getControllerAddress,
+  assureContractsDeployed,
+} from '@ohara-ai/sdk/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Mark this route as dynamic since it depends on query parameters
@@ -7,6 +11,10 @@ export const dynamic = 'force-dynamic'
 /**
  * GET /api/sdk/addresses
  * Returns contract addresses for a specific chain
+ * 
+ * This route ensures that required contracts (Score, Match) are deployed
+ * before returning addresses. If contracts don't exist, they will be
+ * deployed automatically.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -28,10 +36,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Ensure contracts are deployed before returning addresses
+    // This handles the deployment plan logic from ohara-api
+    const deployResult = await assureContractsDeployed(chainId)
+    
+    if (!deployResult.success) {
+      console.error(
+        '[addresses route] Contract deployment had failures:',
+        deployResult.message,
+      )
+      // Continue anyway - we'll return whatever addresses we have
+    }
+
     // Get controller address (derived from stored private key)
     const controllerAddress = await getControllerAddress()
     
-    // Get contract addresses from storage
+    // Get contract addresses from storage (will include newly deployed contracts)
     const addresses = await getContracts(chainId)
     
     // Merge controller address into app context and include factory addresses
@@ -46,6 +66,13 @@ export async function GET(request: NextRequest) {
       factories: {
         gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY,
         gameScore: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY,
+      },
+      // Include deployment status for debugging
+      deployment: {
+        success: deployResult.success,
+        message: deployResult.message,
+        totalDeployed: deployResult.totalDeployed,
+        totalExisting: deployResult.totalExisting,
       },
     }
 

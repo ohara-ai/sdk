@@ -64,3 +64,11 @@ export {
   getFactoryAddresses,
   type DeploymentConfig,
 } from './deployment/deploymentService'
+
+// Contract deployment orchestration
+export {
+  assureContractsDeployed,
+  type AssureContractsDeployedResult,
+  type ContractDeploymentResult,
+  type PermissionResult,
+} from './deployment/assureContractsDeployed'

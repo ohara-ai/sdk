@@ -1,7 +1,6 @@
 import { setContractAddress } from '../storage/contractStorage'
 import { MATCH_FACTORY_ABI } from '../abis/game/matchFactory'
 import { MATCH_ABI } from '../abis/game/match'
-import { SCORE_ABI } from '../abis/game/score'
 import {
   createDeploymentClients,
   createPublicClientOnly,
@@ -147,29 +146,8 @@ export async function deployGameMatch(
     }
   }
 
-  // Authorize GameMatch to record scores if GameScore is configured
-  let authWarning: string | undefined
-  let authError: string | undefined
-
-  if (gameScoreAddress !== '0x0000000000000000000000000000000000000000') {
-    try {
-      const authHash = await walletClient.writeContract({
-        address: gameScoreAddress as `0x${string}`,
-        abi: SCORE_ABI,
-        functionName: 'setRecorderAuthorization',
-        args: [deployedAddress, true],
-        chain: null,
-        account,
-      })
-      await publicClient.waitForTransactionReceipt({ hash: authHash })
-    } catch (authError_) {
-      console.error('Authorization error:', authError_)
-      authWarning =
-        'GameMatch deployed but GameScore authorization failed. You may need to manually authorize the contract.'
-      authError =
-        authError_ instanceof Error ? authError_.message : 'Unknown error'
-    }
-  }
+  // Note: Authorization of Match to record scores is handled by assureContractsDeployed
+  // after all contracts are deployed
 
   // Get chain ID and save to storage
   const chainId = await publicClient.getChainId()
@@ -183,7 +161,5 @@ export async function deployGameMatch(
     success: true,
     address: deployedAddress,
     transactionHash: hash,
-    authorizationWarning: authWarning,
-    authorizationError: authError,
   }
 }
