@@ -3,8 +3,12 @@
 import { ReactNode, useEffect, useState, useMemo } from 'react'
 import { usePublicClient, useWalletClient, useChainId, useSwitchChain, useConfig } from 'wagmi'
 import { createPublicClient, http } from 'viem'
+import { anvil, baseSepolia, base, mainnet, sepolia } from 'viem/chains'
 import { OharaAiProvider } from './OharaAiProvider'
 import { getPreferredChainId } from '../config/oharaConfig'
+
+// Known chains that wagmi's useConfig() might not include during SSR
+const KNOWN_CHAINS = [anvil, baseSepolia, base, mainnet, sepolia]
 
 interface OharaAiWagmiProviderProps {
   children: ReactNode
@@ -93,14 +97,17 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
   const fallbackPublicClient = useMemo(() => {
     if (!effectiveChainId || wagmiPublicClient) return undefined
     
-    // Find the chain config from wagmi config
+    // Try to find chain in wagmi config first
     let chain = wagmiConfig.chains.find(c => c.id === effectiveChainId)
     
+    // If not in wagmi config (common during SSR), check known chains
     if (!chain) {
-      console.warn('[OharaAiWagmiProvider] Chain not in wagmi config, creating minimal chain definition for chainId:', effectiveChainId)
-      
-      // Create a minimal chain definition for the missing chain
-      // This handles cases where wagmi's config doesn't include all chains
+      chain = KNOWN_CHAINS.find(c => c.id === effectiveChainId)
+    }
+    
+    // Last resort: create minimal chain definition
+    if (!chain) {
+      console.warn('[OharaAiWagmiProvider] Unknown chain, creating minimal definition for chainId:', effectiveChainId)
       chain = {
         id: effectiveChainId,
         name: `Chain ${effectiveChainId}`,
@@ -111,8 +118,6 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
         },
       } as any
     }
-    
-    console.log('[OharaAiWagmiProvider] Creating fallback public client for chain:', effectiveChainId)
     
     // Create public client using http transport
     return createPublicClient({
