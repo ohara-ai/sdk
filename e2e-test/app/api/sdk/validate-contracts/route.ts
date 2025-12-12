@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createPublicClient, http } from 'viem'
 import { getContracts } from '@ohara-ai/sdk/server'
 
@@ -38,25 +38,19 @@ async function contractExistsOnChain(
 /**
  * GET /api/sdk/validate-contracts
  * Validates that stored contract addresses actually exist on-chain.
+ * Uses NEXT_PUBLIC_SDK_CHAIN_ID from environment configuration.
  * This is useful for detecting when anvil has been rebooted but cached
  * addresses are stale.
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const chainIdParam = request.nextUrl.searchParams.get('chainId')
-
-    if (!chainIdParam) {
-      return NextResponse.json(
-        { error: 'chainId parameter is required' },
-        { status: 400 },
-      )
-    }
-
-    const chainId = parseInt(chainIdParam, 10)
     const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
+    const chainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID 
+      ? parseInt(process.env.NEXT_PUBLIC_SDK_CHAIN_ID, 10) 
+      : undefined
 
-    // Get stored contracts
-    const contracts = await getContracts(chainId)
+    // Get stored contracts (uses NEXT_PUBLIC_SDK_CHAIN_ID from config)
+    const contracts = await getContracts()
 
     // Validate each contract on-chain
     const validations: ContractValidation[] = []

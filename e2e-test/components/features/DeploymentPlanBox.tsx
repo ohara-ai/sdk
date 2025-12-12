@@ -89,8 +89,8 @@ export function DeploymentPlanBox() {
   const validateContracts = useCallback(async () => {
     setIsValidating(true)
     try {
-      const chainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID
-      const response = await fetch(`/api/sdk/validate-contracts?chainId=${chainId}`)
+      // Server uses NEXT_PUBLIC_SDK_CHAIN_ID from its config
+      const response = await fetch('/api/sdk/validate-contracts')
       if (response.ok) {
         const data = await response.json()
         setValidations(data.validations || [])
@@ -180,8 +180,8 @@ export function DeploymentPlanBox() {
       setDeploymentStatus({ isDeploying: true, success: null, message: 'Executing deployment...' })
 
       // Step 2: Trigger deployment via addresses route
-      const chainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID
-      const deployResponse = await fetch(`/api/sdk/addresses?chainId=${chainId}`)
+      // Server uses NEXT_PUBLIC_SDK_CHAIN_ID from its config
+      const deployResponse = await fetch('/api/sdk/addresses')
       
       if (!deployResponse.ok) {
         const deployData = await deployResponse.json()

@@ -80,18 +80,16 @@ export function OharaAiProvider({
   const loadAddresses = async () => {
     console.log('[OharaAiProvider] loadAddresses called:', {
       isWindow: typeof window !== 'undefined',
-      effectiveChainId,
     })
     
-    if (typeof window === 'undefined' || !effectiveChainId) {
-      console.log(`[OharaAiProvider] Skipping loadAddresses - no chainId(${effectiveChainId}) or not in browser`)
+    if (typeof window === 'undefined') {
+      console.log('[OharaAiProvider] Skipping loadAddresses - not in browser')
       return
     }
 
     try {
-      const response = await fetch(
-        `/api/sdk/addresses?chainId=${effectiveChainId}`,
-      )
+      // Server uses NEXT_PUBLIC_SDK_CHAIN_ID from its config - no need to pass chainId
+      const response = await fetch('/api/sdk/addresses')
 
       if (!response.ok) {
         console.error(
@@ -146,6 +144,7 @@ export function OharaAiProvider({
   }
 
   // Read addresses from backend API (shared across all clients)
+  // Server uses its configured chainId from NEXT_PUBLIC_SDK_CHAIN_ID
   useEffect(() => {
     // Only run in browser
     if (typeof window === 'undefined') return
@@ -159,7 +158,7 @@ export function OharaAiProvider({
     return () => {
       window.removeEventListener('contractDeployed', handleCustomEvent)
     }
-  }, [effectiveChainId])
+  }, [])
 
   // Build context structure
   const ohara = useMemo<OharaContext>(
@@ -175,14 +174,6 @@ export function OharaAiProvider({
 
   const game = useMemo<GameContext>(
     () => {
-      console.log('[OharaAiProvider] Building game context:', {
-        gameMatchAddress,
-        gameScoreAddress,
-        hasPublicClient: !!effectivePublicClient,
-        hasWalletClient: !!effectiveWalletClient,
-        chainId: effectiveChainId,
-      })
-
       return {
         match: {
           address: gameMatchAddress,

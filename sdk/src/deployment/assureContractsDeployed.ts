@@ -1,10 +1,11 @@
 import fs from 'fs/promises'
 import { createPublicClient, createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { storagePaths, getConfig } from '../config'
+import { storagePaths, getConfig, getPreferredChainId } from '../config'
 import { getContracts, getControllerKey, getControllerAddress } from '../storage/contractStorage'
 import { SCORE_ABI } from '../abis/game/score'
 import { OharaApiClient } from '../server/oharaApiClient'
+import { ConfigError } from '../errors'
 import {
   CONTRACT_CONFIG,
   getContractDependencies,
@@ -368,7 +369,7 @@ async function executePermissions(
  * any that are missing. It handles dependencies automatically (Score must
  * be deployed before Match).
  *
- * @param chainId - The chain ID to deploy contracts on
+ * @param chainId - Optional chain ID (defaults to NEXT_PUBLIC_SDK_CHAIN_ID)
  * @returns Result object with deployment status and addresses
  *
  * @example
@@ -376,11 +377,10 @@ async function executePermissions(
  * // In your API route (e.g., /api/sdk/addresses)
  * import { assureContractsDeployed } from '@ohara-ai/sdk/server'
  *
- * export async function GET(request: NextRequest) {
- *   const chainId = parseInt(request.nextUrl.searchParams.get('chainId')!)
- *
+ * export async function GET() {
  *   // Ensure contracts are deployed before returning addresses
- *   const deployResult = await assureContractsDeployed(chainId)
+ *   // Uses NEXT_PUBLIC_SDK_CHAIN_ID automatically
+ *   const deployResult = await assureContractsDeployed()
  *
  *   if (!deployResult.success) {
  *     console.error('Contract deployment failed:', deployResult.message)
@@ -391,9 +391,17 @@ async function executePermissions(
  * ```
  */
 export async function assureContractsDeployed(
-  chainId: number,
+  chainId?: number,
 ): Promise<AssureContractsDeployedResult> {
-  console.log(`[assureContractsDeployed] Starting for chainId ${chainId}`)
+  // Resolve chainId from config if not provided
+  const resolvedChainId = chainId ?? getPreferredChainId()
+  if (resolvedChainId === undefined) {
+    throw new ConfigError(
+      'No chainId provided and NEXT_PUBLIC_SDK_CHAIN_ID is not configured',
+    )
+  }
+
+  console.log(`[assureContractsDeployed] Starting for chainId ${resolvedChainId}`)
 
   // Load required contracts from requirements.json (empty array if file doesn't exist)
   const requiredContracts = await getRequiredContracts()
@@ -404,7 +412,7 @@ export async function assureContractsDeployed(
     return {
       success: true,
       message: 'No contracts required. Skipping deployment.',
-      chainId,
+      chainId: resolvedChainId,
       results: [],
       deployedContracts: {},
       totalDeployed: 0,
@@ -414,7 +422,7 @@ export async function assureContractsDeployed(
   }
 
   // Fetch existing contracts
-  const existingContracts = await getExistingContracts(chainId)
+  const existingContracts = await getExistingContracts(resolvedChainId)
   console.log(
     `[assureContractsDeployed] Found ${existingContracts.size} existing contract(s):`,
     Array.from(existingContracts.keys()).join(', ') || 'none',
@@ -461,7 +469,7 @@ export async function assureContractsDeployed(
     return {
       success: true,
       message: `All ${existingCount} contract(s) already deployed. No new deployments needed.`,
-      chainId,
+      chainId: resolvedChainId,
       results,
       deployedContracts: deployedAddresses,
       totalDeployed: 0,
@@ -588,7 +596,7 @@ export async function assureContractsDeployed(
   return {
     success,
     message,
-    chainId,
+    chainId: resolvedChainId,
     results,
     deployedContracts: deployedAddresses,
     totalDeployed,

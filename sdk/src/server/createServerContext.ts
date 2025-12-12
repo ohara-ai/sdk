@@ -23,7 +23,8 @@ import type {
   InternalContext,
 } from '../context/OharaAiContext'
 import { OharaApiClient, getOharaApiClient } from './oharaApiClient'
-import { getConfig } from '../config/oharaConfig'
+import { getConfig, getPreferredChainId } from '../config/oharaConfig'
+import { ConfigError } from '../errors'
 
 /**
  * Server-side OharaAi Context
@@ -69,12 +70,20 @@ let cachedContext: ServerOharaAiContext | null = null
  * Supports two modes:
  * 1. Direct on-chain mode: Uses controller private key from storage
  * 2. Ohara API mode: Uses OHARA_CONTROLLER_TOKEN and OHARA_API_URL
+ * 
+ * @param chainId - Optional chain ID (defaults to NEXT_PUBLIC_SDK_CHAIN_ID, then RPC)
  */
 export async function createServerOharaAi(
   chainId?: number,
 ): Promise<ServerOharaAiContext> {
   const config = getConfig()
-  const targetChainId = chainId || (await getChainIdFromRPC())
+  // Priority: provided chainId > config chainId > RPC chainId
+  const targetChainId = chainId ?? getPreferredChainId() ?? (await getChainIdFromRPC())
+  if (targetChainId === undefined) {
+    throw new ConfigError(
+      'No chainId provided and NEXT_PUBLIC_SDK_CHAIN_ID is not configured',
+    )
+  }
 
   // Return cached context if same chain
   if (cachedContext && cachedContext.app.chainId === targetChainId) {

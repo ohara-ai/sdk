@@ -1,6 +1,6 @@
 {
   "name": "sdk-e2e-test",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "description": "E2E testing application for the SDK's features",
   "scripts": {

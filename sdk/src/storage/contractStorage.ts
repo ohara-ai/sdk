@@ -18,6 +18,8 @@ import {
   updateContracts as updateContractsInLocal,
   setContractAddress as setContractAddressInLocal,
 } from './contractsStorage'
+import { getPreferredChainId } from '../config/oharaConfig'
+import { ConfigError } from '../errors'
 
 // Re-export types for public API
 export type {
@@ -29,6 +31,23 @@ export type {
 export type { ContractSource, ContractAddressesWithMetadata } from './types'
 
 /**
+ * Resolve chainId - use provided value or fall back to SDK config
+ * @throws {ConfigError} If no chainId provided and none configured
+ */
+function resolveChainId(chainId?: number): number {
+  if (chainId !== undefined) {
+    return chainId
+  }
+  const configChainId = getPreferredChainId()
+  if (configChainId === undefined) {
+    throw new ConfigError(
+      'No chainId provided and NEXT_PUBLIC_SDK_CHAIN_ID is not configured',
+    )
+  }
+  return configChainId
+}
+
+/**
  * Get contracts for a specific chain with metadata
  * 
  * Attempts to fetch from:
@@ -37,10 +56,13 @@ export type { ContractSource, ContractAddressesWithMetadata } from './types'
  * 3. Local storage (fallback)
  * 
  * Returns metadata about the source and last update time
+ * 
+ * @param chainId - Optional chain ID (defaults to NEXT_PUBLIC_SDK_CHAIN_ID)
  */
 export async function getContractsWithMetadata(
-  chainId: number,
+  chainId?: number,
 ): Promise<import('./types').ContractAddressesWithMetadata> {
+  const resolvedChainId = resolveChainId(chainId)
   const isApiMode = OharaApiClient.isConfigured()
 
   if (isApiMode) {
@@ -53,7 +75,7 @@ export async function getContractsWithMetadata(
       const contractsByType: { [key: string]: any[] } = {}
 
       for (const contract of contracts) {
-        if (contract.chainId === chainId) {
+        if (contract.chainId === resolvedChainId) {
           if (!contractsByType[contract.contractType]) {
             contractsByType[contract.contractType] = []
           }
@@ -83,7 +105,7 @@ export async function getContractsWithMetadata(
 
       try {
         // Update cache with the newest contracts
-        await updateApiCache(chainId, newestContracts)
+        await updateApiCache(resolvedChainId, newestContracts)
       } catch (error) {
         // Ignore because failures common in serverless environments
         console.warn(
@@ -104,7 +126,7 @@ export async function getContractsWithMetadata(
         error,
       )
       // Try to read from cache
-      const cached = await readApiCache(chainId)
+      const cached = await readApiCache(resolvedChainId)
       if (cached) {
         // Find most recent cached contract
         const timestamps = Object.values(cached).map(c => c.createdAt)
@@ -123,22 +145,24 @@ export async function getContractsWithMetadata(
 
   // Fall back to local storage
   return {
-    addresses: await getContractsFromLocal(chainId),
+    addresses: await getContractsFromLocal(resolvedChainId),
     source: 'local',
     lastUpdated: undefined,
   }
 }
 
 /**
- * Get contracts for a specific chain (backward compatible)
+ * Get contracts for a specific chain
  * 
  * Attempts to fetch from:
  * 1. Ohara API (if configured)
  * 2. API cache (if API fails)
  * 3. Local storage (fallback)
+ * 
+ * @param chainId - Optional chain ID (defaults to NEXT_PUBLIC_SDK_CHAIN_ID)
  */
 export async function getContracts(
-  chainId: number,
+  chainId?: number,
 ): Promise<import('./contractsStorage').ContractAddresses> {
   const result = await getContractsWithMetadata(chainId)
   return result.addresses
@@ -146,24 +170,33 @@ export async function getContracts(
 
 /**
  * Update contracts in local storage
+ * 
+ * @param chainId - Optional chain ID (defaults to NEXT_PUBLIC_SDK_CHAIN_ID)
  */
 export async function updateContracts(
-  chainId: number,
   addresses: Partial<import('./contractsStorage').ContractAddresses>,
+  chainId?: number,
 ): Promise<void> {
-  return updateContractsInLocal(chainId, addresses)
+  const resolvedChainId = resolveChainId(chainId)
+  return updateContractsInLocal(resolvedChainId, addresses)
 }
 
 /**
  * Set a specific contract address in local storage
+ * 
+ * @param context - Contract context (ohara, game, app)
+ * @param contractType - Type of contract within the context
+ * @param address - Contract address
+ * @param chainId - Optional chain ID (defaults to NEXT_PUBLIC_SDK_CHAIN_ID)
  */
 export async function setContractAddress(
-  chainId: number,
   context: keyof import('./contractsStorage').ContractAddresses,
   contractType: string,
   address: string,
+  chainId?: number,
 ): Promise<void> {
-  return setContractAddressInLocal(chainId, context, contractType, address)
+  const resolvedChainId = resolveChainId(chainId)
+  return setContractAddressInLocal(resolvedChainId, context, contractType, address)
 }
 
 /**

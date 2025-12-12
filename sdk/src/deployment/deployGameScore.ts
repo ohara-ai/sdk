@@ -47,10 +47,10 @@ export async function deployGameScore(
     // Save to storage
     try {
       await setContractAddress(
-        chainId,
         'game',
         'score',
         result.data.contractAddress,
+        chainId,
       )
     } catch (storageError) {
       console.error('Failed to save address to backend storage:', storageError)
@@ -95,7 +95,7 @@ export async function deployGameScore(
   // Get chain ID and save to storage
   const chainId = await publicClient.getChainId()
   try {
-    await setContractAddress(chainId, 'game', 'score', deployedAddress)
+    await setContractAddress('game', 'score', deployedAddress, chainId)
   } catch (storageError) {
     console.error('Failed to save address to backend storage:', storageError)
   }

@@ -49,9 +49,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
 - Detects and uses wagmi's `usePublicClient`, `useWalletClient`, and `useChainId` hooks
 - Passes these to the underlying `OharaAiProvider`
-- Fetches contract addresses from `/api/sdk/addresses?chainId=<chainId>` backend
+- Fetches contract addresses from `/api/sdk/addresses` backend (server uses configured chainId)
 - Creates contract operation instances with the detected clients
-- Manages chain-specific contract state
+- Uses `NEXT_PUBLIC_SDK_CHAIN_ID` for chain configuration
 
 **Note:** The wallet client is optional - read-only operations (like viewing leaderboards) work without it. Write operations (like creating matches) require a connected wallet.
 
