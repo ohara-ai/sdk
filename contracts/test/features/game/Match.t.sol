@@ -848,3 +848,278 @@ contract MatchTest is Test {
     event MaxActiveMatchesUpdated(uint256 newLimit);
     event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
 }
+
+contract MatchSharesTest is Test {
+    Match public gameMatch;
+    MockERC20 public token;
+
+    address public owner = address(0x1);
+    address public controller = address(0x2);
+    address public player1 = address(0x3);
+    address public player2 = address(0x4);
+    address public shareRecipient = address(0x5);
+
+    uint256 constant STAKE_AMOUNT = 1 ether;
+
+    event ShareRecipientRegistered(address indexed recipient, uint256 shareBasisPoints);
+    event ShareRecipientRemoved(address indexed recipient);
+    event SharesAccrued(address indexed recipient, address indexed token, uint256 amount);
+    event SharesClaimed(address indexed recipient, address indexed token, uint256 amount);
+
+    function setUp() public {
+        address[] memory feeRecipients = new address[](0);
+        uint256[] memory feeShares = new uint256[](0);
+        
+        gameMatch = new Match();
+        gameMatch.initialize(owner, controller, address(0), 100, feeRecipients, feeShares);
+        
+        vm.prank(owner);
+        token = new MockERC20(1000000 ether);
+
+        vm.deal(player1, 100 ether);
+        vm.deal(player2, 100 ether);
+        vm.deal(shareRecipient, 1 ether);
+
+        token.mint(player1, 1000 ether);
+        token.mint(player2, 1000 ether);
+    }
+
+    function test_RegisterShareRecipient() public {
+        vm.prank(controller);
+        vm.expectEmit(true, false, false, true);
+        emit ShareRecipientRegistered(shareRecipient, 1000);
+        gameMatch.registerShareRecipient(shareRecipient, 1000);
+        
+        assertEq(gameMatch.getShareConfig(shareRecipient), 1000);
+        assertEq(gameMatch.totalShareBasisPoints(), 1000);
+    }
+
+    function test_OnlyControllerCanRegisterShareRecipient() public {
+        vm.prank(player1);
+        vm.expectRevert(Owned.Unauthorized.selector);
+        gameMatch.registerShareRecipient(shareRecipient, 1000);
+    }
+
+    function test_CannotRegisterZeroAddress() public {
+        vm.prank(controller);
+        vm.expectRevert(Match.InvalidShareRecipient.selector);
+        gameMatch.registerShareRecipient(address(0), 1000);
+    }
+
+    function test_CannotRegisterDuplicateRecipient() public {
+        vm.prank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000);
+        
+        vm.prank(controller);
+        vm.expectRevert(Match.ShareRecipientAlreadyExists.selector);
+        gameMatch.registerShareRecipient(shareRecipient, 500);
+    }
+
+    function test_CannotExceedMaxShareRecipients() public {
+        vm.startPrank(controller);
+        for (uint256 i = 0; i < 10; i++) {
+            gameMatch.registerShareRecipient(address(uint160(100 + i)), 100);
+        }
+        
+        vm.expectRevert(Match.TooManyShareRecipients.selector);
+        gameMatch.registerShareRecipient(address(uint160(200)), 100);
+        vm.stopPrank();
+    }
+
+    function test_CannotExceedMaxShareBasisPoints() public {
+        vm.prank(controller);
+        vm.expectRevert(Match.ShareExceedsMax.selector);
+        gameMatch.registerShareRecipient(shareRecipient, 5001); // > 50%
+    }
+
+    function test_RemoveShareRecipient() public {
+        vm.prank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000);
+        
+        vm.prank(controller);
+        vm.expectEmit(true, false, false, true);
+        emit ShareRecipientRemoved(shareRecipient);
+        gameMatch.removeShareRecipient(shareRecipient);
+        
+        assertEq(gameMatch.getShareConfig(shareRecipient), 0);
+        assertEq(gameMatch.totalShareBasisPoints(), 0);
+    }
+
+    function test_CannotRemoveNonExistentRecipient() public {
+        vm.prank(controller);
+        vm.expectRevert(Match.ShareRecipientNotFound.selector);
+        gameMatch.removeShareRecipient(shareRecipient);
+    }
+
+    function test_SharesAccruedOnFinalize() public {
+        vm.prank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000); // 10%
+        
+        vm.prank(player1);
+        uint256 matchId = gameMatch.create{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        
+        vm.prank(player2);
+        gameMatch.join{value: STAKE_AMOUNT}(matchId);
+        
+        vm.prank(controller);
+        gameMatch.activate(matchId);
+        
+        uint256 totalPrize = STAKE_AMOUNT * 2;
+        uint256 expectedShare = (totalPrize * 1000) / 10000; // 10%
+        
+        vm.prank(controller);
+        vm.expectEmit(true, true, false, true);
+        emit SharesAccrued(shareRecipient, address(0), expectedShare);
+        gameMatch.finalize(matchId, player1);
+        
+        assertEq(gameMatch.getPendingShares(shareRecipient, address(0)), expectedShare);
+    }
+
+    function test_ClaimShares() public {
+        vm.prank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000); // 10%
+        
+        vm.prank(player1);
+        uint256 matchId = gameMatch.create{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        
+        vm.prank(player2);
+        gameMatch.join{value: STAKE_AMOUNT}(matchId);
+        
+        vm.prank(controller);
+        gameMatch.activate(matchId);
+        
+        vm.prank(controller);
+        gameMatch.finalize(matchId, player1);
+        
+        uint256 totalPrize = STAKE_AMOUNT * 2;
+        uint256 expectedShare = (totalPrize * 1000) / 10000;
+        
+        uint256 balanceBefore = shareRecipient.balance;
+        
+        vm.prank(shareRecipient);
+        vm.expectEmit(true, true, false, true);
+        emit SharesClaimed(shareRecipient, address(0), expectedShare);
+        gameMatch.claimShares(address(0));
+        
+        assertEq(shareRecipient.balance, balanceBefore + expectedShare);
+        assertEq(gameMatch.getPendingShares(shareRecipient, address(0)), 0);
+    }
+
+    function test_CannotClaimZeroShares() public {
+        vm.prank(shareRecipient);
+        vm.expectRevert(Match.NoSharesToClaim.selector);
+        gameMatch.claimShares(address(0));
+    }
+
+    function test_SharesWithERC20Token() public {
+        vm.prank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000); // 10%
+        
+        vm.startPrank(player1);
+        token.approve(address(gameMatch), STAKE_AMOUNT);
+        uint256 matchId = gameMatch.create(address(token), STAKE_AMOUNT, 2);
+        vm.stopPrank();
+        
+        vm.startPrank(player2);
+        token.approve(address(gameMatch), STAKE_AMOUNT);
+        gameMatch.join(matchId);
+        vm.stopPrank();
+        
+        vm.prank(controller);
+        gameMatch.activate(matchId);
+        
+        vm.prank(controller);
+        gameMatch.finalize(matchId, player1);
+        
+        uint256 totalPrize = STAKE_AMOUNT * 2;
+        uint256 expectedShare = (totalPrize * 1000) / 10000;
+        
+        uint256 balanceBefore = token.balanceOf(shareRecipient);
+        
+        vm.prank(shareRecipient);
+        gameMatch.claimShares(address(token));
+        
+        assertEq(token.balanceOf(shareRecipient), balanceBefore + expectedShare);
+    }
+
+    function test_GetShareTokens() public {
+        vm.prank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000);
+        
+        // Create match with native token
+        vm.prank(player1);
+        uint256 matchId1 = gameMatch.create{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        vm.prank(player2);
+        gameMatch.join{value: STAKE_AMOUNT}(matchId1);
+        vm.prank(controller);
+        gameMatch.activate(matchId1);
+        vm.prank(controller);
+        gameMatch.finalize(matchId1, player1);
+        
+        // Create match with ERC20 token
+        vm.startPrank(player1);
+        token.approve(address(gameMatch), STAKE_AMOUNT);
+        uint256 matchId2 = gameMatch.create(address(token), STAKE_AMOUNT, 2);
+        vm.stopPrank();
+        vm.startPrank(player2);
+        token.approve(address(gameMatch), STAKE_AMOUNT);
+        gameMatch.join(matchId2);
+        vm.stopPrank();
+        vm.prank(controller);
+        gameMatch.activate(matchId2);
+        vm.prank(controller);
+        gameMatch.finalize(matchId2, player1);
+        
+        address[] memory tokens = gameMatch.getShareTokens();
+        assertEq(tokens.length, 2);
+        assertEq(tokens[0], address(0));
+        assertEq(tokens[1], address(token));
+    }
+
+    function test_GetShareRecipients() public {
+        address recipient2 = address(0x6);
+        
+        vm.startPrank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000);
+        gameMatch.registerShareRecipient(recipient2, 500);
+        vm.stopPrank();
+        
+        (address[] memory recipients, uint256[] memory shares) = gameMatch.getShareRecipients();
+        
+        assertEq(recipients.length, 2);
+        assertEq(shares.length, 2);
+        assertEq(recipients[0], shareRecipient);
+        assertEq(shares[0], 1000);
+        assertEq(recipients[1], recipient2);
+        assertEq(shares[1], 500);
+    }
+
+    function test_MultipleShareRecipients() public {
+        address recipient2 = address(0x6);
+        vm.deal(recipient2, 1 ether);
+        
+        vm.startPrank(controller);
+        gameMatch.registerShareRecipient(shareRecipient, 1000); // 10%
+        gameMatch.registerShareRecipient(recipient2, 500); // 5%
+        vm.stopPrank();
+        
+        vm.prank(player1);
+        uint256 matchId = gameMatch.create{value: STAKE_AMOUNT}(address(0), STAKE_AMOUNT, 2);
+        
+        vm.prank(player2);
+        gameMatch.join{value: STAKE_AMOUNT}(matchId);
+        
+        vm.prank(controller);
+        gameMatch.activate(matchId);
+        
+        vm.prank(controller);
+        gameMatch.finalize(matchId, player1);
+        
+        uint256 totalPrize = STAKE_AMOUNT * 2;
+        uint256 expectedShare1 = (totalPrize * 1000) / 10000; // 10%
+        uint256 expectedShare2 = (totalPrize * 500) / 10000; // 5%
+        
+        assertEq(gameMatch.getPendingShares(shareRecipient, address(0)), expectedShare1);
+        assertEq(gameMatch.getPendingShares(recipient2, address(0)), expectedShare2);
+    }
+}

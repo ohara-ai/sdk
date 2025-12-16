@@ -748,3 +748,50 @@ contract ScoreTest is Test {
     event MatchEvicted(uint256 indexed matchId, uint256 timestamp);
     event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
 }
+
+contract ScorePrizeIntegrationTest is Test {
+    Score public score;
+    
+    address public owner = address(0x1);
+    address public recorder = address(0x2);
+    address public player1 = address(0x3);
+    address public player2 = address(0x4);
+    address public prizeContract = address(0x5);
+    
+    event PrizeContractUpdated(address indexed previousPrize, address indexed newPrize);
+    
+    function setUp() public {
+        score = new Score();
+        score.initialize(owner, owner, 50, 1000, 100);
+        
+        vm.prank(owner);
+        score.setRecorderAuthorization(recorder, true);
+    }
+    
+    function test_SetPrize() public {
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit PrizeContractUpdated(address(0), prizeContract);
+        score.setPrize(prizeContract);
+        
+        assertEq(address(score.prize()), prizeContract);
+    }
+    
+    function test_OnlyControllerCanSetPrize() public {
+        vm.prank(recorder);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
+        score.setPrize(prizeContract);
+    }
+    
+    function test_CanDisablePrize() public {
+        vm.prank(owner);
+        score.setPrize(prizeContract);
+        
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit PrizeContractUpdated(prizeContract, address(0));
+        score.setPrize(address(0));
+        
+        assertEq(address(score.prize()), address(0));
+    }
+}

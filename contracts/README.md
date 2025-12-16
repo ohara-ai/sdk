@@ -31,6 +31,7 @@ Escrow-based match system with stake management.
 - Join/leave from matches before activation
 - Controller-managed activation and finalization
 - Automatic fee distribution on match completion
+- Share accrual for registered recipients (e.g., Prize contracts)
 - Integration with Score for result tracking
 - Capacity management with configurable active match limits
 
@@ -40,7 +41,9 @@ Escrow-based match system with stake management.
 - `join(matchId)` - Join an existing match
 - `leave(matchId)` - Leave a match before activation
 - `activate(matchId)` - Controller activates a full match
-- `finalize(matchId, winner, losers)` - Controller finalizes and distributes stakes
+- `finalize(matchId, winner)` - Controller finalizes and distributes stakes
+- `registerShareRecipient(recipient, basisPoints)` - Register share recipient
+- `claimShares(token)` - Claim accrued shares
 
 #### **Score** (`src/features/game/Score.sol`)
 
@@ -53,13 +56,36 @@ Tracks and stores player scores from completed matches.
 - Leaderboard queries (top players by wins/prize)
 - Storage limits to prevent state explosion
 - Authorized recorder system for match contracts
+- Optional Prize contract integration for prize pool tracking
 
 **Main Functions:**
 
-- `recordScore(matchId, winner, losers, prize)` - Record match results
-- `getScore(player)` - Get player statistics
+- `recordMatchResult(winner, losers, prize)` - Record match results
+- `getPlayerScore(player)` - Get player statistics
 - `getTopPlayersByWins(count)` - Query top N players by wins
 - `getTopPlayersByPrize(count)` - Query top N players by total prize
+- `setPrize(prize)` - Set Prize contract for pool tracking
+
+#### **Prize** (`src/features/game/Prize.sol`)
+
+Pool-based prize distribution system that collects shares from match wagers.
+
+**Key Features:**
+
+- Pool-based prize distribution (configurable matches per pool)
+- Collects shares from Match contract wagers
+- Tracks wins per player per pool
+- Winner determined by most wins in pool
+- Supports native ETH and ERC20 tokens
+- Pull-based prize claiming
+
+**Main Functions:**
+
+- `recordMatchResult(winner)` - Record a match winner (called by Score)
+- `claimPrize(poolId)` - Claim won prize for a finalized pool
+- `getPool(poolId)` - Get pool information
+- `getClaimablePools(player)` - Get pools claimable by a player
+- `setMatchesPerPool(count)` - Configure matches per prize pool
 
 ### Factories
 
@@ -83,6 +109,16 @@ Factory for deploying Score contracts with storage limits.
 - Deploy Score instances with capacity limits
 - Configure maximum losers per match, total players, and total matches
 - Prevent state explosion with configurable bounds
+
+#### **PrizeFactory** (`src/factories/PrizeFactory.sol`)
+
+Factory for deploying Prize contracts with configurable pool settings.
+
+**Features:**
+
+- Deploy Prize instances with custom matches per pool
+- Configure default matches per pool
+- ERC-1167 minimal proxy cloning for gas efficiency
 
 ### Base Contracts
 

@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IMatch} from "../../interfaces/game/IMatch.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
+import {IShares} from "../../interfaces/game/IShares.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -14,7 +15,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
  * @notice Escrow-based match system with stake management
  * @dev Allows players to create/join matches, with controller-managed activation and finalization
  */
-contract Match is IMatch, IFeature, FeatureController, Initializable {
+contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
     using SafeERC20 for IERC20;
     
     uint256 private _matchIdCounter;
@@ -32,6 +33,22 @@ contract Match is IMatch, IFeature, FeatureController, Initializable {
 
     // Optional integrations
     IScore public score;
+
+    // Share recipients: recipient => shareBasisPoints
+    mapping(address => uint256) private _shareRecipients;
+    address[] private _shareRecipientList;
+    uint256 public totalShareBasisPoints;
+    
+    // Pending shares: recipient => token => amount
+    mapping(address => mapping(address => uint256)) private _pendingShares;
+    
+    // Token tracking for share iteration
+    address[] private _shareTokens;
+    mapping(address => bool) private _shareTokenExists;
+    
+    // Constants for shares
+    uint256 public constant MAX_SHARE_RECIPIENTS = 10;
+    uint256 public constant MAX_SHARE_BASIS_POINTS = 5000; // 50%
 
     event MaxActiveMatchesUpdated(uint256 newLimit);
     event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
@@ -53,6 +70,12 @@ contract Match is IMatch, IFeature, FeatureController, Initializable {
     error StakeAmountTooHigh();
     error TooManyPlayers();
     error LimitTooHigh();
+    error InvalidShareRecipient();
+    error ShareRecipientAlreadyExists();
+    error ShareRecipientNotFound();
+    error TooManyShareRecipients();
+    error ShareExceedsMax();
+    error NoSharesToClaim();
 
     /**
      * @notice Empty constructor for cloneable pattern
@@ -338,7 +361,11 @@ contract Match is IMatch, IFeature, FeatureController, Initializable {
         
         // Accrue fees using pull-over-push pattern
         uint256 feeAmount = _accrueFees(token, totalPrize);
-        uint256 winnerAmount = totalPrize - feeAmount;
+        
+        // Accrue shares for registered recipients (e.g., Prize contract)
+        uint256 shareAmount = _accrueShares(token, totalPrize);
+        
+        uint256 winnerAmount = totalPrize - feeAmount - shareAmount;
 
         // Transfer winnings to winner (external call)
         _transfer(token, winner, winnerAmount);
@@ -449,6 +476,129 @@ contract Match is IMatch, IFeature, FeatureController, Initializable {
     /// @inheritdoc IMatch
     function getPlayerStake(uint256 matchId, address player) external view returns (uint256) {
         return _matches[matchId].stakes[player];
+    }
+
+    // ============ IShares Implementation ============
+
+    /// @inheritdoc IShares
+    function registerShareRecipient(address recipient, uint256 shareBasisPoints) external onlyController {
+        if (recipient == address(0)) revert InvalidShareRecipient();
+        if (_shareRecipients[recipient] != 0) revert ShareRecipientAlreadyExists();
+        if (_shareRecipientList.length >= MAX_SHARE_RECIPIENTS) revert TooManyShareRecipients();
+        if (totalShareBasisPoints + shareBasisPoints > MAX_SHARE_BASIS_POINTS) revert ShareExceedsMax();
+        
+        _shareRecipientList.push(recipient);
+        _shareRecipients[recipient] = shareBasisPoints;
+        totalShareBasisPoints += shareBasisPoints;
+        
+        emit ShareRecipientRegistered(recipient, shareBasisPoints);
+    }
+
+    /// @inheritdoc IShares
+    function removeShareRecipient(address recipient) external onlyController {
+        uint256 shareBasisPoints = _shareRecipients[recipient];
+        if (shareBasisPoints == 0) revert ShareRecipientNotFound();
+        
+        totalShareBasisPoints -= shareBasisPoints;
+        
+        // Remove from list using swap-and-pop
+        uint256 length = _shareRecipientList.length;
+        for (uint256 i = 0; i < length;) {
+            if (_shareRecipientList[i] == recipient) {
+                _shareRecipientList[i] = _shareRecipientList[length - 1];
+                _shareRecipientList.pop();
+                break;
+            }
+            unchecked { ++i; }
+        }
+        
+        delete _shareRecipients[recipient];
+        
+        emit ShareRecipientRemoved(recipient);
+    }
+
+    /// @inheritdoc IShares
+    function claimShares(address token) external nonReentrant {
+        uint256 amount = _pendingShares[msg.sender][token];
+        if (amount == 0) revert NoSharesToClaim();
+        
+        // Clear pending shares before transfer (CEI pattern)
+        _pendingShares[msg.sender][token] = 0;
+        
+        // Transfer shares
+        _transfer(token, msg.sender, amount);
+        
+        emit SharesClaimed(msg.sender, token, amount);
+    }
+
+    /// @inheritdoc IShares
+    function getPendingShares(address recipient, address token) external view returns (uint256 amount) {
+        return _pendingShares[recipient][token];
+    }
+
+    /// @inheritdoc IShares
+    function getShareTokens() external view returns (address[] memory tokens) {
+        return _shareTokens;
+    }
+
+    /// @inheritdoc IShares
+    function getShareConfig(address recipient) external view returns (uint256 shareBasisPoints) {
+        return _shareRecipients[recipient];
+    }
+
+    /**
+     * @notice Get all share recipients
+     * @return recipients Array of share recipient addresses
+     * @return shares Array of share basis points for each recipient
+     */
+    function getShareRecipients() external view returns (address[] memory recipients, uint256[] memory shares) {
+        uint256 length = _shareRecipientList.length;
+        recipients = new address[](length);
+        shares = new uint256[](length);
+        
+        for (uint256 i = 0; i < length; i++) {
+            recipients[i] = _shareRecipientList[i];
+            shares[i] = _shareRecipients[_shareRecipientList[i]];
+        }
+    }
+
+    /**
+     * @notice Accrue shares from a total amount (pull-over-push pattern)
+     * @param token The token address (address(0) for native token)
+     * @param totalAmount The total amount to calculate shares from
+     * @return shareAmount The total amount of shares accrued
+     */
+    function _accrueShares(
+        address token,
+        uint256 totalAmount
+    ) internal returns (uint256 shareAmount) {
+        if (totalShareBasisPoints == 0 || _shareRecipientList.length == 0) {
+            return 0;
+        }
+
+        // Track token if new
+        if (!_shareTokenExists[token]) {
+            _shareTokens.push(token);
+            _shareTokenExists[token] = true;
+        }
+
+        uint256 length = _shareRecipientList.length;
+        for (uint256 i = 0; i < length;) {
+            address recipient = _shareRecipientList[i];
+            uint256 shareBps = _shareRecipients[recipient];
+            
+            uint256 share = (totalAmount * shareBps) / FEE_BASIS_POINTS;
+            if (share == 0) {
+                unchecked { ++i; }
+                continue;
+            }
+            
+            shareAmount += share;
+            _pendingShares[recipient][token] += share;
+            emit SharesAccrued(recipient, token, share);
+            
+            unchecked { ++i; }
+        }
     }
 
     /// @inheritdoc IFeature

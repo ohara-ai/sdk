@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
+import {IPrize} from "../../interfaces/game/IPrize.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -49,6 +50,9 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     // Authorized contracts that can record results
     mapping(address => bool) public authorizedRecorders;
 
+    // Optional prize contract for prize pool tracking
+    IPrize public prize;
+
     // Storage limits to prevent state explosion (configurable by owner)
     uint256 public maxLosersPerMatch; // Limit losers array size
     uint256 public maxTotalPlayers; // Cap total unique players
@@ -64,6 +68,7 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     event LimitsUpdated(uint256 maxLosersPerMatch, uint256 maxTotalPlayers, uint256 maxTotalMatches);
     event MatchEvicted(uint256 indexed matchId, uint256 timestamp);
     event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
+    event PrizeContractUpdated(address indexed previousPrize, address indexed newPrize);
 
     error UnauthorizedRecorder();
     error InvalidLimit();
@@ -105,6 +110,16 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     function setRecorderAuthorization(address recorder, bool authorized) external onlyController {
         authorizedRecorders[recorder] = authorized;
         emit RecorderAuthorized(recorder, authorized);
+    }
+
+    /**
+     * @notice Set the prize contract for prize pool tracking
+     * @param _prize Address of the prize contract (address(0) to disable)
+     */
+    function setPrize(address _prize) external onlyController {
+        address previousPrize = address(prize);
+        prize = IPrize(_prize);
+        emit PrizeContractUpdated(previousPrize, _prize);
     }
 
     /**
@@ -220,7 +235,7 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     function recordMatchResult(
         address winner,
         address[] calldata losers,
-        uint256 prize
+        uint256 prizeAmount
     ) external {
         if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
         
@@ -244,7 +259,7 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
             matchId: matchId,
             winner: winner,
             losers: processedLosers,
-            prize: prize,
+            prize: prizeAmount,
             timestamp: block.timestamp
         });
         _matchIds.push(matchId);
@@ -272,11 +287,21 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         PlayerScore storage winnerScore = _scores[winner];
         winnerScore.player = winner;
         winnerScore.totalWins++;
-        winnerScore.totalPrize += prize;
+        winnerScore.totalPrize += prizeAmount;
         winnerScore.lastMatchId = matchId;
         winnerScore.lastWinTimestamp = block.timestamp;
 
         emit ScoreRecorded(matchId, winner, winnerScore.totalWins, winnerScore.totalPrize);
+
+        // Notify prize contract if configured
+        if (address(prize) != address(0)) {
+            // Use try-catch to prevent DoS from buggy prize contracts
+            try prize.recordMatchResult(winner) {
+                // Prize recorded successfully
+            } catch {
+                // Prize recording failed, but score recording succeeds
+            }
+        }
     }
 
     /**
@@ -404,7 +429,7 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
      * @param matchId The match ID
      * @return winner Winner address
      * @return losers Array of loser addresses
-     * @return prize Prize amount
+     * @return prizeAmount Prize amount
      * @return timestamp Match timestamp
      */
     function getMatchRecord(uint256 matchId)
@@ -413,7 +438,7 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         returns (
             address winner,
             address[] memory losers,
-            uint256 prize,
+            uint256 prizeAmount,
             uint256 timestamp
         )
     {
