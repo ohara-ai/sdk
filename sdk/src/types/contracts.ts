@@ -5,19 +5,20 @@
 export enum ContractType {
   GAME_SCORE = 'GameScore',
   GAME_MATCH = 'GameMatch',
+  GAME_PRIZE = 'GamePrize',
 }
 
 /**
  * Deployed contract type identifiers (lowercase, as used in storage/API)
  * Maps to the context structure in ContractAddresses
  */
-export type DeployedContractType = 'match' | 'score' | 'token' | 'coin'
+export type DeployedContractType = 'match' | 'score' | 'prize' | 'token' | 'coin'
 
 /**
  * Type guard to check if a string is a valid DeployedContractType
  */
 export function isDeployedContractType(value: string): value is DeployedContractType {
-  return ['match', 'score', 'token', 'coin'].includes(value.toLowerCase())
+  return ['match', 'score', 'prize', 'token', 'coin'].includes(value.toLowerCase())
 }
 
 /**

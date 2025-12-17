@@ -31,15 +31,17 @@ export interface WalletInfo {
 }
 
 export interface DeployContractRequest {
-  factoryType: 'MatchFactory' | 'ScoreFactory'
+  factoryType: 'MatchFactory' | 'ScoreFactory' | 'PrizeFactory'
   scoreAddress?: string
+  matchAddress?: string
+  matchesPerPool?: string
   chainId: number
 }
 
 export interface DeployContractResponse {
   contractAddress: Address
   txHash: Hash
-  contractType: 'Match' | 'Score'
+  contractType: 'Match' | 'Score' | 'Prize'
   deploymentId: string
 }
 

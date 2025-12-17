@@ -3,7 +3,6 @@ import { createPublicClient, createWalletClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { storagePaths, getConfig, getPreferredChainId } from '../config'
 import { getContracts, getControllerKey, getControllerAddress } from '../storage/contractStorage'
-import { SCORE_ABI } from '../abis/game/score'
 import { OharaApiClient } from '../server/oharaApiClient'
 import { ConfigError } from '../errors'
 import {
@@ -169,7 +168,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
 
     // Filter to only supported contract types
     const validContracts = data.contracts.filter(
-      (c): c is ContractType => c === 'Score' || c === 'Match',
+      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize',
     )
 
     console.log(
@@ -252,6 +251,18 @@ async function getExistingContracts(
         )
       }
     }
+
+    // Check for Prize contract in game context and verify on-chain
+    if (contracts.game?.prize) {
+      const existsOnChain = await contractExistsOnChain(contracts.game.prize, rpcUrl)
+      if (existsOnChain) {
+        contractMap.set('Prize', { address: contracts.game.prize })
+      } else {
+        console.log(
+          `[assureContractsDeployed] Stored Prize address ${contracts.game.prize} not found on-chain (will redeploy)`,
+        )
+      }
+    }
   } catch (error) {
     console.warn('Failed to fetch existing contracts:', error)
   }
@@ -330,9 +341,9 @@ async function executePermissions(
     try {
       const txHash = await walletClient.writeContract({
         address: action.targetContract as `0x${string}`,
-        abi: SCORE_ABI,
-        functionName: action.functionName as 'setRecorderAuthorization',
-        args: action.args as [`0x${string}`, boolean],
+        abi: action.abi as any,
+        functionName: action.functionName as any,
+        args: action.args as any,
         chain: null,
         account,
       })

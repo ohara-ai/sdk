@@ -2,6 +2,7 @@
 
 # Deploy factory contracts to Base networks
 # Deploys game.MatchFactory and game.ScoreFactory
+# Deploys game.PrizeFactory
 # 
 # Usage:
 #   ./scripts/deploy-factories.sh                    # Deploy to base-sepolia (default)
@@ -132,8 +133,32 @@ if [ $SCORE_EXIT_CODE -ne 0 ]; then
   exit 1
 fi
 
+echo ""
+echo "⏳ Waiting 60 seconds before deploying PrizeFactory..."
+echo "   (Allowing time for ScoreFactory transaction to be confirmed)"
+sleep 60
+echo ""
+
+# Deploy game.PrizeFactory
+echo "🏭 Deploying game.PrizeFactory..."
+echo "   (This may take a few minutes on mainnet...)"
+forge script contracts/script/game/DeployPrizeFactory.s.sol:DeployPrizeFactory \
+  $FORGE_ARGS --skip-simulation 2>&1 | tee /tmp/prize_deploy.log
+PRIZE_EXIT_CODE=${PIPESTATUS[0]}
+
+# Parse PrizeFactory address from deployment output
+PRIZE_FACTORY_ADDRESS=$(grep "PrizeFactory deployed at:" /tmp/prize_deploy.log | awk '{print $4}')
+
+if [ $PRIZE_EXIT_CODE -ne 0 ]; then
+  echo ""
+  echo "❌ Error: PrizeFactory deployment failed with exit code $PRIZE_EXIT_CODE"
+  echo "   Check the output above for details"
+  echo "   Broadcast data saved to: broadcast/DeployPrizeFactory.s.sol/$CHAIN_ID/run-latest.json"
+  exit 1
+fi
+
 # Cleanup temp files
-rm -f /tmp/match_deploy.log /tmp/score_deploy.log
+rm -f /tmp/match_deploy.log /tmp/score_deploy.log /tmp/prize_deploy.log
 
 echo ""
 echo "✅ Factory contracts deployed successfully to $NETWORK!"
@@ -141,6 +166,7 @@ echo ""
 echo "📋 Deployed Addresses:"
 echo "   MatchFactory: $MATCH_FACTORY_ADDRESS"
 echo "   ScoreFactory: $SCORE_FACTORY_ADDRESS"
+echo "   PrizeFactory: $PRIZE_FACTORY_ADDRESS"
 echo ""
 echo "📝 Next steps:"
 echo "   1. Update your .env file with the deployed addresses above"
@@ -162,6 +188,15 @@ fi
 if [ -n "$SCORE_FACTORY_ADDRESS" ]; then
   echo "forge verify-contract $SCORE_FACTORY_ADDRESS \\"
   echo "  contracts/src/factories/game/ScoreFactory.sol:ScoreFactory \\"
+  echo "  --chain $CHAIN_ID \\"
+  echo "  --verifier blockscout \\"
+  echo "  --verifier-url $VERIFIER_URL"
+  echo ""
+fi
+
+if [ -n "$PRIZE_FACTORY_ADDRESS" ]; then
+  echo "forge verify-contract $PRIZE_FACTORY_ADDRESS \\"
+  echo "  contracts/src/factories/game/PrizeFactory.sol:PrizeFactory \\"
   echo "  --chain $CHAIN_ID \\"
   echo "  --verifier blockscout \\"
   echo "  --verifier-url $VERIFIER_URL"

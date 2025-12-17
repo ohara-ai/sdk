@@ -12,6 +12,7 @@ export interface OharaContracts {
 export interface GameContracts {
   match?: string
   score?: string
+  prize?: string
 }
 
 export interface AppContracts {

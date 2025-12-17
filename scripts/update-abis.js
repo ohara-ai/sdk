@@ -18,6 +18,18 @@ const CONTRACT_MAPPINGS = [
     exportName: 'MATCH_FACTORY_ABI',
   },
   {
+    name: 'Prize',
+    output: 'game/prize',
+    type: 'local',
+    exportName: 'PRIZE_ABI',
+  },
+  {
+    name: 'PrizeFactory',
+    output: 'game/prizeFactory',
+    type: 'local',
+    exportName: 'PRIZE_FACTORY_ABI',
+  },
+  {
     name: 'Score',
     output: 'game/score',
     type: 'local',

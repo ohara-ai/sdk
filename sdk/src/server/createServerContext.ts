@@ -11,6 +11,7 @@ import type {
 import { privateKeyToAccount } from 'viem/accounts'
 import { createOperations } from '../core/game/match'
 import { createClientScoreOperations } from '../core/game/scores'
+import { createClientPrizeOperations } from '../core/game/prize'
 import {
   getContracts,
   getControllerKey,
@@ -165,6 +166,16 @@ export async function createServerOharaAi(
           )
         : undefined,
     },
+    prize: {
+      address: addresses.game?.prize as Address | undefined,
+      operations: addresses.game?.prize
+        ? createClientPrizeOperations(
+            addresses.game.prize as Address,
+            publicClient,
+            walletClient,
+          )
+        : undefined,
+    },
   }
 
   // Get controller address (automatically handles both API mode and direct mode)
@@ -184,6 +195,7 @@ export async function createServerOharaAi(
     factories: {
       gameMatch: config.factories.gameMatch,
       gameScore: config.factories.gameScore,
+      gamePrize: config.factories.gamePrize,
     },
   }
 

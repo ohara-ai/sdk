@@ -60,6 +60,7 @@ export { type ServerGameContext } from './context/OharaAiContext'
 export {
   deployGameMatch,
   deployGameScore,
+  deployGamePrize,
   getDeploymentConfig,
   getFactoryAddresses,
   type DeploymentConfig,

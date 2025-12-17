@@ -24,6 +24,9 @@ export interface DeploymentConfig {
     score: {
       factoryAddress: `0x${string}`
     }
+    prize: {
+      factoryAddress: `0x${string}`
+    }
   }
 }
 
@@ -97,6 +100,7 @@ export function createPublicClientOnly(rpcUrl: string): PublicClient {
 // Re-export deployment functions from separate files
 export { deployGameScore } from './deployGameScore'
 export { deployGameMatch } from './deployGameMatch'
+export { deployGamePrize } from './deployGamePrize'
 
 /**
  * Get deployment configuration from storage and environment variables
@@ -129,6 +133,9 @@ export async function getDeploymentConfig(): Promise<DeploymentConfig> {
       score: {
         factoryAddress: config.factories.gameScore!,
       },
+      prize: {
+        factoryAddress: config.factories.gamePrize!,
+      },
     },
   }
 }
@@ -141,5 +148,6 @@ export function getFactoryAddresses() {
   return {
     gameMatchFactory: config.factories.gameMatch,
     gameScoreFactory: config.factories.gameScore,
+    gamePrizeFactory: config.factories.gamePrize,
   }
 }

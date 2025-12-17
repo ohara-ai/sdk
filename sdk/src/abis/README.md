@@ -43,6 +43,18 @@ ABI for the GameScoreFactory contract, which deploys game.Score instances.
 - `GameScoreDeployed(address instance, address owner)`
 - `DeploymentLimitsUpdated(uint256, uint256, uint256)`
 
+#### `game/prizeFactory.ts`
+
+**Export:** `PRIZE_FACTORY_ABI`
+
+ABI for the GamePrizeFactory contract, which deploys game.Prize instances.
+
+**Key Functions:**
+
+- `deployPrize(address _matchContract)` - Deploy a new game.Prize instance
+- `deployPrizeWithConfig(address _matchContract, uint256 _matchesPerPool)` - Deploy with custom config
+- `setDefaultMatchesPerPool(uint256)` - Set default pool size for new deployments
+
 ### Feature Contracts
 
 #### `game/match.ts`
@@ -97,6 +109,19 @@ ABI for the GameScore contract, which tracks player scores and leaderboards.
 - `ScoreRecorded(uint256 matchId, address winner, uint256 totalWins, uint256 totalPrize)`
 - `RecorderAuthorized(address recorder, bool authorized)`
 
+#### `game/prize.ts`
+
+**Export:** `PRIZE_ABI`
+
+ABI for the GamePrize contract, which collects shares of match winnings into pools and lets pool winners claim prizes.
+
+**Key Functions:**
+
+- `getCurrentPoolId()` - Get current pool ID
+- `getPool(uint256 poolId)` - Get pool status (matchesCompleted, winner, highestWins, finalized, prizeClaimed)
+- `getClaimablePools(address player)` - Get pools the player can claim
+- `claimPrize(uint256 poolId)` - Claim prizes for a finalized pool (winner only)
+
 ## Usage
 
 ### In Your Code
@@ -105,8 +130,10 @@ ABI for the GameScore contract, which tracks player scores and leaderboards.
 // Import individual ABIs
 import { MATCH_ABI, MatchStatus } from '@ohara-ai/sdk'
 import { SCORE_ABI } from '@ohara-ai/sdk'
+import { PRIZE_ABI } from '@ohara-ai/sdk'
 import { MATCH_FACTORY_ABI } from '@ohara-ai/sdk'
 import { SCORE_FACTORY_ABI } from '@ohara-ai/sdk'
+import { PRIZE_FACTORY_ABI } from '@ohara-ai/sdk'
 
 // Or import from the main SDK index
 import {
@@ -114,6 +141,8 @@ import {
   SCORE_ABI,
   MATCH_FACTORY_ABI,
   SCORE_FACTORY_ABI,
+  PRIZE_ABI,
+  PRIZE_FACTORY_ABI,
   MatchStatus,
 } from '@ohara-ai/sdk'
 

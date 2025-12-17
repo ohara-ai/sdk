@@ -918,7 +918,9 @@ contract MatchSharesTest is Test {
     function test_CannotExceedMaxShareRecipients() public {
         vm.startPrank(controller);
         for (uint256 i = 0; i < 10; i++) {
-            gameMatch.registerShareRecipient(address(uint160(100 + i)), 100);
+            uint256 recipient = 100 + i;
+            assertLe(recipient, type(uint160).max);
+            gameMatch.registerShareRecipient(address(uint160(recipient)), 100);
         }
         
         vm.expectRevert(Match.TooManyShareRecipients.selector);

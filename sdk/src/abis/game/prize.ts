@@ -1,8 +1,12 @@
-export const SCORE_ABI = [
+export const PRIZE_ABI = [
   {
     "type": "constructor",
     "inputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -68,6 +72,19 @@ export const SCORE_ABI = [
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "claimPrize",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -153,6 +170,38 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
+    "name": "getClaimablePools",
+    "inputs": [
+      {
+        "name": "player",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "poolIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getCurrentPoolId",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getFeeConfiguration",
     "inputs": [],
     "outputs": [
@@ -176,32 +225,11 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "getMatchRecord",
-    "inputs": [
-      {
-        "name": "matchId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
+    "name": "getMatchesPerPool",
+    "inputs": [],
     "outputs": [
       {
-        "name": "winner",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "losers",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "prizeAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "timestamp",
+        "name": "",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -210,8 +238,76 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "getPlayerScore",
+    "name": "getPool",
     "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "matchesCompleted",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "highestWins",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "finalized",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "prizeClaimed",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPoolPrize",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPoolWins",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
         "name": "player",
         "type": "address",
@@ -220,22 +316,7 @@ export const SCORE_ABI = [
     ],
     "outputs": [
       {
-        "name": "totalWins",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalPrize",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "lastMatchId",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "lastWinTimestamp",
+        "name": "wins",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -244,110 +325,13 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "getRemainingMatchCapacity",
+    "name": "getTokens",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getRemainingPlayerCapacity",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTopPlayersByPrize",
-    "inputs": [
-      {
-        "name": "limit",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "players",
         "type": "address[]",
         "internalType": "address[]"
-      },
-      {
-        "name": "wins",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "prizes",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTopPlayersByWins",
-    "inputs": [
-      {
-        "name": "limit",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "players",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "wins",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "prizes",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTotalMatches",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getTotalPlayers",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -367,17 +351,12 @@ export const SCORE_ABI = [
         "internalType": "address"
       },
       {
-        "name": "_maxLosersPerMatch",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "_matchContract",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "name": "_maxTotalPlayers",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_maxTotalMatches",
+        "name": "_matchesPerPool",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -387,33 +366,20 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "maxLosersPerMatch",
+    "name": "matchContract",
     "inputs": [],
     "outputs": [
       {
         "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
+        "type": "address",
+        "internalType": "contract IShares"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "maxTotalMatches",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "maxTotalPlayers",
+    "name": "matchesPerPool",
     "inputs": [],
     "outputs": [
       {
@@ -476,35 +442,12 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "prize",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IPrize"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "recordMatchResult",
     "inputs": [
       {
         "name": "winner",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "losers",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "prizeAmount",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -525,12 +468,25 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "setPrize",
+    "name": "setMatchContract",
     "inputs": [
       {
-        "name": "_prize",
+        "name": "_matchContract",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setMatchesPerPool",
+    "inputs": [
+      {
+        "name": "_matchesPerPool",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -575,29 +531,6 @@ export const SCORE_ABI = [
         "name": "newOwner",
         "type": "address",
         "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "updateLimits",
-    "inputs": [
-      {
-        "name": "_maxLosersPerMatch",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_maxTotalPlayers",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_maxTotalMatches",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -738,22 +671,41 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
-    "name": "LimitsUpdated",
+    "name": "MatchContractUpdated",
     "inputs": [
       {
-        "name": "maxLosersPerMatch",
+        "name": "previousMatch",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newMatch",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MatchRecorded",
+    "inputs": [
+      {
+        "name": "poolId",
         "type": "uint256",
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint256"
       },
       {
-        "name": "maxTotalPlayers",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        "name": "winner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        "name": "maxTotalMatches",
+        "name": "matchNumber",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -763,16 +715,16 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
-    "name": "MatchEvicted",
+    "name": "MatchesPerPoolUpdated",
     "inputs": [
       {
-        "name": "matchId",
+        "name": "previousValue",
         "type": "uint256",
-        "indexed": true,
+        "indexed": false,
         "internalType": "uint256"
       },
       {
-        "name": "timestamp",
+        "name": "newValue",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -820,22 +772,28 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
-    "name": "PlayerEvicted",
+    "name": "PrizeClaimed",
     "inputs": [
       {
-        "name": "player",
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "totalWins",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
-        "name": "totalPrize",
+        "name": "amount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -845,19 +803,44 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
-    "name": "PrizeContractUpdated",
+    "name": "PrizePoolCreated",
     "inputs": [
       {
-        "name": "previousPrize",
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "matchesPerPool",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PrizePoolFinalized",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "winner",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "newPrize",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        "name": "totalWins",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -883,28 +866,16 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
-    "name": "ScoreRecorded",
+    "name": "SharesCollected",
     "inputs": [
       {
-        "name": "matchId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "winner",
+        "name": "token",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "totalWins",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalPrize",
+        "name": "amount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -961,7 +932,12 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
-    "name": "InvalidLimit",
+    "name": "InvalidMatchContract",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMatchesPerPool",
     "inputs": []
   },
   {
@@ -981,7 +957,27 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
+    "name": "NoPrizeToClaim",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NotInitializing",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotPoolWinner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PoolNotFinalized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PrizeAlreadyClaimed",
     "inputs": []
   },
   {

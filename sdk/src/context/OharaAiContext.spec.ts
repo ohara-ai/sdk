@@ -44,14 +44,16 @@ describe('OharaAi Context - Specification Tests', () => {
   })
 
   describe('Specification: GameContext Structure', () => {
-    it('SPEC: GameContext - has match and scores properties', () => {
+    it('SPEC: GameContext - has match, scores, and prize properties', () => {
       const context: GameContext = {
         match: {},
         scores: {},
+        prize: {},
       }
 
       expect(context).toHaveProperty('match')
       expect(context).toHaveProperty('scores')
+      expect(context).toHaveProperty('prize')
     })
 
     it('SPEC: GameContext - match has address and operations', () => {
@@ -60,6 +62,7 @@ describe('OharaAi Context - Specification Tests', () => {
           address: '0x1234567890123456789012345678901234567890',
         },
         scores: {},
+        prize: {},
       }
 
       expect(context.match).toHaveProperty('address')
@@ -71,6 +74,7 @@ describe('OharaAi Context - Specification Tests', () => {
         scores: {
           address: '0x9876543210987654321098765432109876543210',
         },
+        prize: {},
       }
 
       expect(context.scores).toHaveProperty('address')
@@ -80,12 +84,15 @@ describe('OharaAi Context - Specification Tests', () => {
       const context: GameContext = {
         match: {},
         scores: {},
+        prize: {},
       }
 
       expect(context.match.address).toBeUndefined()
       expect(context.match.operations).toBeUndefined()
       expect(context.scores.address).toBeUndefined()
       expect(context.scores.operations).toBeUndefined()
+      expect(context.prize.address).toBeUndefined()
+      expect(context.prize.operations).toBeUndefined()
     })
   })
 
@@ -94,6 +101,7 @@ describe('OharaAi Context - Specification Tests', () => {
       const context: ServerGameContext = {
         match: {},
         scores: {},
+        prize: {},
       }
 
       expect(context).toHaveProperty('match')
@@ -108,6 +116,7 @@ describe('OharaAi Context - Specification Tests', () => {
           address: '0x1234567890123456789012345678901234567890',
         },
         scores: {},
+        prize: {},
       }
 
       expect(context.match).toBeDefined()
@@ -161,6 +170,7 @@ describe('OharaAi Context - Specification Tests', () => {
         factories: {
           gameMatch: '0x1234567890123456789012345678901234567890',
           gameScore: '0x9876543210987654321098765432109876543210',
+          gamePrize: '0x5555555555555555555555555555555555555555',
         },
       }
 
@@ -180,6 +190,7 @@ describe('OharaAi Context - Specification Tests', () => {
 
       expect(context.factories?.gameMatch).toBeUndefined()
       expect(context.factories?.gameScore).toBeUndefined()
+      expect(context.factories?.gamePrize).toBeUndefined()
     })
   })
 
@@ -187,7 +198,7 @@ describe('OharaAi Context - Specification Tests', () => {
     it('SPEC: OharaAiContext - has all required top-level properties', () => {
       const context: OharaAiContext = {
         ohara: { contracts: {} },
-        game: { match: {}, scores: {} },
+        game: { match: {}, scores: {}, prize: {} },
         app: { coin: {}, controller: {} },
         internal: {},
         loadAddresses: async () => {},
@@ -221,6 +232,9 @@ describe('OharaAi Context - Specification Tests', () => {
           scores: {
             address: '0xSCORE00000000000000000000000000000000',
           },
+          prize: {
+            address: '0xPRIZE00000000000000000000000000000000',
+          },
         },
         app: {
           coin: {
@@ -235,6 +249,7 @@ describe('OharaAi Context - Specification Tests', () => {
           factories: {
             gameMatch: '0xFACTORY1000000000000000000000000000',
             gameScore: '0xFACTORY2000000000000000000000000000',
+            gamePrize: '0xFACTORY3000000000000000000000000000',
           },
         },
         loadAddresses: async () => {},
@@ -243,17 +258,19 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(context.ohara.contracts.token).toBeDefined()
       expect(context.game.match.address).toBeDefined()
       expect(context.game.scores.address).toBeDefined()
+      expect(context.game.prize.address).toBeDefined()
       expect(context.app.coin.address).toBeDefined()
       expect(context.app.controller.address).toBeDefined()
       expect(context.app.chainId).toBe(1)
       expect(context.internal.factories?.gameMatch).toBeDefined()
       expect(context.internal.factories?.gameScore).toBeDefined()
+      expect(context.internal.factories?.gamePrize).toBeDefined()
     })
 
     it('SPEC: OharaAiContext - can be minimally populated', () => {
       const context: OharaAiContext = {
         ohara: { contracts: {} },
-        game: { match: {}, scores: {} },
+        game: { match: {}, scores: {}, prize: {} },
         app: { coin: {}, controller: {} },
         internal: {},
         loadAddresses: async () => {},
@@ -262,6 +279,7 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(context.ohara.contracts.token).toBeUndefined()
       expect(context.game.match.address).toBeUndefined()
       expect(context.game.scores.address).toBeUndefined()
+      expect(context.game.prize.address).toBeUndefined()
       expect(context.app.coin.address).toBeUndefined()
       expect(context.app.controller.address).toBeUndefined()
       expect(context.app.chainId).toBeUndefined()
@@ -272,7 +290,7 @@ describe('OharaAi Context - Specification Tests', () => {
     it('SPEC: context follows domain-driven hierarchy', () => {
       const context: OharaAiContext = {
         ohara: { contracts: {} },
-        game: { match: {}, scores: {} },
+        game: { match: {}, scores: {}, prize: {} },
         app: { coin: {}, controller: {} },
         internal: {},
         loadAddresses: async () => {},
@@ -285,6 +303,7 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(context.game).toBeDefined()
       expect(context.game.match).toBeDefined()
       expect(context.game.scores).toBeDefined()
+      expect(context.game.prize).toBeDefined()
 
       // App domain
       expect(context.app).toBeDefined()
@@ -306,6 +325,10 @@ describe('OharaAi Context - Specification Tests', () => {
             address: '0x9876543210987654321098765432109876543210',
             operations: {} as any, // Operations would be created by factory functions
           },
+          prize: {
+            address: '0x5555555555555555555555555555555555555555',
+            operations: {} as any,
+          },
         },
         app: { coin: {}, controller: {} },
         internal: {},
@@ -317,6 +340,8 @@ describe('OharaAi Context - Specification Tests', () => {
       expect(contextWithOperations.game.match).toHaveProperty('operations')
       expect(contextWithOperations.game.scores).toHaveProperty('address')
       expect(contextWithOperations.game.scores).toHaveProperty('operations')
+      expect(contextWithOperations.game.prize).toHaveProperty('address')
+      expect(contextWithOperations.game.prize).toHaveProperty('operations')
 
       // Verify they're in the same object (not separate)
       const matchObj = contextWithOperations.game.match
@@ -339,11 +364,13 @@ describe('OharaAi Context - Specification Tests', () => {
       const gameContext: GameContext = {
         match: {},
         scores: {},
+        prize: {},
       }
 
       const serverGameContext: ServerGameContext = {
         match: {},
         scores: {},
+        prize: {},
       }
 
       expect(gameContext).toBeDefined()

@@ -5,9 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {Prize} from "../../../src/features/game/Prize.sol";
 import {Match} from "../../../src/features/game/Match.sol";
 import {Score} from "../../../src/features/game/Score.sol";
-import {IPrize} from "../../../src/interfaces/game/IPrize.sol";
 import {MockERC20} from "../../mocks/MockERC20.sol";
-import {Owned} from "../../../src/base/Owned.sol";
 
 contract PrizeTest is Test {
     Prize public prize;
@@ -345,7 +343,7 @@ contract PrizeIntegrationTest is Test {
         assertFalse(claimed);
         
         // Check prize amount (10% of 2 matches * 2 ether each = 0.4 ether)
-        uint256 expectedPrize = (STAKE_AMOUNT * 2 * SHARE_BASIS_POINTS / 10000) * 2;
+        uint256 expectedPrize = (STAKE_AMOUNT * 2 * SHARE_BASIS_POINTS * 2) / 10000;
         uint256 poolPrize = prize.getPoolPrize(1, address(0));
         assertEq(poolPrize, expectedPrize);
         

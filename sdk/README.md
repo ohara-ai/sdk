@@ -296,6 +296,10 @@ interface OharaAiContext {
       address?: Address
       operations?: ScoreOperations
     }
+    prize: {
+      address?: Address
+      operations?: PrizeOperations
+    }
   }
 
   // Ohara-managed contracts
@@ -317,6 +321,7 @@ interface OharaAiContext {
     factories?: {
       gameMatch?: Address
       gameScore?: Address
+      gamePrize?: Address
     }
   }
 

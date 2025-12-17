@@ -71,6 +71,32 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
+    "name": "MAX_SHARE_BASIS_POINTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_SHARE_RECIPIENTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "MAX_STAKE_AMOUNT",
     "inputs": [],
     "outputs": [
@@ -110,6 +136,19 @@ export const MATCH_ABI = [
         "name": "matchId",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimShares",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -368,6 +407,30 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
+    "name": "getPendingShares",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getPlayerStake",
     "inputs": [
       {
@@ -386,6 +449,56 @@ export const MATCH_ABI = [
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getShareConfig",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "shareBasisPoints",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getShareRecipients",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "recipients",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "shares",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getShareTokens",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "tokens",
+        "type": "address[]",
+        "internalType": "address[]"
       }
     ],
     "stateMutability": "view"
@@ -519,6 +632,37 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
+    "name": "registerShareRecipient",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "shareBasisPoints",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "removeShareRecipient",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "score",
     "inputs": [],
     "outputs": [
@@ -572,6 +716,19 @@ export const MATCH_ABI = [
   {
     "type": "function",
     "name": "totalFeeShare",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "totalShareBasisPoints",
     "inputs": [],
     "outputs": [
       {
@@ -980,6 +1137,88 @@ export const MATCH_ABI = [
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "ShareRecipientRegistered",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "shareBasisPoints",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ShareRecipientRemoved",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SharesAccrued",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SharesClaimed",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "AddressEmptyCode",
     "inputs": [
@@ -1053,6 +1292,11 @@ export const MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidShareRecipient",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidStakeAmount",
     "inputs": []
   },
@@ -1098,6 +1342,11 @@ export const MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "NoSharesToClaim",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NoStakeToWithdraw",
     "inputs": []
   },
@@ -1134,6 +1383,21 @@ export const MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "ShareExceedsMax",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ShareRecipientAlreadyExists",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ShareRecipientNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "StakeAmountTooHigh",
     "inputs": []
   },
@@ -1145,6 +1409,11 @@ export const MATCH_ABI = [
   {
     "type": "error",
     "name": "TooManyPlayers",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TooManyShareRecipients",
     "inputs": []
   },
   {

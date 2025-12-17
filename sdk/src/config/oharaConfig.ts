@@ -16,6 +16,7 @@ export interface OharaConfig {
   factories: {
     gameMatch?: Address
     gameScore?: Address
+    gamePrize?: Address
   }
 
   /** Public token/coin addresses */
@@ -54,6 +55,7 @@ export function loadConfig(): OharaConfig {
   // Factory addresses (optional)
   const gameMatchFactory = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY as Address | undefined
   const gameScoreFactory = process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY as Address | undefined
+  const gamePrizeFactory = process.env.NEXT_PUBLIC_GAME_PRIZE_FACTORY as Address | undefined
 
   // Public addresses (optional)
   const token = process.env.NEXT_PUBLIC_HELLOWORLD_TOKEN as Address | undefined
@@ -73,6 +75,7 @@ export function loadConfig(): OharaConfig {
     factories: {
       gameMatch: gameMatchFactory,
       gameScore: gameScoreFactory,
+      gamePrize: gamePrizeFactory,
     },
     publicAddresses: {
       token,

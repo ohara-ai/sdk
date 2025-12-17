@@ -2,6 +2,7 @@
 
 # Deploy factory contracts to the network
 # Deploys game.MatchFactory and game.ScoreFactory
+# Deploys game.PrizeFactory
 
 set -e
 
@@ -39,6 +40,13 @@ echo ""
 # Deploy game.ScoreFactory
 echo "🏭 Deploying game.ScoreFactory..."
 forge script ../contracts/script/game/DeployScoreFactory.s.sol:DeployScoreFactory \
+  --rpc-url "$RPC_URL" --broadcast
+
+echo ""
+
+# Deploy game.PrizeFactory
+echo "🏭 Deploying game.PrizeFactory..."
+forge script ../contracts/script/game/DeployPrizeFactory.s.sol:DeployPrizeFactory \
   --rpc-url "$RPC_URL" --broadcast
 
 echo ""

@@ -2,7 +2,7 @@ import fs from 'fs/promises'
 import { Address } from 'viem'
 import type { DeployedContract } from '../server/oharaApiClient'
 import type { ContractAddresses } from './contractsStorage'
-import { normalizeContractType, type DeployedContractType } from '../types/contracts'
+import { normalizeContractType } from '../types/contracts'
 import { getStorageDir, storagePaths } from '../config'
 
 const STORAGE_DIR = getStorageDir()
@@ -129,6 +129,10 @@ export function convertToContractAddresses(contracts: {
         if (!result.game) result.game = {}
         result.game.score = contract.contractAddress
         break
+      case 'prize':
+        if (!result.game) result.game = {}
+        result.game.prize = contract.contractAddress
+        break
       case 'token':
         if (!result.ohara) result.ohara = {}
         result.ohara.token = contract.contractAddress
@@ -172,6 +176,10 @@ export function convertCacheToContractAddresses(cache: {
       case 'score':
         if (!result.game) result.game = {}
         result.game.score = contract.contractAddress
+        break
+      case 'prize':
+        if (!result.game) result.game = {}
+        result.game.prize = contract.contractAddress
         break
       case 'token':
         if (!result.ohara) result.ohara = {}

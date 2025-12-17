@@ -1,6 +1,10 @@
 import { deployGameScore } from './deployGameScore'
 import { deployGameMatch } from './deployGameMatch'
+import { deployGamePrize } from './deployGamePrize'
 import type { DeploymentResult } from './deploymentService'
+import { SCORE_ABI } from '../abis/game/score'
+import { MATCH_ABI } from '../abis/game/match'
+import { PRIZE_ABI } from '../abis/game/prize'
 
 // =============================================================================
 // CONTRACT TYPES
@@ -9,7 +13,7 @@ import type { DeploymentResult } from './deploymentService'
 /**
  * Supported contract types
  */
-export type ContractType = 'Score' | 'Match'
+export type ContractType = 'Score' | 'Match' | 'Prize'
 
 /**
  * Context passed to permission functions
@@ -30,6 +34,7 @@ export interface PermissionContext {
  */
 export interface PermissionAction {
   targetContract: string
+  abi: readonly unknown[]
   functionName: string
   args: unknown[]
   description: string
@@ -111,6 +116,7 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
         return [
           {
             targetContract: scoreAddress,
+            abi: SCORE_ABI,
             functionName: 'setRecorderAuthorization',
             args: [context.controllerAddress, true],
             description: 'Authorize controller to record scores (no Match contract)',
@@ -147,9 +153,56 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
       return [
         {
           targetContract: scoreAddress,
+          abi: SCORE_ABI,
           functionName: 'setRecorderAuthorization',
           args: [matchAddress, true],
           description: 'Authorize Match contract to record scores',
+        },
+      ]
+    },
+  },
+
+  Prize: {
+    dependencies: ['Score', 'Match'],
+
+    buildDeployParams: (deployedAddresses: Record<string, string>) => ({
+      gameMatchAddress: deployedAddresses['Match'] as `0x${string}` | undefined,
+    }),
+
+    deploy: async (params: Record<string, unknown>) =>
+      deployGamePrize(params as { gameMatchAddress?: `0x${string}` }),
+
+    getPermissionActions: (context: PermissionContext) => {
+      const scoreAddress = context.deployedAddresses['Score']
+      const matchAddress = context.deployedAddresses['Match']
+      const prizeAddress = context.deployedAddresses['Prize']
+
+      if (!scoreAddress || !matchAddress || !prizeAddress) return []
+
+      // Only set wiring if Prize was deployed in this batch
+      if (!context.deployedInBatch.has('Prize')) return []
+
+      return [
+        {
+          targetContract: scoreAddress,
+          abi: SCORE_ABI,
+          functionName: 'setPrize',
+          args: [prizeAddress],
+          description: 'Configure Score to forward winners to Prize pools',
+        },
+        {
+          targetContract: prizeAddress,
+          abi: PRIZE_ABI,
+          functionName: 'setRecorderAuthorization',
+          args: [scoreAddress, true],
+          description: 'Authorize Score contract to record prize pool results',
+        },
+        {
+          targetContract: matchAddress,
+          abi: MATCH_ABI,
+          functionName: 'registerShareRecipient',
+          args: [prizeAddress, 100n],
+          description: 'Register Prize contract as a share recipient in Match',
         },
       ]
     },

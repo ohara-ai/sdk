@@ -11,6 +11,7 @@ import {
 import { PublicClient, WalletClient, Address } from 'viem'
 import { createClientMatchOperations } from '../core/game/match'
 import { createClientScoreOperations as createClientScoreOperations } from '../core/game/scores'
+import { createClientPrizeOperations } from '../core/game/prize'
 import {
   OharaAiContext,
   GameContext,
@@ -61,6 +62,9 @@ export function OharaAiProvider({
   const [gameScoreAddress, setGameScoreAddress] = useState<
     Address | undefined
   >()
+  const [gamePrizeAddress, setGamePrizeAddress] = useState<
+    Address | undefined
+  >()
   const [controllerAddress, setControllerAddress] = useState<
     Address | undefined
   >()
@@ -68,6 +72,9 @@ export function OharaAiProvider({
     Address | undefined
   >()
   const [gameScoreFactory, setGameScoreFactory] = useState<
+    Address | undefined
+  >()
+  const [gamePrizeFactory, setGamePrizeFactory] = useState<
     Address | undefined
   >()
 
@@ -106,9 +113,11 @@ export function OharaAiProvider({
       // Extract addresses from new hierarchical structure
       const matchAddr = data.addresses?.game?.match
       const scoreAddr = data.addresses?.game?.score
+      const prizeAddr = data.addresses?.game?.prize
       const ctrlAddr = data.addresses?.app?.controller
       const matchFactory = data.factories?.gameMatch
       const scoreFactory = data.factories?.gameScore
+      const prizeFactory = data.factories?.gamePrize
 
       if (
         matchAddr &&
@@ -124,6 +133,13 @@ export function OharaAiProvider({
         setGameScoreAddress(scoreAddr as Address)
       }
 
+      if (
+        prizeAddr &&
+        prizeAddr !== '0x0000000000000000000000000000000000000000'
+      ) {
+        setGamePrizeAddress(prizeAddr as Address)
+      }
+
       if (ctrlAddr) {
         setControllerAddress(ctrlAddr as Address)
       }
@@ -135,10 +151,15 @@ export function OharaAiProvider({
       if (scoreFactory) {
         setGameScoreFactory(scoreFactory as Address)
       }
+
+      if (prizeFactory) {
+        setGamePrizeFactory(prizeFactory as Address)
+      }
     } catch (error) {
       console.error('Error loading contract addresses from backend:', error)
       setGameMatchAddress(undefined)
       setGameScoreAddress(undefined)
+      setGamePrizeAddress(undefined)
       setControllerAddress(undefined)
     }
   }
@@ -196,11 +217,23 @@ export function OharaAiProvider({
                 )
               : undefined,
         },
+        prize: {
+          address: gamePrizeAddress,
+          operations:
+            gamePrizeAddress && effectivePublicClient
+              ? createClientPrizeOperations(
+                  gamePrizeAddress,
+                  effectivePublicClient,
+                  effectiveWalletClient,
+                )
+              : undefined,
+        },
       }
     },
     [
       gameMatchAddress,
       gameScoreAddress,
+      gamePrizeAddress,
       effectivePublicClient,
       effectiveWalletClient,
     ],
@@ -226,9 +259,10 @@ export function OharaAiProvider({
       factories: {
         gameMatch: gameMatchFactory,
         gameScore: gameScoreFactory,
+        gamePrize: gamePrizeFactory,
       },
     }),
-    [gameMatchFactory, gameScoreFactory],
+    [gameMatchFactory, gameScoreFactory, gamePrizeFactory],
   )
 
   const value: OharaAiContext = {

@@ -6,9 +6,9 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { deployGameMatch, deployGameScore } from './deploymentService'
+import { deployGameMatch, deployGameScore, deployGamePrize } from './deploymentService'
 import type { DeploymentResult } from './deploymentService'
-import { getConfig, clearConfigCache } from '../config/oharaConfig'
+import { getConfig } from '../config/oharaConfig'
 
 // Mock the dependencies
 vi.mock('../storage/contractStorage', () => ({
@@ -25,7 +25,6 @@ vi.mock('../storage/contractStorage', () => ({
 
 vi.mock('../config/oharaConfig', () => ({
   getConfig: vi.fn(),
-  clearConfigCache: vi.fn(),
 }))
 
 vi.mock('viem', async () => {
@@ -61,6 +60,13 @@ vi.mock('viem', async () => {
                 '0x000000000000000000000000BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
               ],
             },
+            {
+              address: '0x5555555555555555555555555555555555555555',
+              topics: [
+                '0xeventSignature',
+                '0x000000000000000000000000CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC',
+              ],
+            },
           ],
         })
       }),
@@ -76,6 +82,8 @@ describe('Deployment Integration - Specification Tests', () => {
       '0x1234567890123456789012345678901234567890'
     process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY =
       '0x9876543210987654321098765432109876543210'
+    process.env.NEXT_PUBLIC_GAME_PRIZE_FACTORY =
+      '0x5555555555555555555555555555555555555555'
     process.env.RPC_URL = 'http://localhost:8545'
     process.env.PRIVATE_KEY =
       '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
@@ -83,9 +91,11 @@ describe('Deployment Integration - Specification Tests', () => {
     // Mock config with default values
     vi.mocked(getConfig).mockReturnValue({
       rpcUrl: 'http://localhost:8545',
+      sdkChainId: 31337,
       factories: {
         gameMatch: '0x1234567890123456789012345678901234567890' as `0x${string}`,
         gameScore: '0x9876543210987654321098765432109876543210' as `0x${string}`,
+        gamePrize: '0x5555555555555555555555555555555555555555' as `0x${string}`,
       },
       publicAddresses: {},
       isApiMode: false,
@@ -169,10 +179,28 @@ describe('Deployment Integration - Specification Tests', () => {
     })
   })
 
+  describe('Specification: Deploy GamePrize', () => {
+    it('SPEC: deployGamePrize - successfully deploys with zero address', async () => {
+      const result = await deployGamePrize({})
+
+      expect(result.success).toBe(true)
+      expect(result.address).toBeDefined()
+      expect(result.transactionHash).toBeDefined()
+    })
+
+    it('SPEC: deployGamePrize - deploys with GameMatch address', async () => {
+      const result = await deployGamePrize({
+        gameMatchAddress: '0x1234567890123456789012345678901234567890',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.address).toBeDefined()
+    })
+  })
+
   describe('Specification: Error Handling', () => {
     it('SPEC: deployment fails gracefully when environment not configured', async () => {
       delete process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
-      vi.mocked(clearConfigCache).mockImplementation(() => {})
       vi.mocked(getConfig).mockImplementation(() => {
         throw new Error('NEXT_PUBLIC_GAME_MATCH_FACTORY environment variable is required')
       })
@@ -182,7 +210,6 @@ describe('Deployment Integration - Specification Tests', () => {
 
     it('SPEC: deployment fails when factory address missing', async () => {
       delete process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
-      vi.mocked(clearConfigCache).mockImplementation(() => {})
       vi.mocked(getConfig).mockImplementation(() => {
         throw new Error('NEXT_PUBLIC_GAME_SCORE_FACTORY environment variable is required')
       })

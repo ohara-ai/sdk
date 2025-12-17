@@ -41,6 +41,11 @@ export {
   type TopPlayersResult,
 } from './core/game/scores'
 
+export {
+  type PrizeOperations,
+  type PrizePool,
+} from './core/game/prize'
+
 // Hooks
 export {
   useTokenApproval,
@@ -54,5 +59,7 @@ export {
   SCORE_ABI,
   MATCH_FACTORY_ABI,
   SCORE_FACTORY_ABI,
+  PRIZE_ABI,
+  PRIZE_FACTORY_ABI,
   ERC20_ABI,
 } from './abis'
