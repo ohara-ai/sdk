@@ -5,7 +5,7 @@ import { getContracts } from '@ohara-ai/sdk/server'
 export const dynamic = 'force-dynamic'
 
 interface ContractValidation {
-  type: 'Score' | 'Match'
+  type: 'Score' | 'Match' | 'Prize'
   address: string | undefined
   existsOnChain: boolean
   source: 'local' | 'api' | 'none'
@@ -73,6 +73,16 @@ export async function GET() {
       address: matchAddress,
       existsOnChain: matchExists,
       source: matchAddress ? 'api' : 'none',
+    })
+
+    // Check Prize
+    const prizeAddress = contracts.game?.prize
+    const prizeExists = await contractExistsOnChain(prizeAddress, rpcUrl)
+    validations.push({
+      type: 'Prize',
+      address: prizeAddress,
+      existsOnChain: prizeExists,
+      source: prizeAddress ? 'api' : 'none',
     })
 
     // Determine overall status

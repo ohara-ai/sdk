@@ -50,6 +50,7 @@ export async function GET() {
       factories: {
         gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY,
         gameScore: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY,
+        gamePrize: process.env.NEXT_PUBLIC_GAME_PRIZE_FACTORY,
       },
       // Include deployment status for debugging
       deployment: {

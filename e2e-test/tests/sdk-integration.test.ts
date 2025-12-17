@@ -33,6 +33,7 @@ describe('SDK Integration', () => {
     it('should validate factory addresses are valid hex', () => {
       const gameMatchFactory = process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY
       const gameScoreFactory = process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY
+      const gamePrizeFactory = process.env.NEXT_PUBLIC_GAME_PRIZE_FACTORY
 
       if (gameMatchFactory) {
         expect(gameMatchFactory).toMatch(/^0x[a-fA-F0-9]{40}$/)
@@ -40,6 +41,10 @@ describe('SDK Integration', () => {
 
       if (gameScoreFactory) {
         expect(gameScoreFactory).toMatch(/^0x[a-fA-F0-9]{40}$/)
+      }
+
+      if (gamePrizeFactory) {
+        expect(gamePrizeFactory).toMatch(/^0x[a-fA-F0-9]{39,40}$/)
       }
     })
   })

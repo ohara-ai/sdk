@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, ArrowRight, Trophy, Swords } from 'lucide-react'
+import { ChevronDown, ChevronUp, ArrowRight, Trophy, Swords, Gift } from 'lucide-react'
 import Link from 'next/link'
 import { DeploymentPlanBox } from '@/components/features/DeploymentPlanBox'
 import { OnchainKitWallet } from '@/components/OnchainKitWallet'
@@ -87,6 +87,20 @@ export default function Home() {
                 <div className="flex-1">
                   <p className="font-medium text-gray-900">Game Match</p>
                   <p className="text-sm text-gray-500">Match escrow and staking</p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
+              </Link>
+
+              <Link
+                href="/testing/features/game/prize"
+                className="group flex items-center gap-3 p-4 rounded-lg border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all"
+              >
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Gift className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-900">Game Prize</p>
+                  <p className="text-sm text-gray-500">Pools and claims</p>
                 </div>
                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all" />
               </Link>

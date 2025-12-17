@@ -26,7 +26,7 @@ import {
 } from 'lucide-react'
 import { useOharaAi } from '@ohara-ai/sdk'
 
-type ContractType = 'Score' | 'Match'
+type ContractType = 'Score' | 'Match' | 'Prize'
 
 interface ContractOption {
   type: ContractType
@@ -46,6 +46,12 @@ const CONTRACT_OPTIONS: ContractOption[] = [
     name: 'Game Match',
     description: 'Escrow-based match system with stake management',
     dependsOn: ['Score'],
+  },
+  {
+    type: 'Prize',
+    name: 'Game Prize',
+    description: 'Prize pools, pool winners, and claiming',
+    dependsOn: ['Match'],
   },
 ]
 
@@ -83,6 +89,7 @@ export function DeploymentPlanBox() {
   const deployedContracts = {
     Score: game.scores?.address,
     Match: game.match?.address,
+    Prize: game.prize?.address,
   }
 
   // Validate contracts on-chain
@@ -132,10 +139,19 @@ export function DeploymentPlanBox() {
 
   // Re-validate when addresses change
   useEffect(() => {
-    if (deployedContracts.Score || deployedContracts.Match) {
+    if (
+      deployedContracts.Score ||
+      deployedContracts.Match ||
+      deployedContracts.Prize
+    ) {
       validateContracts()
     }
-  }, [deployedContracts.Score, deployedContracts.Match, validateContracts])
+  }, [
+    deployedContracts.Score,
+    deployedContracts.Match,
+    deployedContracts.Prize,
+    validateContracts,
+  ])
 
   // Toggle contract selection
   const toggleContract = (type: ContractType) => {
@@ -143,14 +159,26 @@ export function DeploymentPlanBox() {
     
     if (newSelected.has(type)) {
       newSelected.delete(type)
-      // If removing Score, also remove Match (dependency)
+      // If removing Score, also remove Match and Prize (dependencies)
       if (type === 'Score') {
         newSelected.delete('Match')
+        newSelected.delete('Prize')
+      }
+
+      // If removing Match, also remove Prize (dependency)
+      if (type === 'Match') {
+        newSelected.delete('Prize')
       }
     } else {
       newSelected.add(type)
       // If adding Match, also add Score (dependency)
       if (type === 'Match') {
+        newSelected.add('Score')
+      }
+
+      // If adding Prize, also add Match and Score (dependencies)
+      if (type === 'Prize') {
+        newSelected.add('Match')
         newSelected.add('Score')
       }
     }
@@ -417,7 +445,9 @@ export function DeploymentPlanBox() {
               </p>
               
               {/* Deployment order - Score first if selected, then Match */}
-              {(['Score', 'Match'] as ContractType[]).filter(c => selectedContracts.has(c)).map((contractType, index) => {
+              {(['Score', 'Match', 'Prize'] as ContractType[])
+                .filter(c => selectedContracts.has(c))
+                .map((contractType, index) => {
                 const option = CONTRACT_OPTIONS.find(o => o.type === contractType)!
                 const status = getContractStatus(contractType)
                 const address = deployedContracts[contractType]
@@ -455,6 +485,14 @@ export function DeploymentPlanBox() {
                 <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
                   <p className="text-xs text-blue-800">
                     <span className="font-medium">Permissions:</span> If Match is deployed, it will be authorized to record scores on the Score contract.
+                  </p>
+                </div>
+              )}
+
+              {selectedContracts.has('Prize') && (
+                <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200">
+                  <p className="text-xs text-blue-800">
+                    <span className="font-medium">Permissions:</span> If Prize is deployed, Score will be wired to Prize pools and Prize will be registered as a Match share recipient.
                   </p>
                 </div>
               )}

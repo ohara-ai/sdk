@@ -7,6 +7,7 @@ import { useOharaAi } from '@ohara-ai/sdk'
 import { Copy, ExternalLink, Factory, Wallet } from 'lucide-react'
 import { MATCH_FACTORY_ABI } from '@ohara-ai/sdk'
 import { SCORE_FACTORY_ABI } from '@ohara-ai/sdk'
+import { PRIZE_FACTORY_ABI } from '@ohara-ai/sdk'
 
 interface FactoryConfig {
   defaultMaxActiveMatches?: bigint
@@ -25,7 +26,7 @@ interface AddressInfo {
 }
 
 export function AddressesInfo() {
-  const { internal, app } = useOharaAi()
+  const { internal, app, game } = useOharaAi()
   const publicClient = usePublicClient()
   const [addresses, setAddresses] = useState<AddressInfo[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -48,6 +49,35 @@ export function AddressesInfo() {
         addressesToLoad.push({
           label: 'GameScore Factory',
           address: internal.factories.gameScore,
+        })
+      }
+
+      if (internal.factories?.gamePrize) {
+        addressesToLoad.push({
+          label: 'GamePrize Factory',
+          address: internal.factories.gamePrize,
+        })
+      }
+
+      // Add deployed contract addresses
+      if (game.match?.address) {
+        addressesToLoad.push({
+          label: 'GameMatch Contract',
+          address: game.match.address,
+        })
+      }
+
+      if (game.scores?.address) {
+        addressesToLoad.push({
+          label: 'GameScore Contract',
+          address: game.scores.address,
+        })
+      }
+
+      if (game.prize?.address) {
+        addressesToLoad.push({
+          label: 'GamePrize Contract',
+          address: game.prize.address,
         })
       }
 
@@ -130,6 +160,20 @@ export function AddressesInfo() {
               } catch (error) {
                 console.error('Error loading GameScore factory config:', error)
               }
+            } else if (info.label === 'GamePrize Factory') {
+              try {
+                const defaultMatchesPerPool = await publicClient.readContract({
+                  address: info.address as `0x${string}`,
+                  abi: PRIZE_FACTORY_ABI,
+                  functionName: 'defaultMatchesPerPool',
+                })
+
+                result.config = {
+                  defaultMaxActiveMatches: defaultMatchesPerPool as bigint,
+                }
+              } catch (error) {
+                console.error('Error loading GamePrize factory config:', error)
+              }
             }
 
             return result
@@ -145,7 +189,7 @@ export function AddressesInfo() {
     }
 
     loadAddressesWithBalances()
-  }, [internal.factories, app.controller.address, publicClient])
+  }, [internal.factories, app.controller.address, game, publicClient])
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
@@ -173,7 +217,7 @@ export function AddressesInfo() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
       {addresses.map((info, index) => {
         const hasBalance = info.balance && parseFloat(info.balance) > 0
         const isFactory = info.label.includes('Factory')
@@ -269,6 +313,17 @@ export function AddressesInfo() {
                       <span className="text-gray-600">Max Total Matches:</span>
                       <span className="font-mono font-semibold text-blue-700">
                         {info.config.maxTotalMatches?.toString()}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                {info.label === 'GamePrize Factory' && (
+                  <>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-600">Matches/Pool:</span>
+                      <span className="font-mono font-semibold text-blue-700">
+                        {info.config.defaultMaxActiveMatches?.toString()}
                       </span>
                     </div>
                   </>

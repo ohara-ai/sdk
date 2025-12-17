@@ -16,7 +16,7 @@ function getStorageDir(): string {
  * Saves the deployment plan requirements to public/ohara-ai-data/requirements.json
  * This file is read by assureContractsDeployed to know which contracts to deploy.
  * 
- * @body { contracts: string[], forceRedeploy?: boolean } - Array of contract types to deploy ('Score', 'Match')
+ * @body { contracts: string[], forceRedeploy?: boolean } - Array of contract types to deploy ('Score', 'Match', 'Prize')
  */
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
 
     // Filter to only valid contract types
     const validContracts = contracts.filter(
-      (c): c is 'Score' | 'Match' => c === 'Score' || c === 'Match',
+      (c): c is 'Score' | 'Match' | 'Prize' =>
+        c === 'Score' || c === 'Match' || c === 'Prize',
     )
 
     // Create storage directory if needed
