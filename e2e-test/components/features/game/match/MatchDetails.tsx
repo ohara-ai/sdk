@@ -17,6 +17,8 @@ import {
   AlertCircle,
   Play,
   Flag,
+  Share2,
+  Percent,
 } from 'lucide-react'
 import { useAccount, useBlockNumber, useWalletClient } from 'wagmi'
 import { formatEther, zeroAddress } from 'viem'
@@ -34,6 +36,18 @@ interface MatchData {
   players: `0x${string}`[]
   status: number
   winner: `0x${string}`
+}
+
+interface ShareConfig {
+  recipients: readonly `0x${string}`[]
+  shares: readonly bigint[]
+  totalShareBasisPoints: bigint
+}
+
+interface FeeConfig {
+  recipients: readonly `0x${string}`[]
+  shares: readonly bigint[]
+  totalShare: bigint
 }
 
 export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
@@ -57,7 +71,11 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     winner: string
     totalPrize: string
     winnerAmount: string
+    feeAmount: string
+    feePercentage: string
   } | null>(null)
+  const [shareConfig, setShareConfig] = useState<ShareConfig | null>(null)
+  const [feeConfig, setFeeConfig] = useState<FeeConfig | null>(null)
 
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
@@ -85,6 +103,26 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
     setSelectedWinner(null)
     setFinalizeResult(null)
   }, [matchId])
+
+  // Fetch share and fee configuration
+  useEffect(() => {
+    if (!game.match?.operations) return
+
+    const fetchConfigs = async () => {
+      try {
+        const [shareConfigData, feeConfigData] = await Promise.all([
+          game.match.operations!.getShareConfiguration(),
+          game.match.operations!.getFeeConfiguration(),
+        ])
+        setShareConfig(shareConfigData)
+        setFeeConfig(feeConfigData)
+      } catch (error) {
+        console.error('[MatchDetails] Error fetching configs:', error)
+      }
+    }
+
+    fetchConfigs()
+  }, [game.match?.operations])
 
   // Fetch match data
   useEffect(() => {
@@ -293,6 +331,8 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           winner: data.winner,
           totalPrize: data.totalPrize,
           winnerAmount: data.winnerAmount,
+          feeAmount: data.feeAmount || '0',
+          feePercentage: data.feePercentage || '0',
         })
       }
 
@@ -366,8 +406,8 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                     </p>
                   </div>
                 </div>
-                <div className="pt-2 border-t">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="pt-2 border-t space-y-2">
+                  <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">
                       Total Prize Pool:
                     </span>
@@ -375,24 +415,21 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                       {formatEther(BigInt(finalizeResult.totalPrize))} ETH
                     </span>
                   </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-muted-foreground">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Percent className="w-3 h-3" />
+                      Fees Deducted ({finalizeResult.feePercentage}%):
+                    </span>
+                    <span className="text-orange-500">
+                      -{formatEther(BigInt(finalizeResult.feeAmount))} ETH
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-green-500/20">
+                    <span className="text-muted-foreground font-medium">
                       Winner Received:
                     </span>
                     <span className="font-semibold text-green-600">
                       {formatEther(BigInt(finalizeResult.winnerAmount))} ETH
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      Fees Deducted:
-                    </span>
-                    <span className="text-muted-foreground">
-                      {formatEther(
-                        BigInt(finalizeResult.totalPrize) -
-                          BigInt(finalizeResult.winnerAmount),
-                      )}{' '}
-                      ETH
                     </span>
                   </div>
                 </div>
@@ -534,6 +571,74 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
               )}{' '}
               {tokenDisplay}
             </p>
+          </div>
+        )}
+
+        {/* Fee Configuration */}
+        {feeConfig && feeConfig.recipients.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Percent className="w-4 h-4 text-purple-500" />
+              <h4 className="text-sm font-semibold">Fee Recipients</h4>
+              <span className="text-xs text-muted-foreground">
+                (Total: {Number(feeConfig.totalShare) / 100}%)
+              </span>
+            </div>
+            <div className="bg-purple-50 rounded-lg divide-y divide-purple-100">
+              {feeConfig.recipients.map((recipient, idx) => {
+                const share = feeConfig.shares[idx]
+                const sharePercentage = share
+                  ? Number(share) / 100
+                  : 0
+                return (
+                  <div
+                    key={recipient}
+                    className="flex items-center justify-between px-3 py-2"
+                  >
+                    <span className="font-mono text-xs text-gray-700">
+                      {recipient.slice(0, 8)}...{recipient.slice(-6)}
+                    </span>
+                    <span className="text-xs font-semibold text-purple-600">
+                      {sharePercentage.toFixed(2)}%
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Share Configuration */}
+        {shareConfig && shareConfig.recipients.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-indigo-500" />
+              <h4 className="text-sm font-semibold">Share Recipients</h4>
+              <span className="text-xs text-muted-foreground">
+                (Total: {Number(shareConfig.totalShareBasisPoints) / 100}%)
+              </span>
+            </div>
+            <div className="bg-indigo-50 rounded-lg divide-y divide-indigo-100">
+              {shareConfig.recipients.map((recipient, idx) => {
+                const share = shareConfig.shares[idx]
+                const sharePercentage = share
+                  ? Number(share) / 100
+                  : 0
+                return (
+                  <div
+                    key={recipient}
+                    className="flex items-center justify-between px-3 py-2"
+                  >
+                    <span className="font-mono text-xs text-gray-700">
+                      {recipient.slice(0, 8)}...{recipient.slice(-6)}
+                    </span>
+                    <span className="text-xs font-semibold text-indigo-600">
+                      {sharePercentage.toFixed(2)}%
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 
@@ -804,27 +909,23 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Percent className="w-3 h-3" />
+                      Fees Deducted ({finalizeResult.feePercentage}%):
+                    </span>
+                    <span className="text-orange-500">
+                      -{formatEther(BigInt(finalizeResult.feeAmount))}{' '}
+                      {tokenDisplay}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-green-500/20">
+                    <span className="text-muted-foreground font-medium">
                       Winner Received:
                     </span>
                     <span className="font-semibold text-green-600">
                       {formatEther(BigInt(finalizeResult.winnerAmount))}{' '}
                       {tokenDisplay}
                     </span>
-                  </div>
-                  <div className="pt-2 border-t border-green-500/20">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">
-                        Fees Deducted:
-                      </span>
-                      <span className="text-muted-foreground">
-                        {formatEther(
-                          BigInt(finalizeResult.totalPrize) -
-                            BigInt(finalizeResult.winnerAmount),
-                        )}{' '}
-                        {tokenDisplay}
-                      </span>
-                    </div>
                   </div>
                 </div>
               )}

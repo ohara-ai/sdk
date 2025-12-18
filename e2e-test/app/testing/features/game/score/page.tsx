@@ -9,24 +9,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import {
   PlayerStats,
   Leaderboard,
-  ScoreContractInformation,
 } from '@/components/features/game/score'
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
-import Link from 'next/link'
-import { useAccount } from 'wagmi'
-import { Button } from '@/components/ui/button'
+import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
+import { Trophy, Swords } from 'lucide-react'
+import { useAccount, useBlockNumber } from 'wagmi'
 import { useOharaAi } from '@ohara-ai/sdk'
 
 export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()
-  const { game } = useOharaAi()
+  const { game, internal } = useOharaAi()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
 
   const [mounted, setMounted] = useState(false)
-  const [showContractInfo, setShowContractInfo] = useState(false)
   const [playerScore, setPlayerScore] =
     useState<readonly [bigint, bigint, bigint, bigint]>()
   const [topPlayersByWins, setTopPlayersByWins] =
@@ -34,20 +31,37 @@ export default function GameScorePage() {
       readonly [readonly `0x${string}`[], readonly bigint[], readonly bigint[]]
     >()
 
+  const [maxLosersPerMatch, setMaxLosersPerMatch] = useState<bigint | undefined>()
+  const [maxTotalPlayers, setMaxTotalPlayers] = useState<bigint | undefined>()
+  const [maxTotalMatches, setMaxTotalMatches] = useState<bigint | undefined>()
+  const [totalPlayers, setTotalPlayers] = useState<bigint | undefined>()
+  const [totalMatches, setTotalMatches] = useState<bigint | undefined>()
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Fetch data from operations
   useEffect(() => {
     const fetchData = async () => {
       if (!game.scores.operations) return
 
       try {
-        const top = await game.scores.operations.getTopPlayersByWins(10)
-        setTopPlayersByWins([top.players, top.wins, top.prizes])
+        const [top, maxLosers, maxPlayers, maxMatches, players, matches] = await Promise.all([
+          game.scores.operations.getTopPlayersByWins(10),
+          game.scores.operations.getMaxLosersPerMatch(),
+          game.scores.operations.getMaxTotalPlayers(),
+          game.scores.operations.getMaxTotalMatches(),
+          game.scores.operations.getTotalPlayers(),
+          game.scores.operations.getTotalMatches(),
+        ])
 
-        // Fetch player score if user is connected
+        setTopPlayersByWins([top.players, top.wins, top.prizes])
+        setMaxLosersPerMatch(maxLosers)
+        setMaxTotalPlayers(maxPlayers)
+        setMaxTotalMatches(maxMatches)
+        setTotalPlayers(players)
+        setTotalMatches(matches)
+
         if (userAddress) {
           const score = await game.scores.operations.getPlayerScore(userAddress)
           setPlayerScore([
@@ -63,55 +77,34 @@ export default function GameScorePage() {
     }
 
     fetchData()
-  }, [game.scores.operations, userAddress])
+  }, [game.scores.operations, userAddress, blockNumber])
 
   return (
     <main className="min-h-screen bg-white">
       {/* Header Section */}
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                GameScore
-              </h1>
-              <p className="text-base text-gray-600">
-                Track player scores, wins, and match history
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <OnchainKitWallet />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowContractInfo(!showContractInfo)}
-                className="flex items-center gap-1.5"
-              >
-                Contract Info
-                {showContractInfo ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Contract Information */}
-          {showContractInfo && (
-            <div className="mt-6 animate-in slide-in-from-top duration-200">
-              <ScoreContractInformation />
-            </div>
-          )}
-        </div>
-      </div>
+      <FeaturePageHeader
+        title="Game Score"
+        description="Track player scores, wins, and match history"
+        icon={<Trophy className="w-5 h-5 text-amber-600" />}
+        iconBg="bg-amber-100"
+        contractAddress={game.scores?.address}
+        factoryAddress={internal.factories?.gameScore}
+        configItems={[
+          { label: 'Max Losers/Match', value: maxLosersPerMatch?.toString() },
+          { label: 'Total Players', value: totalPlayers?.toString(), highlight: true },
+          { label: 'Max Players', value: maxTotalPlayers?.toString() },
+          { label: 'Total Matches', value: totalMatches?.toString(), highlight: true },
+          { label: 'Max Matches', value: maxTotalMatches?.toString() },
+        ]}
+        additionalContracts={[
+          {
+            label: 'Match Contract',
+            address: game.match?.address,
+            icon: <Swords className="w-3 h-3 text-purple-600" />,
+            iconBg: 'bg-purple-50',
+          },
+        ]}
+      />
 
       {/* Content Section */}
       <div className="max-w-7xl mx-auto px-6 py-8">

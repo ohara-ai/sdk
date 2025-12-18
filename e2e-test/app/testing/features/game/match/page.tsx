@@ -10,77 +10,125 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import {
   MatchList,
   CreateMatchForm,
   MatchDetails,
-  MatchContractInformation,
 } from '@/components/features/game/match'
 import { FeeWithdrawal } from '@/components/features/game/match/FeeWithdrawal'
-import { ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
-import Link from 'next/link'
-import { useAccount } from 'wagmi'
-import { Button } from '@/components/ui/button'
+import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
+import { Swords, Trophy, Percent, BarChart3 } from 'lucide-react'
+import { useAccount, useBlockNumber } from 'wagmi'
+import { useOharaAi } from '@ohara-ai/sdk'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
+  const { game, internal } = useOharaAi()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
+
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState('matches')
-  const [showContractInfo, setShowContractInfo] = useState(false)
+
+  const [feeConfig, setFeeConfig] = useState<{
+    recipients: readonly `0x${string}`[]
+    shares: readonly bigint[]
+    totalShare: bigint
+  } | null>(null)
+  const [activeMatchCount, setActiveMatchCount] = useState<bigint | undefined>()
+  const [maxActiveMatches, setMaxActiveMatches] = useState<bigint | undefined>()
+  const [scoreboardAddress, setScoreboardAddress] = useState<`0x${string}` | undefined>()
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    if (!game.match?.operations) return
+
+    const fetchMatchData = async () => {
+      try {
+        const [feeConfigData, activeCount, maxActive, scoreboardAddr] = await Promise.all([
+          game.match.operations!.getFeeConfiguration(),
+          game.match.operations!.getActiveMatchCount(),
+          game.match.operations!.getMaxActiveMatches(),
+          game.match.operations!.getScoreboardAddress(),
+        ])
+
+        setFeeConfig(feeConfigData)
+        setActiveMatchCount(activeCount)
+        setMaxActiveMatches(maxActive)
+        setScoreboardAddress(scoreboardAddr)
+      } catch (error) {
+        console.error('[GameMatchPage] Error fetching match data:', error)
+      }
+    }
+
+    fetchMatchData()
+  }, [game.match?.operations, blockNumber])
+
+  const feePercentage = feeConfig?.totalShare
+    ? Number((feeConfig.totalShare * 100n) / 10000n)
+    : undefined
+
   return (
     <main className="min-h-screen bg-white">
       {/* Header Section */}
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-4 -ml-2">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
-          </Link>
-
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                Game Match
-              </h1>
-              <p className="text-base text-gray-600">
-                Escrow-based match system with stake management
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <OnchainKitWallet />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowContractInfo(!showContractInfo)}
-                className="flex items-center gap-1.5"
-              >
-                Contract Info
-                {showContractInfo ? (
-                  <ChevronUp className="w-4 h-4" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-              </Button>
+      <FeaturePageHeader
+        title="Game Match"
+        description="Escrow-based match system with stake management"
+        icon={<Swords className="w-5 h-5 text-purple-600" />}
+        iconBg="bg-purple-100"
+        contractAddress={game.match?.address}
+        factoryAddress={internal.factories?.gameMatch}
+        configItems={[
+          { label: 'Total Fee', value: feePercentage !== undefined ? `${feePercentage}%` : undefined, highlight: true },
+          { label: 'Fee Recipients', value: feeConfig?.recipients.length },
+          { label: 'Active Matches', value: activeMatchCount?.toString(), highlight: true },
+          { label: 'Max Concurrent', value: maxActiveMatches === 0n ? '∞' : maxActiveMatches?.toString() },
+        ]}
+        additionalContracts={[
+          {
+            label: 'Scoreboard Contract',
+            address: scoreboardAddress,
+            icon: <Trophy className="w-3 h-3 text-amber-600" />,
+            iconBg: 'bg-amber-50',
+          },
+        ]}
+      >
+        {/* Fee Recipients Detail */}
+        {feeConfig && feeConfig.recipients.length > 0 && (
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Fee Distribution
+            </h3>
+            <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+              {feeConfig.recipients.map((recipient, idx) => {
+                const share = feeConfig.shares[idx]
+                const sharePercentage = share
+                  ? Number((share * 100n) / feeConfig.totalShare)
+                  : 0
+                return (
+                  <div
+                    key={recipient}
+                    className="flex items-center justify-between px-4 py-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-purple-500" />
+                      <span className="font-mono text-sm text-gray-700">
+                        {recipient.slice(0, 8)}...{recipient.slice(-6)}
+                      </span>
+                    </div>
+                    <span className="text-sm font-semibold text-purple-600">
+                      {sharePercentage.toFixed(1)}%
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </div>
-
-          {/* Contract Information */}
-          {showContractInfo && (
-            <div className="mt-6 animate-in slide-in-from-top duration-200">
-              <MatchContractInformation />
-            </div>
-          )}
-        </div>
-      </div>
+        )}
+      </FeaturePageHeader>
 
       {/* Content Section */}
       <div className="max-w-7xl mx-auto px-6 py-8">

@@ -104,6 +104,23 @@ export interface MatchOperations {
    * @param token The token address (use zeroAddress for native token/ETH)
    */
   getPendingFees(recipient: Address, token: Address): Promise<bigint>
+
+  /**
+   * Get share configuration (recipients, shares, totalShareBasisPoints)
+   * This is separate from fee configuration - shares go to registered recipients like Prize contracts
+   */
+  getShareConfiguration(): Promise<{
+    recipients: readonly Address[]
+    shares: readonly bigint[]
+    totalShareBasisPoints: bigint
+  }>
+
+  /**
+   * Get pending shares for a recipient
+   * @param recipient The share recipient address
+   * @param token The token address (use zeroAddress for native token/ETH)
+   */
+  getPendingShares(recipient: Address, token: Address): Promise<bigint>
 }
 
 /**
@@ -407,6 +424,36 @@ function createOperationsInternal(
         address: contractAddress,
         abi: MATCH_ABI,
         functionName: 'pendingFees',
+        args: [recipient, token],
+      })
+    },
+
+    async getShareConfiguration() {
+      const [recipientsAndShares, totalShareBasisPoints] = await Promise.all([
+        publicClient.readContract({
+          address: contractAddress,
+          abi: MATCH_ABI,
+          functionName: 'getShareRecipients',
+        }),
+        publicClient.readContract({
+          address: contractAddress,
+          abi: MATCH_ABI,
+          functionName: 'totalShareBasisPoints',
+        }),
+      ])
+
+      return {
+        recipients: recipientsAndShares[0],
+        shares: recipientsAndShares[1],
+        totalShareBasisPoints,
+      }
+    },
+
+    async getPendingShares(recipient: Address, token: Address): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: MATCH_ABI,
+        functionName: 'getPendingShares',
         args: [recipient, token],
       })
     },
