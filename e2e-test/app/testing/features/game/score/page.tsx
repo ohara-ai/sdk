@@ -88,7 +88,6 @@ export default function GameScorePage() {
         icon={<Trophy className="w-5 h-5 text-amber-600" />}
         iconBg="bg-amber-100"
         contractAddress={game.scores?.address}
-        factoryAddress={internal.factories?.gameScore}
         configItems={[
           { label: 'Max Losers/Match', value: maxLosersPerMatch?.toString() },
           { label: 'Total Players', value: totalPlayers?.toString(), highlight: true },

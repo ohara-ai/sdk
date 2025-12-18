@@ -94,7 +94,6 @@ export default function GamePrizePage() {
         icon={<Gift className="w-5 h-5 text-emerald-600" />}
         iconBg="bg-emerald-100"
         contractAddress={game.prize?.address}
-        factoryAddress={internal.factories?.gamePrize}
         configItems={[
           { label: 'Current Pool', value: currentPoolId?.toString(), highlight: true },
           { label: 'Matches/Pool', value: matchesPerPool?.toString() },

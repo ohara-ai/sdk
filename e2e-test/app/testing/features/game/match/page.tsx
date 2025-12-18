@@ -35,6 +35,11 @@ export default function GameMatchPage() {
     shares: readonly bigint[]
     totalShare: bigint
   } | null>(null)
+  const [shareConfig, setShareConfig] = useState<{
+    recipients: readonly `0x${string}`[]
+    shares: readonly bigint[]
+    totalShareBasisPoints: bigint
+  } | null>(null)
   const [activeMatchCount, setActiveMatchCount] = useState<bigint | undefined>()
   const [maxActiveMatches, setMaxActiveMatches] = useState<bigint | undefined>()
   const [scoreboardAddress, setScoreboardAddress] = useState<`0x${string}` | undefined>()
@@ -48,14 +53,16 @@ export default function GameMatchPage() {
 
     const fetchMatchData = async () => {
       try {
-        const [feeConfigData, activeCount, maxActive, scoreboardAddr] = await Promise.all([
+        const [feeConfigData, shareConfigData, activeCount, maxActive, scoreboardAddr] = await Promise.all([
           game.match.operations!.getFeeConfiguration(),
+          game.match.operations!.getShareConfiguration(),
           game.match.operations!.getActiveMatchCount(),
           game.match.operations!.getMaxActiveMatches(),
           game.match.operations!.getScoreboardAddress(),
         ])
 
         setFeeConfig(feeConfigData)
+        setShareConfig(shareConfigData)
         setActiveMatchCount(activeCount)
         setMaxActiveMatches(maxActive)
         setScoreboardAddress(scoreboardAddr)
@@ -71,6 +78,10 @@ export default function GameMatchPage() {
     ? Number((feeConfig.totalShare * 100n) / 10000n)
     : undefined
 
+  const sharePercentage = shareConfig?.totalShareBasisPoints
+    ? Number((shareConfig.totalShareBasisPoints * 100n) / 10000n)
+    : undefined
+
   return (
     <main className="min-h-screen bg-white">
       {/* Header Section */}
@@ -80,10 +91,11 @@ export default function GameMatchPage() {
         icon={<Swords className="w-5 h-5 text-purple-600" />}
         iconBg="bg-purple-100"
         contractAddress={game.match?.address}
-        factoryAddress={internal.factories?.gameMatch}
         configItems={[
           { label: 'Total Fee', value: feePercentage !== undefined ? `${feePercentage}%` : undefined, highlight: true },
           { label: 'Fee Recipients', value: feeConfig?.recipients.length },
+          { label: 'Total Share', value: sharePercentage !== undefined ? `${sharePercentage}%` : undefined, highlight: true },
+          { label: 'Share Recipients', value: shareConfig?.recipients.length },
           { label: 'Active Matches', value: activeMatchCount?.toString(), highlight: true },
           { label: 'Max Concurrent', value: maxActiveMatches === 0n ? '∞' : maxActiveMatches?.toString() },
         ]}
@@ -96,38 +108,73 @@ export default function GameMatchPage() {
           },
         ]}
       >
-        {/* Fee Recipients Detail */}
-        {feeConfig && feeConfig.recipients.length > 0 && (
-          <div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Fee Distribution
-            </h3>
-            <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
-              {feeConfig.recipients.map((recipient, idx) => {
-                const share = feeConfig.shares[idx]
-                const sharePercentage = share
-                  ? Number((share * 100n) / feeConfig.totalShare)
-                  : 0
-                return (
-                  <div
-                    key={recipient}
-                    className="flex items-center justify-between px-4 py-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-500" />
-                      <span className="font-mono text-sm text-gray-700">
-                        {recipient.slice(0, 8)}...{recipient.slice(-6)}
+        <div className="space-y-4">
+          {/* Fee Recipients Detail */}
+          {feeConfig && feeConfig.recipients.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                Fee Distribution
+              </h3>
+              <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+                {feeConfig.recipients.map((recipient, idx) => {
+                  const feeShare = feeConfig.shares[idx]
+                  const feeSharePct = feeShare
+                    ? Number((feeShare * 100n) / feeConfig.totalShare)
+                    : 0
+                  return (
+                    <div
+                      key={recipient}
+                      className="flex items-center justify-between px-3 py-1.5"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                        <span className="font-mono text-xs text-gray-700">
+                          {recipient.slice(0, 8)}...{recipient.slice(-6)}
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-purple-600">
+                        {feeSharePct.toFixed(1)}%
                       </span>
                     </div>
-                    <span className="text-sm font-semibold text-purple-600">
-                      {sharePercentage.toFixed(1)}%
-                    </span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Share Recipients Detail */}
+          {shareConfig && shareConfig.recipients.length > 0 && (
+            <div>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Share Distribution
+              </h3>
+              <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
+                {shareConfig.recipients.map((recipient, idx) => {
+                  const share = shareConfig.shares[idx]
+                  const sharePct = share
+                    ? Number((share * 100n) / shareConfig.totalShareBasisPoints)
+                    : 0
+                  return (
+                    <div
+                      key={recipient}
+                      className="flex items-center justify-between px-3 py-1.5"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="font-mono text-xs text-gray-700">
+                          {recipient.slice(0, 8)}...{recipient.slice(-6)}
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-emerald-600">
+                        {sharePct.toFixed(1)}%
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </FeaturePageHeader>
 
       {/* Content Section */}

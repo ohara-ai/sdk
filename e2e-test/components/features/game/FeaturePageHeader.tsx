@@ -45,7 +45,6 @@ interface FeaturePageHeaderProps {
   icon: ReactNode
   iconBg: string
   contractAddress: string | undefined
-  factoryAddress: string | undefined
   configItems?: ConfigItem[]
   additionalContracts?: ContractInfo[]
   children?: ReactNode
@@ -57,7 +56,6 @@ export function FeaturePageHeader({
   icon,
   iconBg,
   contractAddress,
-  factoryAddress,
   configItems = [],
   additionalContracts = [],
   children,
@@ -224,72 +222,9 @@ export function FeaturePageHeader({
           </DialogHeader>
           <DialogBody>
             <div className="space-y-6">
-              {/* Contract Addresses Section */}
-              <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                  Contract Addresses
-                </h3>
-                
-                {/* Main Contract */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Main Contract</span>
-                  {contractAddress ? (
-                    <div className="flex items-center gap-2">
-                      <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-200">
-                        {truncateAddress(contractAddress)}
-                      </code>
-                      {contractExists === true && (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                      )}
-                      {contractExists === false && (
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                      )}
-                      <button
-                        onClick={() => copyToClipboard(contractAddress)}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
-                      >
-                        <Copy className="w-3 h-3 text-gray-400" />
-                      </button>
-                      <a
-                        href={`https://basescan.org/address/${contractAddress}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
-                      >
-                        <ExternalLink className="w-3 h-3 text-gray-400" />
-                      </a>
-                    </div>
-                  ) : (
-                    <span className="text-xs text-gray-400">Not deployed</span>
-                  )}
-                </div>
-
-                {/* Factory */}
-                {factoryAddress && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Factory</span>
-                    <div className="flex items-center gap-2">
-                      <Factory className="w-3 h-3 text-gray-400" />
-                      <code className="text-xs font-mono bg-white px-2 py-1 rounded border border-gray-200">
-                        {truncateAddress(factoryAddress)}
-                      </code>
-                      <button
-                        onClick={() => copyToClipboard(factoryAddress)}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
-                      >
-                        <Copy className="w-3 h-3 text-gray-400" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* Configuration Section */}
               {configItems.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    Details
-                  </h3>
                   <div className="bg-gray-50 rounded-lg divide-y divide-gray-200">
                     {configItems.map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between px-4 py-3">
@@ -310,9 +245,6 @@ export function FeaturePageHeader({
               {/* Linked Contracts Section */}
               {additionalContracts.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                    Linked Contracts
-                  </h3>
                   <div className="space-y-2">
                     {additionalContracts.map((contract, idx) => (
                       <div
