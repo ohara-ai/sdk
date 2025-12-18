@@ -1,4 +1,4 @@
-import { createConfig, http } from 'wagmi'
+import { createConfig, createStorage, http } from 'wagmi'
 import { anvil, baseSepolia, base } from 'wagmi/chains'
 import { coinbaseWallet, injected, metaMask } from 'wagmi/connectors'
 
@@ -43,5 +43,8 @@ export const config = createConfig({
     [baseSepolia.id]: http(rpcUrl),
     [base.id]: http(rpcUrl),
   },
+  storage: createStorage({
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+  }),
   ssr: true,
 })

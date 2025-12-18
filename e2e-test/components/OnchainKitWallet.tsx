@@ -3,7 +3,7 @@
 import { useSwitchChain, useChainId, useAccount } from 'wagmi'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { memo } from 'react'
 import {
   ConnectWallet,
   Wallet,
@@ -18,15 +18,10 @@ import {
   EthBalance,
 } from '@coinbase/onchainkit/identity'
 
-export function OnchainKitWallet() {
+function OnchainKitWalletInner() {
   const { switchChain } = useSwitchChain()
   const chainId = useChainId()
-  const { isConnected } = useAccount()
-  const [isMounted, setIsMounted] = useState(false)
-
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const { isConnected, address } = useAccount()
 
   // For development, prefer Anvil (localhost)
   const isOnAnvil = chainId === 31337
@@ -40,8 +35,11 @@ export function OnchainKitWallet() {
     <div className="flex flex-col items-end gap-2">
       <Wallet>
         <ConnectWallet>
-          <Avatar className="h-6 w-6" />
-          <Name />
+          {address && (
+            <span className="font-mono text-sm">
+              {address.slice(0, 6)}...{address.slice(-4)}
+            </span>
+          )}
         </ConnectWallet>
         <WalletDropdown>
           <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
@@ -54,7 +52,7 @@ export function OnchainKitWallet() {
         </WalletDropdown>
       </Wallet>
 
-      {isMounted && showChainSwitcher && (
+      {showChainSwitcher && (
         <div className="flex items-center gap-2 mt-2">
           <div className="flex items-center gap-1 text-xs text-yellow-500">
             <AlertCircle className="w-3 h-3" />
@@ -76,3 +74,5 @@ export function OnchainKitWallet() {
     </div>
   )
 }
+
+export const OnchainKitWallet = memo(OnchainKitWalletInner)
