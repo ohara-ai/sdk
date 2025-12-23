@@ -1,10 +1,15 @@
 import { deployGameScore } from './deployGameScore'
 import { deployGameMatch } from './deployGameMatch'
 import { deployGamePrize } from './deployGamePrize'
+import { deployEventBus } from './deployEventBus'
+import { deployLeague } from './deployLeague'
+import { deployTournament } from './deployTournament'
+import { deployPrediction } from './deployPrediction'
 import type { DeploymentResult } from './deploymentService'
 import { SCORE_ABI } from '../abis/game/score'
 import { MATCH_ABI } from '../abis/game/match'
 import { PRIZE_ABI } from '../abis/game/prize'
+import { EVENT_BUS_ABI } from '../abis/base/eventBus'
 
 // =============================================================================
 // CONTRACT TYPES
@@ -13,7 +18,7 @@ import { PRIZE_ABI } from '../abis/game/prize'
 /**
  * Supported contract types
  */
-export type ContractType = 'Score' | 'Match' | 'Prize'
+export type ContractType = 'Score' | 'Match' | 'Prize' | 'EventBus' | 'League' | 'Tournament' | 'Prediction'
 
 /**
  * Context passed to permission functions
@@ -205,6 +210,106 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
           description: 'Register Prize contract as a share recipient in Match',
         },
       ]
+    },
+  },
+
+  EventBus: {
+    // EventBus has no dependencies - it's deployed first if needed
+    dependencies: [],
+
+    buildDeployParams: () => ({}),
+
+    deploy: async () => deployEventBus({}),
+
+    getPermissionActions: (context: PermissionContext) => {
+      const eventBusAddress = context.deployedAddresses['EventBus']
+      const matchAddress = context.deployedAddresses['Match']
+      const scoreAddress = context.deployedAddresses['Score']
+
+      if (!eventBusAddress) return []
+
+      const actions: PermissionAction[] = []
+
+      // Authorize Match to emit events
+      if (matchAddress && context.deployedInBatch.has('EventBus')) {
+        actions.push({
+          targetContract: eventBusAddress,
+          abi: EVENT_BUS_ABI,
+          functionName: 'setEmitterAuthorization',
+          args: [matchAddress, true],
+          description: 'Authorize Match contract to emit events via EventBus',
+        })
+      }
+
+      // Register Score as listener for match results
+      if (scoreAddress && context.deployedInBatch.has('EventBus')) {
+        actions.push({
+          targetContract: eventBusAddress,
+          abi: EVENT_BUS_ABI,
+          functionName: 'registerListener',
+          args: [1, scoreAddress], // EVENT_MATCH_RESULT = 1
+          description: 'Register Score contract as listener for match results',
+        })
+      }
+
+      return actions
+    },
+  },
+
+  League: {
+    // League depends on Match for recording results
+    dependencies: ['Match'],
+
+    buildDeployParams: (deployedAddresses: Record<string, string>) => ({
+      matchAddress: deployedAddresses['Match'] as `0x${string}` | undefined,
+    }),
+
+    deploy: async (params: Record<string, unknown>) =>
+      deployLeague(params as { matchAddress?: `0x${string}` }),
+
+    getPermissionActions: () => {
+      // League doesn't require special permission setup
+      return []
+    },
+  },
+
+  Tournament: {
+    // Tournament depends on Score for match result tracking
+    dependencies: ['Score'],
+
+    buildDeployParams: (deployedAddresses: Record<string, string>) => ({
+      scoreAddress: deployedAddresses['Score'] as `0x${string}` | undefined,
+    }),
+
+    deploy: async (params: Record<string, unknown>) =>
+      deployTournament(params as { scoreAddress?: `0x${string}` }),
+
+    getPermissionActions: () => {
+      // Tournament doesn't require special permission setup
+      return []
+    },
+  },
+
+  Prediction: {
+    // Prediction can optionally integrate with Match, Tournament, League
+    dependencies: ['Match'],
+
+    buildDeployParams: (deployedAddresses: Record<string, string>) => ({
+      matchAddress: deployedAddresses['Match'] as `0x${string}` | undefined,
+      tournamentAddress: deployedAddresses['Tournament'] as `0x${string}` | undefined,
+      leagueAddress: deployedAddresses['League'] as `0x${string}` | undefined,
+    }),
+
+    deploy: async (params: Record<string, unknown>) =>
+      deployPrediction(params as {
+        matchAddress?: `0x${string}`
+        tournamentAddress?: `0x${string}`
+        leagueAddress?: `0x${string}`
+      }),
+
+    getPermissionActions: () => {
+      // Prediction doesn't require special permission setup
+      return []
     },
   },
 }

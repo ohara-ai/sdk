@@ -305,4 +305,140 @@ contract FeeCollectorTest is Test {
     event FeesConfigured(address[] recipients, uint256[] shares, uint256 totalShare);
     event FeeAccrued(address indexed recipient, address token, uint256 amount);
     event FeeWithdrawn(address indexed recipient, address token, uint256 amount);
+    event TransferFailed(address indexed to, address indexed token, uint256 amount);
+    event FailedTransferClaimed(address indexed to, address indexed token, uint256 amount);
+}
+
+contract FeeCollectorTransferFailedTest is Test {
+    MatchFactory public factory;
+    Match public gameMatch;
+    
+    address public owner = address(0x1);
+    address public controller = address(0x2);
+    address public feeRecipient1;
+    address public player1 = address(0x5);
+    address public player2 = address(0x6);
+
+    event TransferFailed(address indexed to, address indexed token, uint256 amount);
+    event FailedTransferClaimed(address indexed to, address indexed token, uint256 amount);
+
+    function setUp() public {
+        vm.startPrank(owner);
+        factory = new MatchFactory();
+        vm.stopPrank();
+        
+        vm.startPrank(controller);
+        address instance = factory.deployMatch(address(0));
+        gameMatch = Match(instance);
+        vm.stopPrank();
+        
+        // Create a contract that rejects ETH transfers
+        feeRecipient1 = address(new RejectingReceiver());
+        
+        // Fund players
+        vm.deal(controller, 100 ether);
+        vm.deal(player1, 100 ether);
+        vm.deal(player2, 100 ether);
+    }
+
+    function test_TransferFailedEventEmitted() public {
+        // Configure fees with a rejecting recipient
+        vm.startPrank(owner);
+        address[] memory recipients = new address[](1);
+        recipients[0] = feeRecipient1;
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 1000; // 10%
+        gameMatch.configureFees(recipients, shares);
+        vm.stopPrank();
+        
+        // Create and finalize match to generate fees
+        vm.startPrank(controller);
+        uint256 matchId = gameMatch.create{value: 1 ether}(address(0), 1 ether, 2);
+        vm.stopPrank();
+        
+        vm.startPrank(player1);
+        gameMatch.join{value: 1 ether}(matchId);
+        vm.stopPrank();
+        
+        vm.startPrank(controller);
+        gameMatch.activate(matchId);
+        gameMatch.finalize(matchId, controller);
+        vm.stopPrank();
+        
+        // Check pending fees
+        uint256 pendingFees = gameMatch.pendingFees(feeRecipient1, address(0));
+        assertGt(pendingFees, 0);
+        
+        // Attempt to withdraw - should emit TransferFailed
+        vm.startPrank(feeRecipient1);
+        vm.expectEmit(true, true, false, true);
+        emit TransferFailed(feeRecipient1, address(0), pendingFees);
+        gameMatch.withdrawFees(address(0));
+        vm.stopPrank();
+        
+        // Verify failed transfer is tracked
+        uint256 failedAmount = gameMatch.failedTransfers(feeRecipient1, address(0));
+        assertEq(failedAmount, pendingFees);
+    }
+
+    function test_ClaimFailedTransfer() public {
+        // Configure fees with a rejecting recipient
+        vm.startPrank(owner);
+        address[] memory recipients = new address[](1);
+        recipients[0] = feeRecipient1;
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 1000; // 10%
+        gameMatch.configureFees(recipients, shares);
+        vm.stopPrank();
+        
+        // Create and finalize match
+        vm.startPrank(controller);
+        uint256 matchId = gameMatch.create{value: 1 ether}(address(0), 1 ether, 2);
+        vm.stopPrank();
+        
+        vm.startPrank(player1);
+        gameMatch.join{value: 1 ether}(matchId);
+        vm.stopPrank();
+        
+        vm.startPrank(controller);
+        gameMatch.activate(matchId);
+        gameMatch.finalize(matchId, controller);
+        vm.stopPrank();
+        
+        // Withdraw fees (will fail and be tracked)
+        vm.prank(feeRecipient1);
+        gameMatch.withdrawFees(address(0));
+        
+        uint256 failedAmount = gameMatch.failedTransfers(feeRecipient1, address(0));
+        assertGt(failedAmount, 0);
+        
+        // Now make the receiver accept ETH
+        RejectingReceiver(payable(feeRecipient1)).setAccept(true);
+        
+        // Claim the failed transfer
+        uint256 balanceBefore = feeRecipient1.balance;
+        vm.prank(feeRecipient1);
+        vm.expectEmit(true, true, false, true);
+        emit FailedTransferClaimed(feeRecipient1, address(0), failedAmount);
+        gameMatch.claimFailedTransfer(address(0));
+        
+        // Verify transfer succeeded
+        assertEq(feeRecipient1.balance - balanceBefore, failedAmount);
+        assertEq(gameMatch.failedTransfers(feeRecipient1, address(0)), 0);
+    }
+}
+
+// Helper contract that rejects ETH transfers
+contract RejectingReceiver {
+    bool public acceptTransfers;
+    
+    function setAccept(bool _accept) external {
+        acceptTransfers = _accept;
+    }
+    
+    receive() external payable {
+        if (!acceptTransfers) {
+            revert("Rejecting transfer");
+        }
+    }
 }

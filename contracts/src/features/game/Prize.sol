@@ -93,8 +93,9 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     }
 
     /**
-     * @notice Set the match contract
+     * @notice Set the match contract implementing IShares
      * @param _matchContract Address of the match contract (address(0) to disable)
+     * @dev The match contract must implement IShares for share collection
      */
     function setMatchContract(address _matchContract) external onlyController {
         if (_matchContract != address(0) && _matchContract.code.length == 0) {
@@ -108,6 +109,7 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     /**
      * @notice Update matches per pool (only affects new pools)
      * @param _matchesPerPool New matches per pool value
+     * @dev Does not affect the current pool, only subsequent pools
      */
     function setMatchesPerPool(uint256 _matchesPerPool) external onlyOwner {
         if (_matchesPerPool == 0) revert InvalidMatchesPerPool();
@@ -120,6 +122,7 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
      * @notice Authorize or revoke a contract's ability to record results
      * @param recorder Address of the recorder contract (typically Score)
      * @param authorized Whether to authorize or revoke
+     * @dev Only authorized recorders can call recordMatchResult()
      */
     function setRecorderAuthorization(address recorder, bool authorized) external onlyController {
         authorizedRecorders[recorder] = authorized;

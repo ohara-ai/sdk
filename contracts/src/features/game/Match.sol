@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IMatch} from "../../interfaces/game/IMatch.sol";
+import {IPrediction} from "../../interfaces/game/IPrediction.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
 import {IShares} from "../../interfaces/game/IShares.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
@@ -33,6 +34,7 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
 
     // Optional integrations
     IScore public score;
+    IPrediction public prediction;
 
     // Share recipients: recipient => shareBasisPoints
     mapping(address => uint256) private _shareRecipients;
@@ -53,6 +55,8 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
     event MaxActiveMatchesUpdated(uint256 newLimit);
     event InactiveMatchCleaned(uint256 indexed matchId, uint256 createdAt);
     event ScoreContractUpdated(address indexed previousScore, address indexed newScore);
+    event PredictionContractUpdated(address indexed previousPrediction, address indexed newPrediction);
+    event ExternalCallFailed(string indexed target, bytes reason);
 
     error InvalidStakeAmount();
     error InvalidMaxPlayers();
@@ -118,8 +122,9 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
     }
 
     /**
-     * @notice Set the score contract
+     * @notice Set the score contract for match result recording
      * @param _score Address of the score contract (address(0) to disable)
+     * @dev Score contract will receive match results for tracking player statistics
      */
     function setScore(address _score) external onlyController {
         // Allow address(0) to disable score tracking
@@ -132,8 +137,23 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
     }
 
     /**
+     * @notice Set the prediction contract for automatic betting closure
+     * @param _prediction Address of the prediction contract (address(0) to disable)
+     * @dev Prediction contract will be notified when matches are activated
+     */
+    function setPrediction(address _prediction) external onlyController {
+        if (_prediction != address(0) && _prediction.code.length == 0) {
+            revert InvalidTokenAddress();
+        }
+        address previousPrediction = address(prediction);
+        prediction = IPrediction(_prediction);
+        emit PredictionContractUpdated(previousPrediction, _prediction);
+    }
+
+    /**
      * @notice Set the maximum number of active matches
      * @param _maxActiveMatches Maximum number of active matches (0 = unlimited)
+     * @dev Prevents state explosion by limiting concurrent matches
      */
     function setMaxActiveMatches(uint256 _maxActiveMatches) external onlyOwner {
         if (_maxActiveMatches > ABSOLUTE_MAX_ACTIVE_MATCHES) revert LimitTooHigh();
@@ -330,6 +350,11 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
 
         m.status = MatchStatus.Active;
 
+        // Notify prediction contract to close betting (if configured)
+        if (address(prediction) != address(0)) {
+            prediction.onCompetitionStarted(IPrediction.CompetitionType.Match, matchId);
+        }
+
         emit MatchActivated(matchId, m.players);
     }
 
@@ -385,9 +410,8 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
             // Use try-catch to prevent DoS from buggy score contracts
             try score.recordMatchResult(winner, losers, winnerAmount) {
                 // Score recorded successfully
-            } catch {
-                // Score recording failed, but match finalization succeeds
-                // This prevents a buggy score contract from blocking match finalization
+            } catch (bytes memory reason) {
+                emit ExternalCallFailed("Score.recordMatchResult", reason);
             }
         }
 

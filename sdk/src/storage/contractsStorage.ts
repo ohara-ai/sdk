@@ -13,6 +13,13 @@ export interface GameContracts {
   match?: string
   score?: string
   prize?: string
+  league?: string
+  tournament?: string
+  prediction?: string
+}
+
+export interface BaseContracts {
+  eventBus?: string
 }
 
 export interface AppContracts {
@@ -23,6 +30,7 @@ export interface ContractAddresses {
   ohara?: OharaContracts
   game?: GameContracts
   app?: AppContracts
+  base?: BaseContracts
 }
 
 interface ContractsStorage {

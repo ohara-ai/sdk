@@ -101,6 +101,10 @@ export function createPublicClientOnly(rpcUrl: string): PublicClient {
 export { deployGameScore } from './deployGameScore'
 export { deployGameMatch } from './deployGameMatch'
 export { deployGamePrize } from './deployGamePrize'
+export { deployEventBus } from './deployEventBus'
+export { deployLeague } from './deployLeague'
+export { deployTournament } from './deployTournament'
+export { deployPrediction } from './deployPrediction'
 
 /**
  * Get deployment configuration from storage and environment variables

@@ -220,24 +220,22 @@ contract ScoreTest is Test {
         vm.prank(recorder);
         score.recordMatchResult(player3, losers, 100 ether);
         
-        // Get top 2 players
+        // Get players (unsorted - SDK handles sorting)
         (
             address[] memory players,
             uint256[] memory wins,
             uint256[] memory prizes
-        ) = score.getTopPlayersByWins(2);
+        ) = score.getPlayers(10);
         
-        assertEq(players.length, 2);
-        assertEq(players[0], player1);
-        assertEq(wins[0], 3);
-        assertEq(prizes[0], 300 ether);
+        // Verify we have the expected number of players
+        assertEq(players.length, 4); // player1, player2, player3, player4
+        assertEq(wins.length, 4);
+        assertEq(prizes.length, 4);
         
-        assertEq(players[1], player2);
-        assertEq(wins[1], 2);
-        assertEq(prizes[1], 200 ether);
+        // Note: Data is unsorted - SDK handles sorting client-side
     }
     
-    function test_GetTopPlayersByPrize() public {
+    function test_GetPlayersPaginated() public {
         vm.prank(owner);
         score.setRecorderAuthorization(recorder, true);
         
@@ -264,32 +262,53 @@ contract ScoreTest is Test {
         vm.prank(recorder);
         score.recordMatchResult(player3, losers, 50 ether);
         
-        // Get top 3 players by prize
+        // Get paginated players (offset 1, limit 2)
         (
             address[] memory players,
             uint256[] memory wins,
             uint256[] memory prizes
-        ) = score.getTopPlayersByPrize(3);
+        ) = score.getPlayersPaginated(1, 2);
         
-        assertEq(players.length, 3);
-        
-        // Player1 should be first (highest prize)
-        assertEq(players[0], player1);
-        assertEq(wins[0], 1);
-        assertEq(prizes[0], 500 ether);
-        
-        // Player2 should be second
-        assertEq(players[1], player2);
-        assertEq(wins[1], 2);
-        assertEq(prizes[1], 200 ether);
-        
-        // Player3 should be third
-        assertEq(players[2], player3);
-        assertEq(wins[2], 3);
-        assertEq(prizes[2], 150 ether);
+        assertEq(players.length, 2);
+        assertEq(wins.length, 2);
+        assertEq(prizes.length, 2);
     }
     
-    function test_GetTopPlayersWithLimitLargerThanPlayerCount() public {
+    function test_GetPlayersPaginatedBeyondEnd() public {
+        vm.prank(owner);
+        score.setRecorderAuthorization(recorder, true);
+        
+        address[] memory losers = new address[](1);
+        losers[0] = player2;
+        
+        vm.prank(recorder);
+        score.recordMatchResult(player1, losers, 100 ether);
+        
+        // Offset beyond available players
+        (
+            address[] memory players,
+            uint256[] memory wins,
+            uint256[] memory prizes
+        ) = score.getPlayersPaginated(10, 5);
+        
+        assertEq(players.length, 0);
+        assertEq(wins.length, 0);
+        assertEq(prizes.length, 0);
+    }
+    
+    function test_InvalidWinnerReverts() public {
+        vm.prank(owner);
+        score.setRecorderAuthorization(recorder, true);
+        
+        address[] memory losers = new address[](1);
+        losers[0] = player2;
+        
+        vm.prank(recorder);
+        vm.expectRevert(abi.encodeWithSignature("InvalidWinner()"));
+        score.recordMatchResult(address(0), losers, 100 ether);
+    }
+    
+    function test_GetPlayersWithLimitLargerThanPlayerCount() public {
         vm.prank(owner);
         score.setRecorderAuthorization(recorder, true);
         
@@ -304,14 +323,14 @@ contract ScoreTest is Test {
             address[] memory players,
             uint256[] memory wins,
             uint256[] memory prizes
-        ) = score.getTopPlayersByWins(10);
+        ) = score.getPlayers(10);
         
         assertEq(players.length, 2); // Should return only 2 players
         assertEq(wins.length, 2);
         assertEq(prizes.length, 2);
     }
     
-    function test_GetTopPlayersWithZeroLimit() public {
+    function test_GetPlayersWithZeroLimit() public {
         vm.prank(owner);
         score.setRecorderAuthorization(recorder, true);
         
@@ -325,7 +344,7 @@ contract ScoreTest is Test {
             address[] memory players,
             uint256[] memory wins,
             uint256[] memory prizes
-        ) = score.getTopPlayersByWins(0);
+        ) = score.getPlayers(0);
         
         assertEq(players.length, 0);
         assertEq(wins.length, 0);

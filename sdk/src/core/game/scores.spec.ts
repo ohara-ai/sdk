@@ -5,8 +5,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createClientScoreOperations } from './scores'
-import type { ScoreOperations } from './scores'
+import { createClientScoreOperations, sortPlayers, getTopN } from './scores'
+import type { ScoreOperations, PlayersResult } from './scores'
 import {
   createMockPublicClient,
   createMockPlayerScore,
@@ -29,6 +29,8 @@ describe('Score Operations - Specification Tests', () => {
 
       assertHasOperations(operations, [
         'getPlayerScore',
+        'getPlayers',
+        'getPlayersPaginated',
         'getTopPlayersByWins',
         'getTopPlayersByPrize',
         'getTotalPlayers',
@@ -108,94 +110,139 @@ describe('Score Operations - Specification Tests', () => {
       operations = createClientScoreOperations(CONTRACT_ADDRESS, publicClient)
     })
 
-    it('SPEC: getTopPlayersByWins() - returns top players sorted by wins', async () => {
+    it('SPEC: getPlayers() - returns unsorted player data', async () => {
       vi.spyOn(publicClient, 'readContract').mockResolvedValue(
         createMockTopPlayers(),
       )
 
-      const result = await operations.getTopPlayersByWins(10)
-
-      expect(result).toEqual({
-        players: [
-          '0x1111111111111111111111111111111111111111',
-          '0x2222222222222222222222222222222222222222',
-        ],
-        wins: [10n, 5n],
-        prizes: [20000000000000000000n, 10000000000000000000n],
-      })
-    })
-
-    it('SPEC: getTopPlayersByWins() - calls contract with limit parameter', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
-        createMockTopPlayers(),
-      )
-
-      await operations.getTopPlayersByWins(5)
-
-      expect(publicClient.readContract).toHaveBeenCalledWith(
-        expect.objectContaining({
-          address: CONTRACT_ADDRESS,
-          functionName: 'getTopPlayersByWins',
-          args: [5n],
-        }),
-      )
-    })
-
-    it('SPEC: getTopPlayersByWins() - converts number limit to BigInt', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
-        createMockTopPlayers(),
-      )
-
-      await operations.getTopPlayersByWins(25)
-
-      expect(publicClient.readContract).toHaveBeenCalledWith(
-        expect.objectContaining({
-          args: [25n],
-        }),
-      )
-    })
-
-    it('SPEC: getTopPlayersByPrize() - returns top players sorted by prize', async () => {
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
-        createMockTopPlayers(),
-      )
-
-      const result = await operations.getTopPlayersByPrize(10)
+      const result = await operations.getPlayers(10)
 
       expect(result).toEqual({
         players: expect.any(Array),
         wins: expect.any(Array),
         prizes: expect.any(Array),
       })
-
-      // Verify arrays have same length
       expect(result.players.length).toBe(result.wins.length)
       expect(result.players.length).toBe(result.prizes.length)
     })
 
-    it('SPEC: getTopPlayersByPrize() - calls contract with correct function name', async () => {
+    it('SPEC: getPlayers() - calls contract with correct function name', async () => {
       vi.spyOn(publicClient, 'readContract').mockResolvedValue(
         createMockTopPlayers(),
       )
 
-      await operations.getTopPlayersByPrize(10)
+      await operations.getPlayers(10)
 
       expect(publicClient.readContract).toHaveBeenCalledWith(
         expect.objectContaining({
-          functionName: 'getTopPlayersByPrize',
+          address: CONTRACT_ADDRESS,
+          functionName: 'getPlayers',
           args: [10n],
         }),
       )
     })
 
+    it('SPEC: getPlayersPaginated() - calls contract with offset and limit', async () => {
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
+
+      await operations.getPlayersPaginated(5, 10)
+
+      expect(publicClient.readContract).toHaveBeenCalledWith(
+        expect.objectContaining({
+          functionName: 'getPlayersPaginated',
+          args: [5n, 10n],
+        }),
+      )
+    })
+
+    it('SPEC: getTopPlayersByWins() - returns client-side sorted data', async () => {
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
+
+      const result = await operations.getTopPlayersByWins(2)
+
+      expect(result.players.length).toBeLessThanOrEqual(2)
+      // Verify sorted in descending order by wins
+      for (let i = 0; i < result.wins.length - 1; i++) {
+        expect(result.wins[i]).toBeGreaterThanOrEqual(result.wins[i + 1])
+      }
+    })
+
+    it('SPEC: getTopPlayersByPrize() - returns client-side sorted data', async () => {
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(
+        createMockTopPlayers(),
+      )
+
+      const result = await operations.getTopPlayersByPrize(2)
+
+      expect(result.players.length).toBeLessThanOrEqual(2)
+      // Verify sorted in descending order by prizes
+      for (let i = 0; i < result.prizes.length - 1; i++) {
+        expect(result.prizes[i]).toBeGreaterThanOrEqual(result.prizes[i + 1])
+      }
+    })
+
     it('SPEC: leaderboard queries handle empty results', async () => {
       vi.spyOn(publicClient, 'readContract').mockResolvedValue([[], [], []])
 
-      const result = await operations.getTopPlayersByWins(10)
+      const result = await operations.getPlayers(10)
 
       expect(result.players).toEqual([])
       expect(result.wins).toEqual([])
       expect(result.prizes).toEqual([])
+    })
+  })
+
+  describe('Specification: Sorting Utilities', () => {
+    const mockData: PlayersResult = {
+      players: [
+        '0x1111111111111111111111111111111111111111' as const,
+        '0x2222222222222222222222222222222222222222' as const,
+        '0x3333333333333333333333333333333333333333' as const,
+      ],
+      wins: [5n, 10n, 3n],
+      prizes: [1000n, 500n, 2000n],
+    }
+
+    it('SPEC: sortPlayers() - sorts by wins descending by default', () => {
+      const sorted = sortPlayers(mockData)
+
+      expect(sorted[0].wins).toBe(10n)
+      expect(sorted[1].wins).toBe(5n)
+      expect(sorted[2].wins).toBe(3n)
+    })
+
+    it('SPEC: sortPlayers() - sorts by prize descending', () => {
+      const sorted = sortPlayers(mockData, 'prize', 'desc')
+
+      expect(sorted[0].prize).toBe(2000n)
+      expect(sorted[1].prize).toBe(1000n)
+      expect(sorted[2].prize).toBe(500n)
+    })
+
+    it('SPEC: sortPlayers() - sorts by wins ascending', () => {
+      const sorted = sortPlayers(mockData, 'wins', 'asc')
+
+      expect(sorted[0].wins).toBe(3n)
+      expect(sorted[1].wins).toBe(5n)
+      expect(sorted[2].wins).toBe(10n)
+    })
+
+    it('SPEC: getTopN() - returns limited results', () => {
+      const top2 = getTopN(mockData, 2, 'wins', 'desc')
+
+      expect(top2.length).toBe(2)
+      expect(top2[0].wins).toBe(10n)
+      expect(top2[1].wins).toBe(5n)
+    })
+
+    it('SPEC: getTopN() - handles limit larger than data', () => {
+      const top10 = getTopN(mockData, 10, 'wins', 'desc')
+
+      expect(top10.length).toBe(3)
     })
   })
 

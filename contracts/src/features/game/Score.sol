@@ -4,6 +4,7 @@ pragma solidity 0.8.23;
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
 import {IPrize} from "../../interfaces/game/IPrize.sol";
+import {ITournament} from "../../interfaces/game/ITournament.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -13,12 +14,14 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
  * @dev Implements IScore for recording results and provides query functions
  */
 contract Score is IScore, IFeature, FeatureController, Initializable {
+    /// @notice Packed player score data for gas efficiency
+    /// @dev Uses smaller types where appropriate to fit in 2 storage slots
     struct PlayerScore {
-        address player;
-        uint256 totalWins;
-        uint256 totalPrize;
-        uint256 lastMatchId;
-        uint256 lastWinTimestamp;
+        address player;           // 20 bytes - slot 1
+        uint64 totalWins;         // 8 bytes  - slot 1
+        uint64 lastMatchId;       // 8 bytes  - slot 1
+        uint64 lastWinTimestamp;  // 8 bytes  - slot 2
+        uint128 totalPrize;       // 16 bytes - slot 2 (max ~340 undecillion wei)
     }
 
     struct MatchRecord {
@@ -53,6 +56,9 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     // Optional prize contract for prize pool tracking
     IPrize public prize;
 
+    // Optional tournament contract for bracket tracking
+    ITournament public tournament;
+
     // Storage limits to prevent state explosion (configurable by owner)
     uint256 public maxLosersPerMatch; // Limit losers array size
     uint256 public maxTotalPlayers; // Cap total unique players
@@ -69,9 +75,12 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     event MatchEvicted(uint256 indexed matchId, uint256 timestamp);
     event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
     event PrizeContractUpdated(address indexed previousPrize, address indexed newPrize);
+    event TournamentContractUpdated(address indexed previousTournament, address indexed newTournament);
+    event ExternalCallFailed(string indexed target, bytes reason);
 
     error UnauthorizedRecorder();
     error InvalidLimit();
+    error InvalidWinner();
 
     /**
      * @notice Empty constructor for cloneable pattern
@@ -123,6 +132,16 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     }
 
     /**
+     * @notice Set the tournament contract for bracket tracking
+     * @param _tournament Address of the tournament contract (address(0) to disable)
+     */
+    function setTournament(address _tournament) external onlyController {
+        address previousTournament = address(tournament);
+        tournament = ITournament(_tournament);
+        emit TournamentContractUpdated(previousTournament, _tournament);
+    }
+
+    /**
      * @notice Update storage limits
      * @param _maxLosersPerMatch Maximum losers per match (0 = no change)
      * @param _maxTotalPlayers Maximum total players (0 = no change)
@@ -149,20 +168,20 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
 
     /**
      * @notice Evict the oldest match record
-     * @dev Oldest match is always at index 0 due to append-only chronological ordering.
-     *      Uses swap-and-pop for O(1) removal instead of O(n) shift-left.
+     * @dev Uses shift-left to maintain chronological ordering (O(n) but correct)
      */
     function _evictOldestMatch() internal {
         if (_matchIds.length == 0) return;
         
-        // Oldest match is always at index 0 (chronological order guaranteed)
+        // Oldest match is at index 0
         uint256 oldestMatchId = _matchIds[0];
         uint256 oldestTimestamp = _matchRecords[oldestMatchId].timestamp;
         
-        // Swap first with last, then pop (O(1) instead of shift-left O(n))
-        uint256 lastIndex = _matchIds.length - 1;
-        if (lastIndex > 0) {
-            _matchIds[0] = _matchIds[lastIndex];
+        // Shift all elements left to maintain chronological order
+        uint256 length = _matchIds.length;
+        for (uint256 i = 0; i < length - 1;) {
+            _matchIds[i] = _matchIds[i + 1];
+            unchecked { ++i; }
         }
         _matchIds.pop();
         
@@ -238,6 +257,7 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         uint256 prizeAmount
     ) external {
         if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
+        if (winner == address(0)) revert InvalidWinner();
         
         // Increment internal match counter
         uint256 matchId = ++_matchCounter;
@@ -287,9 +307,9 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         PlayerScore storage winnerScore = _scores[winner];
         winnerScore.player = winner;
         winnerScore.totalWins++;
-        winnerScore.totalPrize += prizeAmount;
-        winnerScore.lastMatchId = matchId;
-        winnerScore.lastWinTimestamp = block.timestamp;
+        winnerScore.totalPrize += uint128(prizeAmount);
+        winnerScore.lastMatchId = uint64(matchId);
+        winnerScore.lastWinTimestamp = uint64(block.timestamp);
 
         emit ScoreRecorded(matchId, winner, winnerScore.totalWins, winnerScore.totalPrize);
 
@@ -298,8 +318,18 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
             // Use try-catch to prevent DoS from buggy prize contracts
             try prize.recordMatchResult(winner) {
                 // Prize recorded successfully
-            } catch {
-                // Prize recording failed, but score recording succeeds
+            } catch (bytes memory reason) {
+                emit ExternalCallFailed("Prize.recordMatchResult", reason);
+            }
+        }
+
+        // Notify tournament contract if configured (for bracket tracking)
+        if (address(tournament) != address(0) && processedLosers.length > 0) {
+            // Use try-catch to prevent DoS from buggy tournament contracts
+            try tournament.onMatchResult(winner, processedLosers[0]) {
+                // Tournament notified successfully
+            } catch (bytes memory reason) {
+                emit ExternalCallFailed("Tournament.onMatchResult", reason);
             }
         }
     }
@@ -327,13 +357,14 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     }
 
     /**
-     * @notice Get top players by total wins
+     * @notice Get all players with their scores (unsorted)
      * @param limit Maximum number of players to return
      * @return players Array of player addresses
      * @return wins Array of total wins for each player
      * @return prizes Array of total prizes for each player
+     * @dev Returns unsorted data - SDK should handle sorting by wins/prizes
      */
-    function getTopPlayersByWins(uint256 limit)
+    function getPlayers(uint256 limit)
         external
         view
         returns (
@@ -348,41 +379,25 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         wins = new uint256[](count);
         prizes = new uint256[](count);
 
-        // Create a sorted copy of players by wins
-        address[] memory sortedPlayers = new address[](_players.length);
-        for (uint256 i = 0; i < _players.length; i++) {
-            sortedPlayers[i] = _players[i];
-        }
-
-        // Simple bubble sort (for small datasets, fine for demo)
-        for (uint256 i = 0; i < sortedPlayers.length; i++) {
-            for (uint256 j = i + 1; j < sortedPlayers.length; j++) {
-                if (_scores[sortedPlayers[i]].totalWins < _scores[sortedPlayers[j]].totalWins) {
-                    address temp = sortedPlayers[i];
-                    sortedPlayers[i] = sortedPlayers[j];
-                    sortedPlayers[j] = temp;
-                }
-            }
-        }
-
-        // Return top N
         for (uint256 i = 0; i < count; i++) {
-            players[i] = sortedPlayers[i];
-            wins[i] = _scores[sortedPlayers[i]].totalWins;
-            prizes[i] = _scores[sortedPlayers[i]].totalPrize;
+            players[i] = _players[i];
+            wins[i] = _scores[_players[i]].totalWins;
+            prizes[i] = _scores[_players[i]].totalPrize;
         }
 
         return (players, wins, prizes);
     }
 
     /**
-     * @notice Get top players by total prize
+     * @notice Get players with pagination
+     * @param offset Starting index
      * @param limit Maximum number of players to return
      * @return players Array of player addresses
      * @return wins Array of total wins for each player
      * @return prizes Array of total prizes for each player
+     * @dev Returns unsorted data - SDK should handle sorting
      */
-    function getTopPlayersByPrize(uint256 limit)
+    function getPlayersPaginated(uint256 offset, uint256 limit)
         external
         view
         returns (
@@ -391,34 +406,22 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
             uint256[] memory prizes
         )
     {
-        uint256 count = _players.length < limit ? _players.length : limit;
+        if (offset >= _players.length) {
+            return (new address[](0), new uint256[](0), new uint256[](0));
+        }
+        
+        uint256 remaining = _players.length - offset;
+        uint256 count = remaining < limit ? remaining : limit;
         
         players = new address[](count);
         wins = new uint256[](count);
         prizes = new uint256[](count);
 
-        // Create a sorted copy of players by prize
-        address[] memory sortedPlayers = new address[](_players.length);
-        for (uint256 i = 0; i < _players.length; i++) {
-            sortedPlayers[i] = _players[i];
-        }
-
-        // Simple bubble sort by prize
-        for (uint256 i = 0; i < sortedPlayers.length; i++) {
-            for (uint256 j = i + 1; j < sortedPlayers.length; j++) {
-                if (_scores[sortedPlayers[i]].totalPrize < _scores[sortedPlayers[j]].totalPrize) {
-                    address temp = sortedPlayers[i];
-                    sortedPlayers[i] = sortedPlayers[j];
-                    sortedPlayers[j] = temp;
-                }
-            }
-        }
-
-        // Return top N
         for (uint256 i = 0; i < count; i++) {
-            players[i] = sortedPlayers[i];
-            wins[i] = _scores[sortedPlayers[i]].totalWins;
-            prizes[i] = _scores[sortedPlayers[i]].totalPrize;
+            address player = _players[offset + i];
+            players[i] = player;
+            wins[i] = _scores[player].totalWins;
+            prizes[i] = _scores[player].totalPrize;
         }
 
         return (players, wins, prizes);

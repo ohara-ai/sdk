@@ -270,7 +270,7 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "getTopPlayersByPrize",
+    "name": "getPlayers",
     "inputs": [
       {
         "name": "limit",
@@ -299,8 +299,13 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "getTopPlayersByWins",
+    "name": "getPlayersPaginated",
     "inputs": [
+      {
+        "name": "offset",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
         "name": "limit",
         "type": "uint256",
@@ -1007,8 +1012,57 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
-    "name": "TransferFailed",
+    "name": "InvalidWinner",
     "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoFailedTransfers",
+    "inputs": []
+  },
+  {
+    "type": "event",
+    "name": "TransferFailed",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ExternalCallFailed",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "string",
+        "indexed": true,
+        "internalType": "string"
+      },
+      {
+        "name": "reason",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "error",

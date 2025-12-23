@@ -15,10 +15,63 @@ export interface PlayerScore {
   lastWinTimestamp: bigint
 }
 
-export interface TopPlayersResult {
+export interface PlayersResult {
   players: readonly Address[]
   wins: readonly bigint[]
   prizes: readonly bigint[]
+}
+
+/** @deprecated Use PlayersResult instead */
+export type TopPlayersResult = PlayersResult
+
+/**
+ * Sorting utilities for client-side leaderboard sorting
+ * Used since contracts no longer sort on-chain for gas optimization
+ */
+export type SortBy = 'wins' | 'prize'
+export type SortOrder = 'asc' | 'desc'
+
+export interface PlayerData {
+  player: Address
+  wins: bigint
+  prize: bigint
+}
+
+/**
+ * Sort player data by specified field and order
+ */
+export function sortPlayers(
+  data: PlayersResult,
+  sortBy: SortBy = 'wins',
+  order: SortOrder = 'desc'
+): PlayerData[] {
+  const players: PlayerData[] = data.players.map((player, i) => ({
+    player,
+    wins: data.wins[i],
+    prize: data.prizes[i],
+  }))
+
+  return players.sort((a, b) => {
+    const aVal = sortBy === 'wins' ? a.wins : a.prize
+    const bVal = sortBy === 'wins' ? b.wins : b.prize
+    const diff = aVal - bVal
+    if (order === 'desc') {
+      return diff > 0n ? -1 : diff < 0n ? 1 : 0
+    }
+    return diff > 0n ? 1 : diff < 0n ? -1 : 0
+  })
+}
+
+/**
+ * Get top N players sorted by specified field
+ */
+export function getTopN(
+  data: PlayersResult,
+  limit: number,
+  sortBy: SortBy = 'wins',
+  order: SortOrder = 'desc'
+): PlayerData[] {
+  return sortPlayers(data, sortBy, order).slice(0, limit)
 }
 
 /**
@@ -32,14 +85,29 @@ export interface ScoreOperations {
   getPlayerScore(player: Address): Promise<PlayerScore>
 
   /**
-   * Get top players by wins
+   * Get all players with scores (unsorted - use sortPlayers utility for sorting)
+   * @param limit Maximum number of players to return
    */
-  getTopPlayersByWins(limit: number): Promise<TopPlayersResult>
+  getPlayers(limit: number): Promise<PlayersResult>
 
   /**
-   * Get top players by prize money
+   * Get players with pagination (unsorted - use sortPlayers utility for sorting)
+   * @param offset Starting index
+   * @param limit Maximum number of players to return
    */
-  getTopPlayersByPrize(limit: number): Promise<TopPlayersResult>
+  getPlayersPaginated(offset: number, limit: number): Promise<PlayersResult>
+
+  /**
+   * Get top players by wins (sorted client-side)
+   * @deprecated Use getPlayers() with sortPlayers() utility instead
+   */
+  getTopPlayersByWins(limit: number): Promise<PlayersResult>
+
+  /**
+   * Get top players by prize money (sorted client-side)
+   * @deprecated Use getPlayers() with sortPlayers() utility instead
+   */
+  getTopPlayersByPrize(limit: number): Promise<PlayersResult>
 
   /**
    * Get total number of players tracked
@@ -178,11 +246,11 @@ function createOperationsInternal(
       }
     },
 
-    async getTopPlayersByWins(limit: number): Promise<TopPlayersResult> {
+    async getPlayers(limit: number): Promise<PlayersResult> {
       const result = await publicClient.readContract({
         address: contractAddress,
         abi: SCORE_ABI,
-        functionName: 'getTopPlayersByWins',
+        functionName: 'getPlayers',
         args: [BigInt(limit)],
       })
 
@@ -193,18 +261,40 @@ function createOperationsInternal(
       }
     },
 
-    async getTopPlayersByPrize(limit: number): Promise<TopPlayersResult> {
+    async getPlayersPaginated(offset: number, limit: number): Promise<PlayersResult> {
       const result = await publicClient.readContract({
         address: contractAddress,
         abi: SCORE_ABI,
-        functionName: 'getTopPlayersByPrize',
-        args: [BigInt(limit)],
+        functionName: 'getPlayersPaginated',
+        args: [BigInt(offset), BigInt(limit)],
       })
 
       return {
         players: result[0],
         wins: result[1],
         prizes: result[2],
+      }
+    },
+
+    async getTopPlayersByWins(limit: number): Promise<PlayersResult> {
+      // Fetch unsorted data and sort client-side
+      const data = await this.getPlayers(limit * 2) // Fetch extra for better results
+      const sorted = getTopN(data, limit, 'wins', 'desc')
+      return {
+        players: sorted.map(p => p.player),
+        wins: sorted.map(p => p.wins),
+        prizes: sorted.map(p => p.prize),
+      }
+    },
+
+    async getTopPlayersByPrize(limit: number): Promise<PlayersResult> {
+      // Fetch unsorted data and sort client-side
+      const data = await this.getPlayers(limit * 2) // Fetch extra for better results
+      const sorted = getTopN(data, limit, 'prize', 'desc')
+      return {
+        players: sorted.map(p => p.player),
+        wins: sorted.map(p => p.wins),
+        prizes: sorted.map(p => p.prize),
       }
     },
 

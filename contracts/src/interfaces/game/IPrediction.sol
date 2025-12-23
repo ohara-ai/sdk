@@ -2,22 +2,23 @@
 pragma solidity 0.8.23;
 
 /**
- * @title IPredict
- * @notice Interface for winner prediction markets on Prize pools, Challenges, and League cycles
+ * @title IPrediction
+ * @notice Interface for winner prediction markets on Matches, Tournaments, and League cycles
  */
-interface IPredict {
+interface IPrediction {
     /// @notice Type of competition being predicted
     enum CompetitionType {
-        PrizePool,
-        Challenge,
-        LeagueCycle
+        Match,       // Predict winner of a match (uses matchId from Match contract)
+        Tournament,  // Predict winner of a tournament
+        LeagueCycle  // Predict winner of a league cycle
     }
 
     /// @notice Emitted when a new prediction market is created
     event MarketCreated(
         uint256 indexed marketId,
         CompetitionType competitionType,
-        uint256 indexed competitionId
+        uint256 indexed competitionId,
+        address token
     );
 
     /// @notice Emitted when a prediction is placed
@@ -43,7 +44,8 @@ interface IPredict {
     /// @notice Market data structure
     struct Market {
         CompetitionType competitionType;
-        uint256 competitionId;
+        uint256 competitionId;    // matchId, tournamentId, or cycleId
+        address token;            // Token for predictions (address(0) for native)
         uint256 totalPool;
         bool bettingClosed;
         bool resolved;
@@ -67,21 +69,35 @@ interface IPredict {
 
     /**
      * @notice Create a winner prediction market
-     * @param competitionType Type of competition
-     * @param competitionId ID of the competition
+     * @param competitionType Type of competition (Match, Tournament, or LeagueCycle)
+     * @param competitionId ID of the match, tournament, or cycle
+     * @param token Token address for predictions (address(0) for native coin)
      * @return marketId The created market ID
      */
     function createMarket(
         CompetitionType competitionType,
-        uint256 competitionId
+        uint256 competitionId,
+        address token
     ) external returns (uint256 marketId);
+
+    /**
+     * @notice Callback from source contracts when a competition starts (betting should close)
+     * @param competitionType Type of competition that started
+     * @param competitionId ID of the competition
+     * @dev Called by Match.activate(), Tournament.activate(), or League.startCycle()
+     */
+    function onCompetitionStarted(
+        CompetitionType competitionType,
+        uint256 competitionId
+    ) external;
 
     /**
      * @notice Place a prediction on a market
      * @param marketId Market ID to bet on
      * @param predictedPlayer Player address to bet on
+     * @param amount Amount to stake (only used for ERC20, ignored for native)
      */
-    function predict(uint256 marketId, address predictedPlayer) external payable;
+    function predict(uint256 marketId, address predictedPlayer, uint256 amount) external payable;
 
     /**
      * @notice Resolve a market after competition ends

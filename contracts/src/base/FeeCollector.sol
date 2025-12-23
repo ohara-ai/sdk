@@ -21,6 +21,9 @@ abstract contract FeeCollector is Owned, ReentrancyGuard {
     // Pull-over-push: pending fees for each recipient
     mapping(address => mapping(address => uint256)) public pendingFees; // recipient => token => amount
     
+    // Failed transfers that can be retried by recipients
+    mapping(address => mapping(address => uint256)) public failedTransfers; // recipient => token => amount
+    
     uint256 public constant MAX_FEE_RECIPIENTS = 10;
     uint256 public constant FEE_BASIS_POINTS = 10000; // 100%
     uint256 public constant MAX_FEE_BASIS_POINTS = 5000; // 50%
@@ -28,12 +31,14 @@ abstract contract FeeCollector is Owned, ReentrancyGuard {
     event FeesConfigured(address[] recipients, uint256[] shares, uint256 totalShare);
     event FeeAccrued(address indexed recipient, address token, uint256 amount);
     event FeeWithdrawn(address indexed recipient, address token, uint256 amount);
+    event TransferFailed(address indexed to, address indexed token, uint256 amount);
+    event FailedTransferClaimed(address indexed to, address indexed token, uint256 amount);
 
     error InvalidFeeConfiguration();
     error InvalidFeeRecipient();
-    error TransferFailed();
     error TooManyFeeRecipients();
     error NoFeesToWithdraw();
+    error NoFailedTransfers();
 
     constructor(address _owner) Owned(_owner) {}
 
@@ -143,20 +148,74 @@ abstract contract FeeCollector is Owned, ReentrancyGuard {
      * @param token The token address (address(0) for native token)
      * @param to The recipient address
      * @param amount The amount to transfer
+     * @dev Emits TransferFailed event and tracks failed amount for retry if transfer fails
      */
     function _transfer(address token, address to, uint256 amount) internal {
         if (amount == 0) return; // Save gas on zero transfers
         
+        bool success;
         if (token == address(0)) {
-            // Native token - ignore failure to prevent DoS
+            // Native token transfer
             // slither-disable-next-line low-level-calls,unchecked-lowlevel
-            (bool _success, ) = to.call{value: amount}("");
-            _success; // Silence unused variable warning - intentionally ignored
+            (success, ) = to.call{value: amount}("");
         } else {
-            // ERC20 token using SafeERC20 - wrap in try-catch to prevent DoS
+            // ERC20 token transfer
             // slither-disable-next-line unchecked-transfer
-            try IERC20(token).transfer(to, amount) {} catch {}
+            try IERC20(token).transfer(to, amount) returns (bool result) {
+                success = result;
+            } catch {
+                success = false;
+            }
         }
+        
+        if (!success) {
+            // Track failed transfer for later claim
+            failedTransfers[to][token] += amount;
+            emit TransferFailed(to, token, amount);
+        }
+    }
+    
+    /**
+     * @notice Claim failed transfers
+     * @param token The token address (address(0) for native token)
+     * @dev Allows recipients to retry claiming transfers that previously failed
+     */
+    function claimFailedTransfer(address token) external nonReentrant {
+        uint256 amount = failedTransfers[msg.sender][token];
+        if (amount == 0) revert NoFailedTransfers();
+        
+        // Clear before transfer (CEI pattern)
+        failedTransfers[msg.sender][token] = 0;
+        
+        // Attempt transfer again
+        bool success;
+        if (token == address(0)) {
+            (success, ) = msg.sender.call{value: amount}("");
+        } else {
+            try IERC20(token).transfer(msg.sender, amount) returns (bool result) {
+                success = result;
+            } catch {
+                success = false;
+            }
+        }
+        
+        if (success) {
+            emit FailedTransferClaimed(msg.sender, token, amount);
+        } else {
+            // Re-track if still failing
+            failedTransfers[msg.sender][token] = amount;
+            emit TransferFailed(msg.sender, token, amount);
+        }
+    }
+    
+    /**
+     * @notice Get pending failed transfer amount
+     * @param recipient The recipient address
+     * @param token The token address
+     * @return amount The amount of failed transfers
+     */
+    function getFailedTransfer(address recipient, address token) external view returns (uint256 amount) {
+        return failedTransfers[recipient][token];
     }
 
     /**

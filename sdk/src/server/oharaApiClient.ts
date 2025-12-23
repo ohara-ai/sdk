@@ -31,7 +31,7 @@ export interface WalletInfo {
 }
 
 export interface DeployContractRequest {
-  factoryType: 'MatchFactory' | 'ScoreFactory' | 'PrizeFactory'
+  factoryType: 'MatchFactory' | 'ScoreFactory' | 'PrizeFactory' | 'EventBusFactory' | 'LeagueFactory' | 'TournamentFactory' | 'PredictionFactory'
   scoreAddress?: string
   matchAddress?: string
   matchesPerPool?: string
