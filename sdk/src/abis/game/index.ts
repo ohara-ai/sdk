@@ -4,6 +4,3 @@ export * from './prize';
 export * from './prizeFactory';
 export * from './score';
 export * from './scoreFactory';
-export * from './leagueFactory';
-export * from './tournamentFactory';
-export * from './predictionFactory';

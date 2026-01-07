@@ -71,6 +71,19 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
+    "name": "claimFailedTransfer",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "configureFees",
     "inputs": [
       {
@@ -96,6 +109,30 @@ export const SCORE_ABI = [
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "failedTransfers",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -145,6 +182,30 @@ export const SCORE_ABI = [
     "outputs": [
       {
         "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFailedTransfer",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -244,32 +305,6 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "getRemainingMatchCapacity",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getRemainingPlayerCapacity",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getPlayers",
     "inputs": [
       {
@@ -327,6 +362,32 @@ export const SCORE_ABI = [
         "name": "prizes",
         "type": "uint256[]",
         "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRemainingMatchCapacity",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getRemainingPlayerCapacity",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -561,6 +622,19 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
+    "name": "setTournament",
+    "inputs": [
+      {
+        "name": "_tournament",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "totalFeeShare",
     "inputs": [],
     "outputs": [
@@ -568,6 +642,19 @@ export const SCORE_ABI = [
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tournament",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract ITournament"
       }
     ],
     "stateMutability": "view"
@@ -649,6 +736,50 @@ export const SCORE_ABI = [
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ExternalCallFailed",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "string",
+        "indexed": true,
+        "internalType": "string"
+      },
+      {
+        "name": "reason",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FailedTransferClaimed",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -918,31 +1049,48 @@ export const SCORE_ABI = [
     "anonymous": false
   },
   {
-    "type": "error",
-    "name": "AddressEmptyCode",
+    "type": "event",
+    "name": "TournamentContractUpdated",
     "inputs": [
       {
-        "name": "target",
+        "name": "previousTournament",
         "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newTournament",
+        "type": "address",
+        "indexed": true,
         "internalType": "address"
       }
-    ]
+    ],
+    "anonymous": false
   },
   {
-    "type": "error",
-    "name": "AddressInsufficientBalance",
+    "type": "event",
+    "name": "TransferFailed",
     "inputs": [
       {
-        "name": "account",
+        "name": "to",
         "type": "address",
+        "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "FailedInnerCall",
-    "inputs": []
+    ],
+    "anonymous": false
   },
   {
     "type": "error",
@@ -976,6 +1124,16 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidWinner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoFailedTransfers",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NoFeesToWithdraw",
     "inputs": []
   },
@@ -996,73 +1154,8 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
-    "name": "SafeERC20FailedOperation",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
     "name": "TooManyFeeRecipients",
     "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidWinner",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NoFailedTransfers",
-    "inputs": []
-  },
-  {
-    "type": "event",
-    "name": "TransferFailed",
-    "inputs": [
-      {
-        "name": "to",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "ExternalCallFailed",
-    "inputs": [
-      {
-        "name": "target",
-        "type": "string",
-        "indexed": true,
-        "internalType": "string"
-      },
-      {
-        "name": "reason",
-        "type": "bytes",
-        "indexed": false,
-        "internalType": "bytes"
-      }
-    ],
-    "anonymous": false
   },
   {
     "type": "error",

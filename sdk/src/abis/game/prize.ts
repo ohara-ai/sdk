@@ -75,6 +75,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "claimFailedTransfer",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "claimPrize",
     "inputs": [
       {
@@ -113,6 +126,30 @@ export const PRIZE_ABI = [
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "failedTransfers",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -194,6 +231,30 @@ export const PRIZE_ABI = [
     "outputs": [
       {
         "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFailedTransfer",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -583,6 +644,31 @@ export const PRIZE_ABI = [
   },
   {
     "type": "event",
+    "name": "FailedTransferClaimed",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "FeeAccrued",
     "inputs": [
       {
@@ -884,31 +970,29 @@ export const PRIZE_ABI = [
     "anonymous": false
   },
   {
-    "type": "error",
-    "name": "AddressEmptyCode",
+    "type": "event",
+    "name": "TransferFailed",
     "inputs": [
       {
-        "name": "target",
+        "name": "to",
         "type": "address",
+        "indexed": true,
         "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "AddressInsufficientBalance",
-    "inputs": [
+      },
       {
-        "name": "account",
+        "name": "token",
         "type": "address",
+        "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
-    ]
-  },
-  {
-    "type": "error",
-    "name": "FailedInnerCall",
-    "inputs": []
+    ],
+    "anonymous": false
   },
   {
     "type": "error",
@@ -943,6 +1027,11 @@ export const PRIZE_ABI = [
   {
     "type": "error",
     "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoFailedTransfers",
     "inputs": []
   },
   {
@@ -987,23 +1076,7 @@ export const PRIZE_ABI = [
   },
   {
     "type": "error",
-    "name": "SafeERC20FailedOperation",
-    "inputs": [
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      }
-    ]
-  },
-  {
-    "type": "error",
     "name": "TooManyFeeRecipients",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "TransferFailed",
     "inputs": []
   },
   {

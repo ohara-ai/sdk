@@ -143,6 +143,19 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
+    "name": "claimFailedTransfer",
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "claimShares",
     "inputs": [
       {
@@ -226,6 +239,30 @@ export const MATCH_ABI = [
       }
     ],
     "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "failedTransfers",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -329,6 +366,30 @@ export const MATCH_ABI = [
         "name": "matchIds",
         "type": "uint256[]",
         "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getFailedTransfer",
+    "inputs": [
+      {
+        "name": "recipient",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -632,6 +693,19 @@ export const MATCH_ABI = [
   },
   {
     "type": "function",
+    "name": "prediction",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IPrediction"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "registerShareRecipient",
     "inputs": [
       {
@@ -695,6 +769,19 @@ export const MATCH_ABI = [
         "name": "_maxActiveMatches",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPrediction",
+    "inputs": [
+      {
+        "name": "_prediction",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -793,6 +880,50 @@ export const MATCH_ABI = [
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ExternalCallFailed",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "string",
+        "indexed": true,
+        "internalType": "string"
+      },
+      {
+        "name": "reason",
+        "type": "bytes",
+        "indexed": false,
+        "internalType": "bytes"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "FailedTransferClaimed",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -1119,6 +1250,25 @@ export const MATCH_ABI = [
   },
   {
     "type": "event",
+    "name": "PredictionContractUpdated",
+    "inputs": [
+      {
+        "name": "previousPrediction",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newPrediction",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "ScoreContractUpdated",
     "inputs": [
       {
@@ -1199,6 +1349,31 @@ export const MATCH_ABI = [
     "inputs": [
       {
         "name": "recipient",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TransferFailed",
+    "inputs": [
+      {
+        "name": "to",
         "type": "address",
         "indexed": true,
         "internalType": "address"
@@ -1332,6 +1507,11 @@ export const MATCH_ABI = [
   },
   {
     "type": "error",
+    "name": "NoFailedTransfers",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "NoFeesToWithdraw",
     "inputs": []
   },
@@ -1414,11 +1594,6 @@ export const MATCH_ABI = [
   {
     "type": "error",
     "name": "TooManyShareRecipients",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "TransferFailed",
     "inputs": []
   },
   {
