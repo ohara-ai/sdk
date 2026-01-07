@@ -150,9 +150,27 @@ export function getPreferredChainId(): number | undefined {
  * Get the storage directory path for local data
  * Centralized configuration for where the SDK stores local data
  * 
+ * Handles different environments:
+ * - Custom path via OHARA_STORAGE_DIR env var (highest priority)
+ * - Vercel serverless: uses cwd/ohara-ai-data (reads pre-deployed data, writes may fail)
+ * - Local development: uses public/ohara-ai-data
+ * 
  * @returns Absolute path to the storage directory
  */
 export function getStorageDir(): string {
+  // Allow explicit override via environment variable
+  if (process.env.OHARA_STORAGE_DIR) {
+    return process.env.OHARA_STORAGE_DIR
+  }
+
+  // Vercel serverless: use cwd/ohara-ai-data (deployed with source)
+  // Writes may fail (ephemeral), but reads work for pre-deployed data
+  // VERCEL env var is set automatically by Vercel
+  if (process.env.VERCEL) {
+    return path.join(process.cwd(), 'ohara-ai-data')
+  }
+
+  // Local development: use public/ohara-ai-data for convenience
   return path.join(process.cwd(), 'public', 'ohara-ai-data')
 }
 

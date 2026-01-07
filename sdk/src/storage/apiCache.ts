@@ -5,9 +5,6 @@ import type { ContractAddresses } from './contractsStorage'
 import { normalizeContractType } from '../types/contracts'
 import { getStorageDir, storagePaths } from '../config'
 
-const STORAGE_DIR = getStorageDir()
-const API_CACHE_PATH = storagePaths.apiCache()
-
 // Cached contract from API
 export interface CachedContract {
   contractType: string
@@ -28,18 +25,18 @@ interface ApiCacheStorage {
  */
 async function ensureApiCacheExists(): Promise<void> {
   try {
-    await fs.mkdir(STORAGE_DIR, { recursive: true })
+    await fs.mkdir(getStorageDir(), { recursive: true })
   } catch {
     // Directory might already exist
   }
 
   try {
-    await fs.access(API_CACHE_PATH)
+    await fs.access(storagePaths.apiCache())
   } catch {
     try {
-      await fs.writeFile(API_CACHE_PATH, JSON.stringify({}, null, 2))
+      await fs.writeFile(storagePaths.apiCache(), JSON.stringify({}, null, 2))
     } catch (error) {
-      console.warn('Error writing API cache:', error)
+      console.warn('Warning: failed to ensure API cache:', error)
     }
   }
 }
@@ -53,7 +50,7 @@ export async function readApiCache(
   await ensureApiCacheExists()
 
   try {
-    const content = await fs.readFile(API_CACHE_PATH, 'utf-8')
+    const content = await fs.readFile(storagePaths.apiCache(), 'utf-8')
     const cache: ApiCacheStorage = JSON.parse(content)
     return cache[chainId.toString()] || null
   } catch {
@@ -73,7 +70,7 @@ export async function updateApiCache(
   let cache: ApiCacheStorage = {}
 
   try {
-    const content = await fs.readFile(API_CACHE_PATH, 'utf-8')
+    const content = await fs.readFile(storagePaths.apiCache(), 'utf-8')
     cache = JSON.parse(content)
   } catch {
     // Cache file doesn't exist yet
@@ -97,9 +94,9 @@ export async function updateApiCache(
   }
 
   try {
-    await fs.writeFile(API_CACHE_PATH, JSON.stringify(cache, null, 2))
+    await fs.writeFile(storagePaths.apiCache(), JSON.stringify(cache, null, 2))
   } catch (error) {
-    console.error('Error writing API cache:', error)
+    console.warn('Warning: failed to update API cache:', error)
   }
 }
 

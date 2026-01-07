@@ -9,9 +9,6 @@ import {
 } from './encryption'
 import { getStorageDir, storagePaths } from '../config'
 
-const STORAGE_DIR = getStorageDir()
-const KEYS_PATH = storagePaths.keys()
-
 export interface KeyStorage {
   [key: string]: string
 }
@@ -21,15 +18,15 @@ export interface KeyStorage {
  */
 async function ensureKeysStorageExists(): Promise<void> {
   try {
-    await fs.mkdir(STORAGE_DIR, { recursive: true })
+    await fs.mkdir(getStorageDir(), { recursive: true })
   } catch {
     // Directory might already exist
   }
 
   try {
-    await fs.access(KEYS_PATH)
+    await fs.access(storagePaths.keys())
   } catch {
-    await fs.writeFile(KEYS_PATH, JSON.stringify({}, null, 2))
+    await fs.writeFile(storagePaths.keys(), JSON.stringify({}, null, 2))
   }
 }
 
@@ -40,7 +37,7 @@ async function readKeys(): Promise<KeyStorage> {
   await ensureKeysStorageExists()
 
   try {
-    const content = await fs.readFile(KEYS_PATH, 'utf-8')
+    const content = await fs.readFile(storagePaths.keys(), 'utf-8')
     return JSON.parse(content)
   } catch (error) {
     console.error('Error reading keys storage:', error)
@@ -94,7 +91,7 @@ async function setKey(keyName: string, value: string): Promise<void> {
   await ensureKeysStorageExists()
 
   try {
-    await fs.writeFile(KEYS_PATH, JSON.stringify(keys, null, 2))
+    await fs.writeFile(storagePaths.keys(), JSON.stringify(keys, null, 2))
   } catch (error) {
     console.error('Error writing keys storage:', error)
     throw error

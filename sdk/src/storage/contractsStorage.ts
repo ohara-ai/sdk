@@ -1,9 +1,6 @@
 import fs from 'fs/promises'
 import { getStorageDir, storagePaths } from '../config'
 
-const STORAGE_DIR = getStorageDir()
-const CONTRACTS_PATH = storagePaths.contracts()
-
 // Contract addresses organized by context
 export interface OharaContracts {
   token?: string
@@ -42,15 +39,15 @@ interface ContractsStorage {
  */
 export async function ensureContractsStorageExists(): Promise<void> {
   try {
-    await fs.mkdir(STORAGE_DIR, { recursive: true })
+    await fs.mkdir(getStorageDir(), { recursive: true })
   } catch {
     // Directory might already exist
   }
 
   try {
-    await fs.access(CONTRACTS_PATH)
+    await fs.access(storagePaths.contracts())
   } catch {
-    await fs.writeFile(CONTRACTS_PATH, JSON.stringify({}, null, 2))
+    await fs.writeFile(storagePaths.contracts(), JSON.stringify({}, null, 2))
   }
 }
 
@@ -61,7 +58,7 @@ export async function readContracts(): Promise<ContractsStorage> {
   await ensureContractsStorageExists()
 
   try {
-    const content = await fs.readFile(CONTRACTS_PATH, 'utf-8')
+    const content = await fs.readFile(storagePaths.contracts(), 'utf-8')
     return JSON.parse(content)
   } catch (error) {
     console.error('Error reading contract storage:', error)
@@ -97,7 +94,7 @@ export async function updateContracts(
   await ensureContractsStorageExists()
 
   try {
-    await fs.writeFile(CONTRACTS_PATH, JSON.stringify(storage, null, 2))
+    await fs.writeFile(storagePaths.contracts(), JSON.stringify(storage, null, 2))
   } catch (error) {
     console.error('Error writing contract storage:', error)
     throw error
@@ -130,7 +127,7 @@ export async function setContractAddress(
   await ensureContractsStorageExists()
 
   try {
-    await fs.writeFile(CONTRACTS_PATH, JSON.stringify(storage, null, 2))
+    await fs.writeFile(storagePaths.contracts(), JSON.stringify(storage, null, 2))
   } catch (error) {
     console.error('Error writing contract address:', error)
     throw error
