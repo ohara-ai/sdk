@@ -49,6 +49,7 @@ interface OharaAiWagmiProviderProps {
  */
 export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAiWagmiProviderProps) {
   const [isHydrated, setIsHydrated] = useState(false)
+  const [isSwitchingChain, setIsSwitchingChain] = useState(false)
 
   // Defer hook subscriptions until after hydration to prevent setState-during-render warnings
   useEffect(() => {
@@ -69,16 +70,41 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
     
     const targetChainId = propChainId || preferredChainId
     if (targetChainId && wagmiChainId !== targetChainId) {
-      switchChain({ chainId: targetChainId })
+      // Find target chain definition
+      let targetChain = wagmiConfig.chains.find(c => c.id === targetChainId)
+      if (!targetChain) {
+        targetChain = KNOWN_CHAINS.find(c => c.id === targetChainId)
+      }
+      
+      console.log('[OharaAiWagmiProvider] Attempting chain switch:', {
+        from: wagmiChainId,
+        to: targetChainId,
+        chainInConfig: !!wagmiConfig.chains.find(c => c.id === targetChainId),
+        chainInKnown: !!KNOWN_CHAINS.find(c => c.id === targetChainId),
+      })
+      
+      setIsSwitchingChain(true)
+      switchChain(
+        { chainId: targetChainId },
+        {
+          onSuccess: () => {
+            console.log('[OharaAiWagmiProvider] Chain switch successful to:', targetChainId)
+            setIsSwitchingChain(false)
+          },
+          onError: (error) => {
+            console.error('[OharaAiWagmiProvider] Chain switch failed:', error.message)
+            setIsSwitchingChain(false)
+          },
+        }
+      )
     }
-  }, [isHydrated, wagmiChainId, propChainId, preferredChainId, switchChain])
+  }, [isHydrated, wagmiChainId, propChainId, preferredChainId, switchChain, wagmiConfig.chains])
   
   // Try to get public client from wagmi first
   const wagmiPublicClient = usePublicClient({ chainId: effectiveChainId })
-  // Get wallet client for the target chain explicitly
-  const { data: walletClient, status: walletStatus, error: walletError } = useWalletClient({ 
-    chainId: effectiveChainId 
-  })
+  // Get wallet client without forcing chainId - let the wallet switch happen first
+  // Forcing chainId causes wagmi to error if wallet is on different chain
+  const { data: walletClient, status: walletStatus, error: walletError } = useWalletClient()
   
   // Debug wallet connection
   useEffect(() => {
@@ -129,7 +155,9 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
   // Use wagmi client if available, otherwise use fallback
   const publicClient = wagmiPublicClient || fallbackPublicClient
 
-  const effectiveWalletClient = isHydrated ? walletClient : undefined
+  // Don't provide wallet client if we're switching chains or if wallet is on wrong chain
+  const isChainMismatch = walletClient?.chain?.id !== undefined && walletClient.chain.id !== effectiveChainId
+  const effectiveWalletClient = isHydrated && !isSwitchingChain && !isChainMismatch ? walletClient : undefined
   const effectivePublicClient = isHydrated ? publicClient || undefined : undefined
 
   // Debug logging
@@ -137,6 +165,8 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
     if (isHydrated) {
       console.log('[OharaAiWagmiProvider] Debug Info:', {
         isHydrated,
+        isSwitchingChain,
+        isChainMismatch,
         wagmiChainId,
         preferredChainId,
         propChainId,
@@ -144,10 +174,12 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
         publicClient: !!publicClient,
         publicClientChainId: publicClient?.chain?.id,
         walletClient: !!walletClient,
+        walletClientChainId: walletClient?.chain?.id,
+        effectiveWalletClient: !!effectiveWalletClient,
         effectivePublicClient: !!effectivePublicClient,
       })
     }
-  }, [isHydrated, wagmiChainId, preferredChainId, propChainId, effectiveChainId, publicClient, walletClient, effectivePublicClient])
+  }, [isHydrated, isSwitchingChain, isChainMismatch, wagmiChainId, preferredChainId, propChainId, effectiveChainId, publicClient, walletClient, effectiveWalletClient, effectivePublicClient])
 
   return (
     <OharaAiProvider
