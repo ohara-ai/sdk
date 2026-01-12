@@ -83,13 +83,21 @@ contract EventBus {
     // ============ Modifiers ============
 
     modifier onlyOwner() {
-        if (msg.sender != owner) revert Unauthorized();
+        _checkOwner();
         _;
     }
 
     modifier onlyAuthorizedEmitter() {
-        if (!authorizedEmitters[msg.sender]) revert Unauthorized();
+        _checkAuthorizedEmitter();
         _;
+    }
+
+    function _checkOwner() internal view {
+        if (msg.sender != owner) revert Unauthorized();
+    }
+
+    function _checkAuthorizedEmitter() internal view {
+        if (!authorizedEmitters[msg.sender]) revert Unauthorized();
     }
 
     // ============ Constructor ============

@@ -58,6 +58,18 @@ export {
   CompetitionType,
 } from './core/game/prediction'
 
+export {
+  type LeagueOperations,
+  type ServerLeagueOperations,
+  type Cycle,
+  type PlayerStats as LeaguePlayerStats,
+  type LeaderboardResult,
+  type PlayerLeaderboardData,
+  CycleStatus,
+  sortLeaderboard,
+  getTopN as getLeagueTopN,
+} from './core/game/league'
+
 // Hooks
 export {
   useTokenApproval,
@@ -73,7 +85,5 @@ export {
   SCORE_FACTORY_ABI,
   PRIZE_ABI,
   PRIZE_FACTORY_ABI,
-  PREDICTION_ABI,
-  PREDICTION_FACTORY_ABI,
   ERC20_ABI,
 } from './abis'

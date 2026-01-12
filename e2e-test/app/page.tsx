@@ -24,7 +24,6 @@ import {
   Target,
   Factory,
   Info,
-  ExternalLink,
 } from 'lucide-react'
 import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import { Button } from '@/components/ui/button'

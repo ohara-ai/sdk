@@ -12,7 +12,7 @@ import { CurrentPool, ClaimPrize } from '@/components/features/game/prize'
 
 export default function GamePrizePage() {
   const { isConnected, address: userAddress } = useAccount()
-  const { game, internal } = useOharaAi()
+  const { game } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   const [mounted, setMounted] = useState(false)

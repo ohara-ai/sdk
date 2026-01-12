@@ -20,7 +20,7 @@ import { useOharaAi } from '@ohara-ai/sdk'
 
 export default function GameScorePage() {
   const { isConnected, address: userAddress } = useAccount()
-  const { game, internal } = useOharaAi()
+  const { game } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   const [mounted, setMounted] = useState(false)

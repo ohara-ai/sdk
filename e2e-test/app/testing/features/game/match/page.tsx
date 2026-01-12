@@ -17,13 +17,13 @@ import {
 } from '@/components/features/game/match'
 import { FeeWithdrawal } from '@/components/features/game/match/FeeWithdrawal'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
-import { Swords, Trophy, Percent, BarChart3 } from 'lucide-react'
+import { Swords, Trophy } from 'lucide-react'
 import { useAccount, useBlockNumber } from 'wagmi'
 import { useOharaAi } from '@ohara-ai/sdk'
 
 export default function GameMatchPage() {
   const { isConnected } = useAccount()
-  const { game, internal } = useOharaAi()
+  const { game } = useOharaAi()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
   const [selectedMatchId, setSelectedMatchId] = useState<number | null>(null)

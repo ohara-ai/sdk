@@ -13,6 +13,7 @@ import { createClientMatchOperations } from '../core/game/match'
 import { createClientScoreOperations as createClientScoreOperations } from '../core/game/scores'
 import { createClientPrizeOperations } from '../core/game/prize'
 import { createClientPredictionOperations } from '../core/game/prediction'
+import { createClientLeagueOperations } from '../core/game/league'
 import {
   OharaAiContext,
   GameContext,
@@ -84,6 +85,12 @@ export function OharaAiProvider({
   const [predictionFactory, setPredictionFactory] = useState<
     Address | undefined
   >()
+  const [leagueAddress, setLeagueAddress] = useState<
+    Address | undefined
+  >()
+  const [leagueFactory, setLeagueFactory] = useState<
+    Address | undefined
+  >()
 
   // Use provided clients/chainId (they should be passed as props from parent component)
   const effectivePublicClient = publicClient
@@ -122,11 +129,13 @@ export function OharaAiProvider({
       const scoreAddr = data.addresses?.game?.score
       const prizeAddr = data.addresses?.game?.prize
       const predictionAddr = data.addresses?.game?.prediction
+      const leagueAddr = data.addresses?.game?.league
       const ctrlAddr = data.addresses?.app?.controller
       const matchFactory = data.factories?.gameMatch
       const scoreFactory = data.factories?.gameScore
       const prizeFactory = data.factories?.gamePrize
       const predFactory = data.factories?.prediction
+      const lgFactory = data.factories?.league
 
       if (
         matchAddr &&
@@ -175,12 +184,24 @@ export function OharaAiProvider({
       if (predFactory) {
         setPredictionFactory(predFactory as Address)
       }
+
+      if (
+        leagueAddr &&
+        leagueAddr !== '0x0000000000000000000000000000000000000000'
+      ) {
+        setLeagueAddress(leagueAddr as Address)
+      }
+
+      if (lgFactory) {
+        setLeagueFactory(lgFactory as Address)
+      }
     } catch (error) {
       console.error('Error loading contract addresses from backend:', error)
       setGameMatchAddress(undefined)
       setGameScoreAddress(undefined)
       setGamePrizeAddress(undefined)
       setPredictionAddress(undefined)
+      setLeagueAddress(undefined)
       setControllerAddress(undefined)
     }
   }
@@ -260,6 +281,16 @@ export function OharaAiProvider({
                 )
               : undefined,
         },
+        league: {
+          address: leagueAddress,
+          operations:
+            leagueAddress && effectivePublicClient
+              ? createClientLeagueOperations(
+                  leagueAddress,
+                  effectivePublicClient,
+                )
+              : undefined,
+        },
       }
     },
     [
@@ -267,6 +298,7 @@ export function OharaAiProvider({
       gameScoreAddress,
       gamePrizeAddress,
       predictionAddress,
+      leagueAddress,
       effectivePublicClient,
       effectiveWalletClient,
     ],
@@ -294,9 +326,10 @@ export function OharaAiProvider({
         gameScore: gameScoreFactory,
         gamePrize: gamePrizeFactory,
         prediction: predictionFactory,
+        league: leagueFactory,
       },
     }),
-    [gameMatchFactory, gameScoreFactory, gamePrizeFactory, predictionFactory],
+    [gameMatchFactory, gameScoreFactory, gamePrizeFactory, predictionFactory, leagueFactory],
   )
 
   const value: OharaAiContext = {

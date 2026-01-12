@@ -13,6 +13,7 @@ import { createOperations } from '../core/game/match'
 import { createClientScoreOperations } from '../core/game/scores'
 import { createClientPrizeOperations } from '../core/game/prize'
 import { createOperations as createPredictionOperations } from '../core/game/prediction'
+import { createOperations as createLeagueOperations } from '../core/game/league'
 import {
   getContracts,
   getControllerKey,
@@ -182,6 +183,18 @@ export async function createServerOharaAi(
       operations: addresses.game?.prediction
         ? createPredictionOperations(
             addresses.game.prediction as Address,
+            publicClient,
+            walletClient,
+            isApiMode ? oharaApiClient : undefined,
+            targetChainId,
+          )
+        : undefined,
+    },
+    league: {
+      address: addresses.game?.league as Address | undefined,
+      operations: addresses.game?.league
+        ? createLeagueOperations(
+            addresses.game.league as Address,
             publicClient,
             walletClient,
             isApiMode ? oharaApiClient : undefined,

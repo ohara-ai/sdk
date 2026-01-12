@@ -307,7 +307,11 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         PlayerScore storage winnerScore = _scores[winner];
         winnerScore.player = winner;
         winnerScore.totalWins++;
+        // casting to uint128 is safe because prizeAmount comes from match contract and won't exceed uint128 max
+        // forge-lint: disable-next-line(unsafe-typecast)
         winnerScore.totalPrize += uint128(prizeAmount);
+        // casting to uint64 is safe because matchId is sequentially generated and won't exceed uint64 max
+        // forge-lint: disable-next-line(unsafe-typecast)
         winnerScore.lastMatchId = uint64(matchId);
         winnerScore.lastWinTimestamp = uint64(block.timestamp);
 

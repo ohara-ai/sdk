@@ -268,7 +268,12 @@ contract Tournament is ITournament, IFeature, FeatureController, Initializable {
             address p1 = players[i];
             address p2 = players[players.length - 1 - i];
 
-            _bracket[id][round][i] = BracketMatch(p1, p2, address(0), false);
+            _bracket[id][round][i] = BracketMatch({
+                player1: p1,
+                player2: p2,
+                winner: address(0),
+                resolved: false
+            });
             _addPending(p1, p2, id, round, i);
         }
     }
@@ -311,7 +316,11 @@ contract Tournament is ITournament, IFeature, FeatureController, Initializable {
     }
 
     function _addPending(address p1, address p2, uint256 id, uint256 round, uint256 idx) internal {
-        _pendingMatches[_matchKey(p1, p2)].push(PendingMatch(id, round, idx));
+        _pendingMatches[_matchKey(p1, p2)].push(PendingMatch({
+            tournamentId: id,
+            round: round,
+            matchIndex: idx
+        }));
     }
 
     function _removePending(address p1, address p2, uint256 id, uint256 round, uint256 idx) internal {

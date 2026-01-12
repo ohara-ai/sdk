@@ -342,7 +342,7 @@ contract Prediction is IPrediction, IFeature, FeatureController, Initializable {
         if (commitData.revealed) revert AlreadyPredicted();
 
         // Verify the reveal matches the commit
-        bytes32 expectedHash = keccak256(abi.encodePacked(predictedPlayer, salt));
+        bytes32 expectedHash = _computeCommitHash(predictedPlayer, salt);
         if (expectedHash != commitData.commitHash) revert InvalidReveal();
 
         // Mark as revealed
@@ -451,7 +451,7 @@ contract Prediction is IPrediction, IFeature, FeatureController, Initializable {
      * @return commitHash The hash to use for commit()
      */
     function generateCommitHash(address predictedPlayer, bytes32 salt) external pure returns (bytes32 commitHash) {
-        return keccak256(abi.encodePacked(predictedPlayer, salt));
+        return _computeCommitHash(predictedPlayer, salt);
     }
     
     /**
@@ -793,6 +793,25 @@ contract Prediction is IPrediction, IFeature, FeatureController, Initializable {
         if (playerStake == 0) return 0;
 
         return (pred.amount * market.totalPool) / playerStake;
+    }
+
+    // ============ Internal ============
+
+    /**
+     * @notice Compute commit hash using inline assembly for gas efficiency
+     * @param predictedPlayer The player address
+     * @param salt The salt value
+     * @return hash The computed keccak256 hash
+     */
+    function _computeCommitHash(address predictedPlayer, bytes32 salt) internal pure returns (bytes32 hash) {
+        assembly {
+            // Store predictedPlayer at memory position 0 (20 bytes, right-padded)
+            mstore(0x00, predictedPlayer)
+            // Store salt at memory position 0x14 (20 bytes offset)
+            mstore(0x14, salt)
+            // Compute keccak256 of 52 bytes (20 + 32)
+            hash := keccak256(0x0c, 0x34)
+        }
     }
 
     // ============ IFeature ============

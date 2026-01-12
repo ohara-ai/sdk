@@ -920,6 +920,8 @@ contract MatchSharesTest is Test {
         for (uint256 i = 0; i < 10; i++) {
             uint256 recipient = 100 + i;
             assertLe(recipient, type(uint160).max);
+            // casting to uint160 is safe because recipient is validated above to be <= uint160.max
+            // forge-lint: disable-next-line(unsafe-typecast)
             gameMatch.registerShareRecipient(address(uint160(recipient)), 100);
         }
         
