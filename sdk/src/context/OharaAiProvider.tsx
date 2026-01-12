@@ -14,6 +14,7 @@ import { createClientScoreOperations as createClientScoreOperations } from '../c
 import { createClientPrizeOperations } from '../core/game/prize'
 import { createClientPredictionOperations } from '../core/game/prediction'
 import { createClientLeagueOperations } from '../core/game/league'
+import { createClientTournamentOperations } from '../core/game/tournament'
 import {
   OharaAiContext,
   GameContext,
@@ -91,6 +92,12 @@ export function OharaAiProvider({
   const [leagueFactory, setLeagueFactory] = useState<
     Address | undefined
   >()
+  const [tournamentAddress, setTournamentAddress] = useState<
+    Address | undefined
+  >()
+  const [tournamentFactory, setTournamentFactory] = useState<
+    Address | undefined
+  >()
 
   // Use provided clients/chainId (they should be passed as props from parent component)
   const effectivePublicClient = publicClient
@@ -130,12 +137,14 @@ export function OharaAiProvider({
       const prizeAddr = data.addresses?.game?.prize
       const predictionAddr = data.addresses?.game?.prediction
       const leagueAddr = data.addresses?.game?.league
+      const tournamentAddr = data.addresses?.game?.tournament
       const ctrlAddr = data.addresses?.app?.controller
       const matchFactory = data.factories?.gameMatch
       const scoreFactory = data.factories?.gameScore
       const prizeFactory = data.factories?.gamePrize
       const predFactory = data.factories?.prediction
       const lgFactory = data.factories?.league
+      const trnFactory = data.factories?.tournament
 
       if (
         matchAddr &&
@@ -195,6 +204,17 @@ export function OharaAiProvider({
       if (lgFactory) {
         setLeagueFactory(lgFactory as Address)
       }
+
+      if (
+        tournamentAddr &&
+        tournamentAddr !== '0x0000000000000000000000000000000000000000'
+      ) {
+        setTournamentAddress(tournamentAddr as Address)
+      }
+
+      if (trnFactory) {
+        setTournamentFactory(trnFactory as Address)
+      }
     } catch (error) {
       console.error('Error loading contract addresses from backend:', error)
       setGameMatchAddress(undefined)
@@ -202,6 +222,7 @@ export function OharaAiProvider({
       setGamePrizeAddress(undefined)
       setPredictionAddress(undefined)
       setLeagueAddress(undefined)
+      setTournamentAddress(undefined)
       setControllerAddress(undefined)
     }
   }
@@ -291,6 +312,16 @@ export function OharaAiProvider({
                 )
               : undefined,
         },
+        tournament: {
+          address: tournamentAddress,
+          operations:
+            tournamentAddress && effectivePublicClient
+              ? createClientTournamentOperations(
+                  tournamentAddress,
+                  effectivePublicClient,
+                )
+              : undefined,
+        },
       }
     },
     [
@@ -299,6 +330,7 @@ export function OharaAiProvider({
       gamePrizeAddress,
       predictionAddress,
       leagueAddress,
+      tournamentAddress,
       effectivePublicClient,
       effectiveWalletClient,
     ],
@@ -327,9 +359,10 @@ export function OharaAiProvider({
         gamePrize: gamePrizeFactory,
         prediction: predictionFactory,
         league: leagueFactory,
+        tournament: tournamentFactory,
       },
     }),
-    [gameMatchFactory, gameScoreFactory, gamePrizeFactory, predictionFactory, leagueFactory],
+    [gameMatchFactory, gameScoreFactory, gamePrizeFactory, predictionFactory, leagueFactory, tournamentFactory],
   )
 
   const value: OharaAiContext = {

@@ -168,7 +168,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
 
     // Filter to only supported contract types
     const validContracts = data.contracts.filter(
-      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League',
+      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament',
     )
 
     console.log(
@@ -284,6 +284,18 @@ async function getExistingContracts(
       } else {
         console.log(
           `[assureContractsDeployed] Stored League address ${contracts.game.league} not found on-chain (will redeploy)`,
+        )
+      }
+    }
+
+    // Check for Tournament contract in game context and verify on-chain
+    if (contracts.game?.tournament) {
+      const existsOnChain = await contractExistsOnChain(contracts.game.tournament, rpcUrl)
+      if (existsOnChain) {
+        contractMap.set('Tournament', { address: contracts.game.tournament })
+      } else {
+        console.log(
+          `[assureContractsDeployed] Stored Tournament address ${contracts.game.tournament} not found on-chain (will redeploy)`,
         )
       }
     }

@@ -70,6 +70,15 @@ export {
   getTopN as getLeagueTopN,
 } from './core/game/league'
 
+export {
+  type TournamentOperations,
+  type ServerTournamentOperations,
+  type TournamentView,
+  type BracketMatch,
+  type PendingMatchResult,
+  TournamentStatus,
+} from './core/game/tournament'
+
 // Hooks
 export {
   useTokenApproval,
@@ -85,5 +94,7 @@ export {
   SCORE_FACTORY_ABI,
   PRIZE_ABI,
   PRIZE_FACTORY_ABI,
+  TOURNAMENT_ABI,
+  TOURNAMENT_FACTORY_ABI,
   ERC20_ABI,
 } from './abis'

@@ -42,6 +42,18 @@ const CONTRACT_MAPPINGS = [
     exportName: 'SCORE_FACTORY_ABI',
   },
   {
+    name: 'Tournament',
+    output: 'game/tournament',
+    type: 'local',
+    exportName: 'TOURNAMENT_ABI',
+  },
+  {
+    name: 'TournamentFactory',
+    output: 'game/tournamentFactory',
+    type: 'local',
+    exportName: 'TOURNAMENT_FACTORY_ABI',
+  },
+  {
     name: 'IERC20',
     output: 'erc/erc20',
     type: 'external',

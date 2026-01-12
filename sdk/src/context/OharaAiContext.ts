@@ -4,6 +4,7 @@ import { ScoreOperations } from '../core/game/scores'
 import { PrizeOperations } from '../core/game/prize'
 import { PredictionOperations, ServerPredictionOperations } from '../core/game/prediction'
 import { LeagueOperations, ServerLeagueOperations } from '../core/game/league'
+import { TournamentOperations, ServerTournamentOperations } from '../core/game/tournament'
 
 /**
  * OharaAi Context Structure
@@ -50,6 +51,12 @@ export interface GameContext {
     /** League operations (cycles, leaderboards, player stats) */
     operations?: LeagueOperations
   }
+  tournament: {
+    /** Tournament contract address */
+    address?: Address
+    /** Tournament operations (brackets, matches, participants) */
+    operations?: TournamentOperations
+  }
 }
 
 // Game-related contracts and operations (server-side)
@@ -84,6 +91,12 @@ export interface ServerGameContext {
     /** Server league operations (includes finalizeCycle, setMatchContract) */
     operations?: ServerLeagueOperations
   }
+  tournament: {
+    /** Tournament contract address */
+    address?: Address
+    /** Server tournament operations (includes createTournament, activate, resolveMatch) */
+    operations?: ServerTournamentOperations
+  }
 }
 
 // Application-level contracts
@@ -109,6 +122,7 @@ export interface InternalContext {
     gamePrize?: Address
     prediction?: Address
     league?: Address
+    tournament?: Address
   }
 }
 
