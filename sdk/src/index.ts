@@ -46,6 +46,18 @@ export {
   type PrizePool,
 } from './core/game/prize'
 
+export {
+  type PredictionOperations,
+  type PredictionWriteOperations,
+  type ServerPredictionOperations,
+  type Market,
+  type Prediction,
+  type PlayerOdds,
+  type CommitData,
+  type MarketSummary,
+  CompetitionType,
+} from './core/game/prediction'
+
 // Hooks
 export {
   useTokenApproval,
@@ -61,5 +73,7 @@ export {
   SCORE_FACTORY_ABI,
   PRIZE_ABI,
   PRIZE_FACTORY_ABI,
+  PREDICTION_ABI,
+  PREDICTION_FACTORY_ABI,
   ERC20_ABI,
 } from './abis'

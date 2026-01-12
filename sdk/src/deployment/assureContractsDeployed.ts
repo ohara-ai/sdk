@@ -263,6 +263,18 @@ async function getExistingContracts(
         )
       }
     }
+
+    // Check for Prediction contract in game context and verify on-chain
+    if (contracts.game?.prediction) {
+      const existsOnChain = await contractExistsOnChain(contracts.game.prediction, rpcUrl)
+      if (existsOnChain) {
+        contractMap.set('Prediction', { address: contracts.game.prediction })
+      } else {
+        console.log(
+          `[assureContractsDeployed] Stored Prediction address ${contracts.game.prediction} not found on-chain (will redeploy)`,
+        )
+      }
+    }
   } catch (error) {
     console.warn('Failed to fetch existing contracts:', error)
   }

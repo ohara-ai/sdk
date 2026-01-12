@@ -12,6 +12,7 @@ import { privateKeyToAccount } from 'viem/accounts'
 import { createOperations } from '../core/game/match'
 import { createClientScoreOperations } from '../core/game/scores'
 import { createClientPrizeOperations } from '../core/game/prize'
+import { createOperations as createPredictionOperations } from '../core/game/prediction'
 import {
   getContracts,
   getControllerKey,
@@ -173,6 +174,18 @@ export async function createServerOharaAi(
             addresses.game.prize as Address,
             publicClient,
             walletClient,
+          )
+        : undefined,
+    },
+    prediction: {
+      address: addresses.game?.prediction as Address | undefined,
+      operations: addresses.game?.prediction
+        ? createPredictionOperations(
+            addresses.game.prediction as Address,
+            publicClient,
+            walletClient,
+            isApiMode ? oharaApiClient : undefined,
+            targetChainId,
           )
         : undefined,
     },

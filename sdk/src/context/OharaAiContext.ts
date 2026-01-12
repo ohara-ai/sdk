@@ -2,6 +2,7 @@ import { Address } from 'viem'
 import { MatchOperations, ServerMatchOperations } from '../core/game/match'
 import { ScoreOperations } from '../core/game/scores'
 import { PrizeOperations } from '../core/game/prize'
+import { PredictionOperations, ServerPredictionOperations } from '../core/game/prediction'
 
 /**
  * OharaAi Context Structure
@@ -36,6 +37,12 @@ export interface GameContext {
     /** Prize operations (pools, claim) */
     operations?: PrizeOperations
   }
+  prediction: {
+    /** Prediction contract address */
+    address?: Address
+    /** Prediction operations (markets, betting, claims) */
+    operations?: PredictionOperations
+  }
 }
 
 // Game-related contracts and operations (server-side)
@@ -57,6 +64,12 @@ export interface ServerGameContext {
     address?: Address
     /** Prize operations (pools, claim) */
     operations?: PrizeOperations
+  }
+  prediction: {
+    /** Prediction contract address */
+    address?: Address
+    /** Server prediction operations (includes createMarket, closeBetting) */
+    operations?: ServerPredictionOperations
   }
 }
 
@@ -81,6 +94,7 @@ export interface InternalContext {
     gameMatch?: Address
     gameScore?: Address
     gamePrize?: Address
+    prediction?: Address
   }
 }
 

@@ -202,6 +202,46 @@ contract Prediction is IPrediction, IFeature, FeatureController, Initializable {
         emit BettingClosed(marketId);
     }
 
+    /// @inheritdoc IPrediction
+    function onCompetitionFinalized(
+        CompetitionType competitionType,
+        uint256 competitionId,
+        address winner,
+        bool isVoided
+    ) external {
+        // Only allow calls from the relevant source contract
+        if (competitionType == CompetitionType.Match) {
+            if (msg.sender != address(matchContract)) return;
+        } else if (competitionType == CompetitionType.Tournament) {
+            if (msg.sender != address(tournamentContract)) return;
+        } else if (competitionType == CompetitionType.LeagueCycle) {
+            if (msg.sender != address(leagueContract)) return;
+        } else {
+            return;
+        }
+
+        uint256 marketId = _competitionMarkets[competitionType][competitionId];
+        if (marketId == 0) return; // No market for this competition
+
+        Market storage market = _markets[marketId];
+        if (market.resolved || market.voided) return; // Already resolved
+
+        // Close betting if not already closed
+        if (!market.bettingClosed) {
+            market.bettingClosed = true;
+            emit BettingClosed(marketId);
+        }
+
+        if (isVoided) {
+            market.voided = true;
+            emit MarketVoided(marketId);
+        } else {
+            market.resolved = true;
+            market.resolvedWinner = winner;
+            emit MarketResolved(marketId, winner);
+        }
+    }
+
     /**
      * @dev Validate that competition exists and is in valid state for betting
      */

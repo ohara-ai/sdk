@@ -21,6 +21,7 @@ import {
   Trophy,
   Swords,
   Gift,
+  Target,
   Factory,
   Info,
   ExternalLink,
@@ -38,7 +39,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 
-type ContractType = 'Score' | 'Match' | 'Prize'
+type ContractType = 'Score' | 'Match' | 'Prize' | 'Prediction'
 
 interface ContractConfig {
   type: ContractType
@@ -77,6 +78,15 @@ const GAME_CONTRACTS: ContractConfig[] = [
     testPath: '/testing/features/game/prize',
     dependsOn: ['Match', 'Score'],
   },
+  {
+    type: 'Prediction',
+    name: 'Prediction',
+    description: 'Prediction markets for betting on match outcomes',
+    icon: <Target className="w-4 h-4 text-cyan-600" />,
+    iconBg: 'bg-cyan-100',
+    testPath: '/testing/features/game/prediction',
+    dependsOn: ['Match'],
+  },
 ]
 
 interface ContractValidation {
@@ -107,6 +117,9 @@ interface FactoryConfig {
   Prize: {
     defaultMatchesPerPool: number
   } | null
+  Prediction: {
+    matchAddress?: string
+  } | null
 }
 
 export default function Home() {
@@ -131,6 +144,7 @@ export default function Home() {
     Match: null,
     Score: null,
     Prize: null,
+    Prediction: null,
   })
   const [showFactoryInfoDialog, setShowFactoryInfoDialog] = useState<ContractType | null>(null)
   const [isLoadingFactoryConfig, setIsLoadingFactoryConfig] = useState(false)
@@ -139,12 +153,14 @@ export default function Home() {
     Score: game.scores?.address,
     Match: game.match?.address,
     Prize: game.prize?.address,
+    Prediction: game.prediction?.address,
   }
 
   const factoryAddresses = {
     Score: internal.factories?.gameScore,
     Match: internal.factories?.gameMatch,
     Prize: internal.factories?.gamePrize,
+    Prediction: internal.factories?.prediction,
   }
 
   const truncateAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`

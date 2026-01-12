@@ -92,6 +92,21 @@ interface IPrediction {
     ) external;
 
     /**
+     * @notice Callback from source contracts when a competition is finalized
+     * @param competitionType Type of competition that was finalized
+     * @param competitionId ID of the competition
+     * @param winner Address of the winner (address(0) if voided/cancelled)
+     * @param isVoided Whether the competition was cancelled/voided
+     * @dev Called by Match.finalize(), Tournament.finalize(), or League.finalizeCycle()
+     */
+    function onCompetitionFinalized(
+        CompetitionType competitionType,
+        uint256 competitionId,
+        address winner,
+        bool isVoided
+    ) external;
+
+    /**
      * @notice Place a prediction on a market
      * @param marketId Market ID to bet on
      * @param predictedPlayer Player address to bet on

@@ -417,6 +417,20 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
 
         emit MatchFinalized(matchId, winner, totalPrize, winnerAmount);
 
+        // Notify prediction contract of finalization (before cleanup)
+        if (address(prediction) != address(0)) {
+            try prediction.onCompetitionFinalized(
+                IPrediction.CompetitionType.Match,
+                matchId,
+                winner,
+                false // not voided
+            ) {
+                // Prediction notified successfully
+            } catch (bytes memory reason) {
+                emit ExternalCallFailed("Prediction.onCompetitionFinalized", reason);
+            }
+        }
+
         // Clean up match data
         _cleanupMatch(matchId);
     }
@@ -454,6 +468,20 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
         }
         
         emit MatchCancelled(matchId, players, refundAmount);
+        
+        // Notify prediction contract of cancellation (before cleanup)
+        if (address(prediction) != address(0)) {
+            try prediction.onCompetitionFinalized(
+                IPrediction.CompetitionType.Match,
+                matchId,
+                address(0), // no winner
+                true // voided
+            ) {
+                // Prediction notified successfully
+            } catch (bytes memory reason) {
+                emit ExternalCallFailed("Prediction.onCompetitionFinalized", reason);
+            }
+        }
         
         // Remove from active matches tracking
         _removeFromActiveMatches(matchId);
