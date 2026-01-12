@@ -1102,3 +1102,241 @@ contract PredictionBettingClosedTest is Test {
         assertFalse(prediction.isBettingOpen(marketId));
     }
 }
+
+import {MockERC20} from "../../mocks/MockERC20.sol";
+
+contract PredictionERC20Test is Test {
+    Prediction public prediction;
+    Match public matchContract;
+    Score public score;
+    MockERC20 public token;
+    
+    address public owner = address(0x1);
+    address public controller = address(0x2);
+    address public player1 = address(0x3);
+    address public player2 = address(0x4);
+    address public predictor1 = address(0x6);
+    
+    uint256 public matchId;
+    uint256 public marketId;
+    
+    function setUp() public {
+        token = new MockERC20(0);
+        
+        score = new Score();
+        score.initialize(owner, controller, 50, 1000, 100);
+        
+        matchContract = new Match();
+        address[] memory feeRecipients = new address[](0);
+        uint256[] memory feeShares = new uint256[](0);
+        matchContract.initialize(owner, controller, address(score), 100, feeRecipients, feeShares);
+        
+        vm.prank(controller);
+        score.setRecorderAuthorization(address(matchContract), true);
+        
+        prediction = new Prediction();
+        prediction.initialize(
+            owner,
+            controller,
+            address(matchContract),
+            address(0),
+            address(0),
+            feeRecipients,
+            feeShares
+        );
+        
+        // Mint tokens to predictors
+        token.mint(predictor1, 100 ether);
+        
+        vm.deal(player1, 10 ether);
+        vm.deal(player2, 10 ether);
+        vm.deal(controller, 10 ether);
+        
+        // Create dummy match
+        vm.prank(controller);
+        matchContract.create{value: 1 ether}(address(0), 1 ether, 2);
+        
+        // Create match
+        vm.prank(player1);
+        matchId = matchContract.create{value: 1 ether}(address(0), 1 ether, 2);
+        
+        // Create market with ERC20 token
+        vm.prank(controller);
+        marketId = prediction.createMarket(
+            IPrediction.CompetitionType.Match,
+            matchId,
+            address(token)
+        );
+    }
+    
+    function test_PredictWithERC20() public {
+        vm.prank(predictor1);
+        token.approve(address(prediction), 10 ether);
+        
+        vm.prank(predictor1);
+        prediction.predict(marketId, player1, 1 ether);
+        
+        IPrediction.Prediction memory pred = prediction.getPrediction(marketId, predictor1);
+        assertEq(pred.amount, 1 ether);
+        assertEq(pred.predictedPlayer, player1);
+    }
+    
+    function test_PredictWithERC20_RevertZeroAmount() public {
+        vm.prank(predictor1);
+        token.approve(address(prediction), 10 ether);
+        
+        vm.prank(predictor1);
+        vm.expectRevert(Prediction.ZeroAmount.selector);
+        prediction.predict(marketId, player1, 0);
+    }
+    
+    function test_PredictWithERC20_RevertIfSendingNative() public {
+        vm.prank(predictor1);
+        token.approve(address(prediction), 10 ether);
+        
+        vm.deal(predictor1, 1 ether);
+        vm.prank(predictor1);
+        vm.expectRevert(Prediction.InvalidStakeAmount.selector);
+        prediction.predict{value: 1 ether}(marketId, player1, 1 ether);
+    }
+    
+    function test_CommitWithERC20() public {
+        bytes32 salt = keccak256("secret");
+        bytes32 commitHash = prediction.generateCommitHash(player1, salt);
+        
+        vm.prank(predictor1);
+        token.approve(address(prediction), 10 ether);
+        
+        vm.prank(predictor1);
+        prediction.commit(marketId, commitHash, 1 ether);
+        
+        (bytes32 storedHash, uint256 amount, , bool revealed) = prediction.getCommit(marketId, predictor1);
+        assertEq(storedHash, commitHash);
+        assertEq(amount, 1 ether);
+        assertFalse(revealed);
+    }
+    
+    function test_CommitWithERC20_RevertZeroAmount() public {
+        bytes32 salt = keccak256("secret");
+        bytes32 commitHash = prediction.generateCommitHash(player1, salt);
+        
+        vm.prank(predictor1);
+        token.approve(address(prediction), 10 ether);
+        
+        vm.prank(predictor1);
+        vm.expectRevert(Prediction.ZeroAmount.selector);
+        prediction.commit(marketId, commitHash, 0);
+    }
+    
+    function test_CommitWithERC20_RevertIfSendingNative() public {
+        bytes32 salt = keccak256("secret");
+        bytes32 commitHash = prediction.generateCommitHash(player1, salt);
+        
+        vm.prank(predictor1);
+        token.approve(address(prediction), 10 ether);
+        
+        vm.deal(predictor1, 1 ether);
+        vm.prank(predictor1);
+        vm.expectRevert(Prediction.InvalidStakeAmount.selector);
+        prediction.commit{value: 1 ether}(marketId, commitHash, 1 ether);
+    }
+}
+
+contract PredictionRefundTest is Test {
+    Prediction public prediction;
+    Match public matchContract;
+    Score public score;
+    
+    address public owner = address(0x1);
+    address public controller = address(0x2);
+    address public player1 = address(0x3);
+    address public player2 = address(0x4);
+    address public predictor1 = address(0x6);
+    
+    uint256 public matchId;
+    uint256 public marketId;
+    
+    function setUp() public {
+        score = new Score();
+        score.initialize(owner, controller, 50, 1000, 100);
+        
+        matchContract = new Match();
+        address[] memory feeRecipients = new address[](0);
+        uint256[] memory feeShares = new uint256[](0);
+        matchContract.initialize(owner, controller, address(score), 100, feeRecipients, feeShares);
+        
+        vm.prank(controller);
+        score.setRecorderAuthorization(address(matchContract), true);
+        
+        prediction = new Prediction();
+        prediction.initialize(
+            owner,
+            controller,
+            address(matchContract),
+            address(0),
+            address(0),
+            feeRecipients,
+            feeShares
+        );
+        
+        vm.deal(predictor1, 100 ether);
+        vm.deal(player1, 10 ether);
+        vm.deal(player2, 10 ether);
+        vm.deal(controller, 10 ether);
+        
+        // Create dummy match
+        vm.prank(controller);
+        matchContract.create{value: 1 ether}(address(0), 1 ether, 2);
+        
+        // Create match
+        vm.prank(player1);
+        matchId = matchContract.create{value: 1 ether}(address(0), 1 ether, 2);
+        
+        // Create market
+        vm.prank(controller);
+        marketId = prediction.createMarket(
+            IPrediction.CompetitionType.Match,
+            matchId,
+            address(0)
+        );
+    }
+    
+    function test_ClaimRefund_NoRefundAvailable() public {
+        vm.prank(predictor1);
+        vm.expectRevert(Prediction.NoRefundAvailable.selector);
+        prediction.claimRefund(marketId);
+    }
+    
+    function test_ClaimRefund_UnrevealedCommitAfterVoid() public {
+        bytes32 salt = keccak256("secret");
+        bytes32 commitHash = prediction.generateCommitHash(player1, salt);
+        
+        vm.prank(predictor1);
+        prediction.commit{value: 1 ether}(marketId, commitHash, 0);
+        
+        // player2 joins so match can be cancelled
+        vm.prank(player2);
+        matchContract.join{value: 1 ether}(matchId);
+        
+        // Set prediction contract on match for callbacks
+        vm.prank(controller);
+        matchContract.setPrediction(address(prediction));
+        
+        // Activate and then cancel match to void market
+        vm.prank(controller);
+        matchContract.activate(matchId);
+        
+        vm.prank(controller);
+        matchContract.cancel(matchId);
+        
+        // Now market should be voided via callback
+        IPrediction.Market memory market = prediction.getMarket(marketId);
+        assertTrue(market.voided);
+        
+        // Should be able to claim refund for unrevealed commit
+        uint256 balanceBefore = predictor1.balance;
+        vm.prank(predictor1);
+        prediction.claimRefund(marketId);
+        assertEq(predictor1.balance - balanceBefore, 1 ether);
+    }
+}

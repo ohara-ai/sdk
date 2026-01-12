@@ -19,6 +19,13 @@ export const TOURNAMENT_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "acceptOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "defaultMaxActiveTournaments",
     "inputs": [],
     "outputs": [
@@ -114,6 +121,19 @@ export const TOURNAMENT_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "pendingOwner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "setDefaultMaxActiveTournaments",
     "inputs": [
       {
@@ -130,7 +150,7 @@ export const TOURNAMENT_FACTORY_ABI = [
     "name": "setInstanceOwner",
     "inputs": [
       {
-        "name": "_instanceOwner",
+        "name": "_newInstanceOwner",
         "type": "address",
         "internalType": "address"
       }
@@ -173,6 +193,25 @@ export const TOURNAMENT_FACTORY_ABI = [
   {
     "type": "event",
     "name": "InstanceOwnerUpdated",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferInitiated",
     "inputs": [
       {
         "name": "previousOwner",
@@ -247,7 +286,17 @@ export const TOURNAMENT_FACTORY_ABI = [
   },
   {
     "type": "error",
+    "name": "ERC1167FailedCreateClone",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoPendingOwner",
     "inputs": []
   },
   {

@@ -805,11 +805,13 @@ contract Prediction is IPrediction, IFeature, FeatureController, Initializable {
      */
     function _computeCommitHash(address predictedPlayer, bytes32 salt) internal pure returns (bytes32 hash) {
         assembly {
-            // Store predictedPlayer at memory position 0 (20 bytes, right-padded)
+            // Store predictedPlayer at memory position 0 (left-padded to 32 bytes, address at positions 12-31)
             mstore(0x00, predictedPlayer)
-            // Store salt at memory position 0x14 (20 bytes offset)
-            mstore(0x14, salt)
-            // Compute keccak256 of 52 bytes (20 + 32)
+            // Store salt at memory position 0x20 (32 bytes offset, positions 32-63)
+            mstore(0x20, salt)
+            // Compute keccak256 of 52 bytes starting at position 12 (0x0c)
+            // This hashes: 20 bytes of address (positions 12-31) + 32 bytes of salt (positions 32-63)
+            // Equivalent to keccak256(abi.encodePacked(predictedPlayer, salt))
             hash := keccak256(0x0c, 0x34)
         }
     }

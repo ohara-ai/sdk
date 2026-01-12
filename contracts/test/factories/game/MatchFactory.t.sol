@@ -244,6 +244,76 @@ contract MatchFactoryTest is Test {
         vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
         factory.setDefaultFees(recipients, shares);
     }
+    
+    function test_SetDefaultFees_RevertLengthMismatch() public {
+        address[] memory recipients = new address[](2);
+        recipients[0] = address(0x100);
+        recipients[1] = address(0x200);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 250;
+        
+        vm.expectRevert(MatchFactory.LengthMismatch.selector);
+        factory.setDefaultFees(recipients, shares);
+    }
+    
+    function test_SetDefaultFees_RevertMaxFeeExceeded() public {
+        address[] memory recipients = new address[](1);
+        recipients[0] = address(0x100);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 5001; // Max is 5000 (50%)
+        
+        vm.expectRevert(MatchFactory.MaxFeeExceeded.selector);
+        factory.setDefaultFees(recipients, shares);
+    }
+    
+    function test_SetDefaultFees_MultipleSumsExceedMax() public {
+        address[] memory recipients = new address[](3);
+        recipients[0] = address(0x100);
+        recipients[1] = address(0x200);
+        recipients[2] = address(0x300);
+        uint256[] memory shares = new uint256[](3);
+        shares[0] = 2000;
+        shares[1] = 2000;
+        shares[2] = 1001; // Total = 5001, exceeds 5000
+        
+        vm.expectRevert(MatchFactory.MaxFeeExceeded.selector);
+        factory.setDefaultFees(recipients, shares);
+    }
+    
+    function test_SetDefaultFees_AtMaximum() public {
+        address[] memory recipients = new address[](1);
+        recipients[0] = address(0x100);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 5000; // Exactly at max
+        
+        factory.setDefaultFees(recipients, shares);
+        
+        (address[] memory storedRecipients, uint256[] memory storedShares) = factory.getDefaultFees();
+        assertEq(storedRecipients.length, 1);
+        assertEq(storedShares[0], 5000);
+    }
+    
+    function test_Implementation_IsImmutable() public view {
+        assertTrue(factory.IMPLEMENTATION() != address(0));
+    }
+    
+    function test_ClearDefaultFees() public {
+        // Set fees first
+        address[] memory recipients = new address[](1);
+        recipients[0] = address(0x100);
+        uint256[] memory shares = new uint256[](1);
+        shares[0] = 250;
+        factory.setDefaultFees(recipients, shares);
+        
+        // Clear fees by setting empty arrays
+        address[] memory emptyRecipients = new address[](0);
+        uint256[] memory emptyShares = new uint256[](0);
+        factory.setDefaultFees(emptyRecipients, emptyShares);
+        
+        (address[] memory storedRecipients, uint256[] memory storedShares) = factory.getDefaultFees();
+        assertEq(storedRecipients.length, 0);
+        assertEq(storedShares.length, 0);
+    }
 
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
     event DefaultMaxActiveMatchesUpdated(uint256 newDefault);

@@ -444,4 +444,172 @@ contract TournamentTest is Test {
     function test_FeatureName() public view {
         assertEq(tournament.featureName(), "Tournament - OCI-005");
     }
+    
+    function test_SetMaxActiveTournaments_RevertLimitTooHigh() public {
+        vm.prank(owner);
+        vm.expectRevert(Tournament.LimitTooHigh.selector);
+        tournament.setMaxActiveTournaments(1001); // MAX_ACTIVE is 1000
+    }
+    
+    function test_Activate_RevertInvalidTournamentId() public {
+        vm.prank(controller);
+        vm.expectRevert(Tournament.InvalidTournamentId.selector);
+        tournament.activate(999);
+    }
+    
+    function test_ResolveMatch_RevertInvalidTournamentId() public {
+        vm.prank(controller);
+        vm.expectRevert(Tournament.InvalidTournamentId.selector);
+        tournament.resolveMatch(999, 0, 0, player1);
+    }
+    
+    function test_ResolveMatch_RevertInvalidRound() public {
+        address[] memory participants = new address[](4);
+        participants[0] = player1;
+        participants[1] = player2;
+        participants[2] = player3;
+        participants[3] = player4;
+        
+        vm.startPrank(controller);
+        uint256 id = tournament.createTournament(participants);
+        tournament.activate(id);
+        
+        // Try to resolve round 1 when current is round 0
+        vm.expectRevert(Tournament.InvalidRound.selector);
+        tournament.resolveMatch(id, 1, 0, player1);
+        vm.stopPrank();
+    }
+    
+    function test_ResolveMatch_RevertInvalidMatchIndex() public {
+        address[] memory participants = new address[](2);
+        participants[0] = player1;
+        participants[1] = player2;
+        
+        vm.startPrank(controller);
+        uint256 id = tournament.createTournament(participants);
+        tournament.activate(id);
+        
+        // Try to resolve match index 5 when only 1 exists
+        vm.expectRevert(Tournament.InvalidMatchIndex.selector);
+        tournament.resolveMatch(id, 0, 5, player1);
+        vm.stopPrank();
+    }
+    
+    function test_Cancel_RevertInvalidTournamentId() public {
+        vm.prank(controller);
+        vm.expectRevert(Tournament.InvalidTournamentId.selector);
+        tournament.cancel(999);
+    }
+    
+    function test_Cancel_RevertInvalidStatus() public {
+        address[] memory participants = new address[](2);
+        participants[0] = player1;
+        participants[1] = player2;
+        
+        vm.startPrank(controller);
+        uint256 id = tournament.createTournament(participants);
+        tournament.activate(id);
+        tournament.resolveMatch(id, 0, 0, player1);
+        
+        // Tournament is finalized, can't cancel
+        vm.expectRevert(Tournament.InvalidStatus.selector);
+        tournament.cancel(id);
+        vm.stopPrank();
+    }
+    
+    function test_SetPrediction() public {
+        address predictionContract = address(0x888);
+        
+        vm.prank(controller);
+        tournament.setPrediction(predictionContract);
+        
+        assertEq(address(tournament.prediction()), predictionContract);
+    }
+    
+    function test_OnMatchResult_IgnoresNonMatchingPair() public {
+        address[] memory participants = new address[](2);
+        participants[0] = player1;
+        participants[1] = player2;
+        
+        vm.startPrank(controller);
+        uint256 id = tournament.createTournament(participants);
+        tournament.activate(id);
+        vm.stopPrank();
+        
+        // Call with players not in this match - should not resolve anything
+        vm.prank(scoreContract);
+        tournament.onMatchResult(player3, player4);
+        
+        // Tournament should still be active
+        ITournament.TournamentView memory t = tournament.getTournament(id);
+        assertEq(uint256(t.status), uint256(ITournament.TournamentStatus.Active));
+    }
+    
+    function test_OnMatchResult_IgnoresResolvedMatch() public {
+        address[] memory participants = new address[](2);
+        participants[0] = player1;
+        participants[1] = player2;
+        
+        vm.startPrank(controller);
+        uint256 id = tournament.createTournament(participants);
+        tournament.activate(id);
+        tournament.resolveMatch(id, 0, 0, player1);
+        vm.stopPrank();
+        
+        // Call again - should not fail, just ignore
+        vm.prank(scoreContract);
+        tournament.onMatchResult(player1, player2);
+        
+        // Tournament should still be finalized with original winner
+        ITournament.TournamentView memory t = tournament.getTournament(id);
+        assertEq(t.winner, player1);
+    }
+    
+    function test_HasPendingMatch_NoPending() public view {
+        (bool exists, , ) = tournament.hasPendingMatch(999, player1, player2);
+        assertFalse(exists);
+    }
+    
+    function test_EightPlayerTournament_FullFlow() public {
+        address[] memory participants = new address[](8);
+        participants[0] = player1;
+        participants[1] = player2;
+        participants[2] = player3;
+        participants[3] = player4;
+        participants[4] = player5;
+        participants[5] = player6;
+        participants[6] = player7;
+        participants[7] = player8;
+        
+        vm.startPrank(controller);
+        uint256 id = tournament.createTournament(participants);
+        tournament.activate(id);
+        
+        // Round 0: 4 matches
+        ITournament.BracketMatch[] memory round0 = tournament.getRoundMatches(id, 0);
+        assertEq(round0.length, 4);
+        
+        for (uint256 i = 0; i < round0.length; i++) {
+            tournament.resolveMatch(id, 0, i, round0[i].player1);
+        }
+        
+        // Round 1: 2 matches
+        ITournament.BracketMatch[] memory round1 = tournament.getRoundMatches(id, 1);
+        assertEq(round1.length, 2);
+        
+        for (uint256 i = 0; i < round1.length; i++) {
+            tournament.resolveMatch(id, 1, i, round1[i].player1);
+        }
+        
+        // Round 2: 1 match (finals)
+        ITournament.BracketMatch[] memory round2 = tournament.getRoundMatches(id, 2);
+        assertEq(round2.length, 1);
+        
+        tournament.resolveMatch(id, 2, 0, round2[0].player1);
+        vm.stopPrank();
+        
+        ITournament.TournamentView memory t = tournament.getTournament(id);
+        assertEq(uint256(t.status), uint256(ITournament.TournamentStatus.Finalized));
+        assertEq(t.currentRound, 2);
+    }
 }
