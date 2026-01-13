@@ -571,6 +571,11 @@ export const SCORE_ABI = [
         "name": "prizeAmount",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],

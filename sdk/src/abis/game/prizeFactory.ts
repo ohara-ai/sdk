@@ -26,7 +26,33 @@ export const PRIZE_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "defaultDistributionStrategy",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "defaultMatchesPerPool",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "defaultWinnersCount",
     "inputs": [],
     "outputs": [
       {
@@ -69,6 +95,16 @@ export const PRIZE_FACTORY_ABI = [
         "name": "_matchesPerPool",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "_winnersCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_strategy",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
       }
     ],
     "outputs": [
@@ -134,10 +170,36 @@ export const PRIZE_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "setDefaultDistributionStrategy",
+    "inputs": [
+      {
+        "name": "_defaultStrategy",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setDefaultMatchesPerPool",
     "inputs": [
       {
         "name": "_defaultMatchesPerPool",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setDefaultWinnersCount",
+    "inputs": [
+      {
+        "name": "_defaultWinnersCount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -173,7 +235,33 @@ export const PRIZE_FACTORY_ABI = [
   },
   {
     "type": "event",
+    "name": "DefaultDistributionStrategyUpdated",
+    "inputs": [
+      {
+        "name": "newDefault",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum IPrize.DistributionStrategy"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "DefaultMatchesPerPoolUpdated",
+    "inputs": [
+      {
+        "name": "newDefault",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DefaultWinnersCountUpdated",
     "inputs": [
       {
         "name": "newDefault",
@@ -274,6 +362,18 @@ export const PRIZE_FACTORY_ABI = [
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "winnersCount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "strategy",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum IPrize.DistributionStrategy"
       }
     ],
     "anonymous": false
@@ -291,6 +391,11 @@ export const PRIZE_FACTORY_ABI = [
   {
     "type": "error",
     "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidWinnersCount",
     "inputs": []
   },
   {

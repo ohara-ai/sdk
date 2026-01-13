@@ -254,7 +254,8 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     function recordMatchResult(
         address winner,
         address[] calldata losers,
-        uint256 prizeAmount
+        uint256 prizeAmount,
+        address token
     ) external {
         if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
         if (winner == address(0)) revert InvalidWinner();
@@ -317,10 +318,10 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
 
         emit ScoreRecorded(matchId, winner, winnerScore.totalWins, winnerScore.totalPrize);
 
-        // Notify prize contract if configured
+        // Notify prize contract if configured (routes to token-specific pool)
         if (address(prize) != address(0)) {
             // Use try-catch to prevent DoS from buggy prize contracts
-            try prize.recordMatchResult(winner) {
+            try prize.recordMatchResult(winner, token) {
                 // Prize recorded successfully
             } catch (bytes memory reason) {
                 emit ExternalCallFailed("Prize.recordMatchResult", reason);

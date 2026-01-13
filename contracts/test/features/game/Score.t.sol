@@ -76,7 +76,7 @@ contract ScoreTest is Test {
         vm.prank(recorder);
         vm.expectEmit(true, true, false, true);
         emit ScoreRecorded(matchId, player1, 1, prize);
-        score.recordMatchResult(player1, losers, prize);
+        score.recordMatchResult(player1, losers, prize, address(0));
         
         // Verify match record
         (
@@ -112,7 +112,7 @@ contract ScoreTest is Test {
         
         vm.prank(recorder);
         vm.expectRevert(Score.UnauthorizedRecorder.selector);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
     }
     
     // Test removed: duplicate match check no longer needed with internal counter
@@ -129,11 +129,11 @@ contract ScoreTest is Test {
         
         // Record first match
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, prize1);
+        score.recordMatchResult(player1, losers, prize1, address(0));
         
         // Record second match
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, prize2);
+        score.recordMatchResult(player1, losers, prize2, address(0));
         
         // Verify cumulative score
         (
@@ -159,7 +159,7 @@ contract ScoreTest is Test {
         losers[2] = player4;
         
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 400 ether);
+        score.recordMatchResult(player1, losers, 400 ether, address(0));
         
         // Verify match record
         (
@@ -202,23 +202,23 @@ contract ScoreTest is Test {
         // Player1 wins 3 times
         losers[0] = player2;
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         // Player2 wins 2 times
         losers[0] = player3;
         vm.prank(recorder);
-        score.recordMatchResult(player2, losers, 100 ether);
+        score.recordMatchResult(player2, losers, 100 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player2, losers, 100 ether);
+        score.recordMatchResult(player2, losers, 100 ether, address(0));
         
         // Player3 wins 1 time
         losers[0] = player4;
         vm.prank(recorder);
-        score.recordMatchResult(player3, losers, 100 ether);
+        score.recordMatchResult(player3, losers, 100 ether, address(0));
         
         // Get players (unsorted - SDK handles sorting)
         (
@@ -244,23 +244,23 @@ contract ScoreTest is Test {
         // Player1 wins 1 time with large prize
         losers[0] = player2;
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 500 ether);
+        score.recordMatchResult(player1, losers, 500 ether, address(0));
         
         // Player2 wins 2 times with smaller prizes
         losers[0] = player3;
         vm.prank(recorder);
-        score.recordMatchResult(player2, losers, 100 ether);
+        score.recordMatchResult(player2, losers, 100 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player2, losers, 100 ether);
+        score.recordMatchResult(player2, losers, 100 ether, address(0));
         
         // Player3 wins 3 times with smallest prizes
         losers[0] = player4;
         vm.prank(recorder);
-        score.recordMatchResult(player3, losers, 50 ether);
+        score.recordMatchResult(player3, losers, 50 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player3, losers, 50 ether);
+        score.recordMatchResult(player3, losers, 50 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player3, losers, 50 ether);
+        score.recordMatchResult(player3, losers, 50 ether, address(0));
         
         // Get paginated players (offset 1, limit 2)
         (
@@ -282,7 +282,7 @@ contract ScoreTest is Test {
         losers[0] = player2;
         
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         // Offset beyond available players
         (
@@ -305,7 +305,7 @@ contract ScoreTest is Test {
         
         vm.prank(recorder);
         vm.expectRevert(abi.encodeWithSignature("InvalidWinner()"));
-        score.recordMatchResult(address(0), losers, 100 ether);
+        score.recordMatchResult(address(0), losers, 100 ether, address(0));
     }
     
     function test_GetPlayersWithLimitLargerThanPlayerCount() public {
@@ -316,7 +316,7 @@ contract ScoreTest is Test {
         losers[0] = player2;
         
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         // Request 10 players when only 2 exist
         (
@@ -338,7 +338,7 @@ contract ScoreTest is Test {
         losers[0] = player2;
         
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         (
             address[] memory players,
@@ -374,7 +374,7 @@ contract ScoreTest is Test {
         
         // Record first match
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         assertEq(score.getTotalMatches(), 1);
         assertEq(score.getTotalPlayers(), 2);
@@ -382,7 +382,7 @@ contract ScoreTest is Test {
         // Record second match with different players
         losers[0] = player3;
         vm.prank(recorder);
-        score.recordMatchResult(player2, losers, 100 ether);
+        score.recordMatchResult(player2, losers, 100 ether, address(0));
         
         assertEq(score.getTotalMatches(), 2);
         assertEq(score.getTotalPlayers(), 3);
@@ -396,7 +396,7 @@ contract ScoreTest is Test {
         losers[0] = player2;
         
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         // Player2 lost but should be tracked
         (
@@ -445,7 +445,7 @@ contract ScoreTest is Test {
         address[] memory losers = new address[](0);
         
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         (
             address winner,
@@ -469,11 +469,11 @@ contract ScoreTest is Test {
         // Fast forward time between matches
         vm.warp(100);
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         vm.warp(200);
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 150 ether);
+        score.recordMatchResult(player1, losers, 150 ether, address(0));
         
         (
             uint256 totalWins,
@@ -497,7 +497,7 @@ contract ScoreTest is Test {
         // Player2 loses first
         losers[0] = player2;
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         (uint256 wins1, , , ) = score.getPlayerScore(player2);
         assertEq(wins1, 0);
@@ -505,7 +505,7 @@ contract ScoreTest is Test {
         // Player2 wins second match
         losers[0] = player1;
         vm.prank(recorder);
-        score.recordMatchResult(player2, losers, 200 ether);
+        score.recordMatchResult(player2, losers, 200 ether, address(0));
         
         (uint256 wins2, uint256 totalPrize, , ) = score.getPlayerScore(player2);
         assertEq(wins2, 1);
@@ -548,7 +548,7 @@ contract ScoreTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         assertEq(score.getTotalPlayers(), 2);
         
@@ -566,9 +566,9 @@ contract ScoreTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         assertEq(score.getTotalMatches(), 2);
         
@@ -592,7 +592,7 @@ contract ScoreTest is Test {
         
         // Should NOT emit LosersTruncated event
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         // Verify all 50 losers are recorded
         (, address[] memory recordedLosers, , ) = score.getMatchRecord(1);
@@ -616,7 +616,7 @@ contract ScoreTest is Test {
         
         // Should truncate to 50 losers silently
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         // Verify match was recorded with truncated losers
         (, address[] memory recordedLosers, , ) = score.getMatchRecord(1);
@@ -641,7 +641,7 @@ contract ScoreTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         vm.prank(recorder);
-        score.recordMatchResult(player1, losers, 100 ether);
+        score.recordMatchResult(player1, losers, 100 ether, address(0));
         
         assertEq(score.getRemainingPlayerCapacity(), 998); // 2 players added
         assertEq(score.getRemainingMatchCapacity(), 99); // 1 match added
@@ -660,11 +660,11 @@ contract ScoreTest is Test {
         
         // Record 3 matches (at capacity)
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player1, losers, 100 ether);
+        smallGameScore.recordMatchResult(player1, losers, 100 ether, address(0));
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player1, losers, 100 ether);
+        smallGameScore.recordMatchResult(player1, losers, 100 ether, address(0));
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player1, losers, 100 ether);
+        smallGameScore.recordMatchResult(player1, losers, 100 ether, address(0));
         
         assertEq(smallGameScore.getTotalMatches(), 3);
         
@@ -672,7 +672,7 @@ contract ScoreTest is Test {
         vm.prank(recorder);
         vm.expectEmit(true, false, false, false);
         emit MatchEvicted(1, block.timestamp);
-        smallGameScore.recordMatchResult(player1, losers, 100 ether);
+        smallGameScore.recordMatchResult(player1, losers, 100 ether, address(0));
         
         assertEq(smallGameScore.getTotalMatches(), 3); // Still at capacity
         
@@ -697,15 +697,15 @@ contract ScoreTest is Test {
         // Add 3 players (at capacity): player1 wins 2, player2 wins 1, player3 loses
         losers[0] = player3;
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player1, losers, 200 ether);
+        smallGameScore.recordMatchResult(player1, losers, 200 ether, address(0));
         
         losers[0] = player3;
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player1, losers, 100 ether);
+        smallGameScore.recordMatchResult(player1, losers, 100 ether, address(0));
         
         losers[0] = player3;
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player2, losers, 150 ether);
+        smallGameScore.recordMatchResult(player2, losers, 150 ether, address(0));
         
         assertEq(smallGameScore.getTotalPlayers(), 3);
         
@@ -718,7 +718,7 @@ contract ScoreTest is Test {
         vm.prank(recorder);
         vm.expectEmit(true, false, false, false);
         emit PlayerEvicted(player3, 0, 0);
-        smallGameScore.recordMatchResult(player4, losers, 50 ether);
+        smallGameScore.recordMatchResult(player4, losers, 50 ether, address(0));
         
         assertEq(smallGameScore.getTotalPlayers(), 3); // Still at capacity
         
@@ -742,22 +742,22 @@ contract ScoreTest is Test {
         // Add 3 players with same wins but different prizes
         losers[0] = address(0x999);
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player1, losers, 300 ether); // 1 win, 300 ether
+        smallGameScore.recordMatchResult(player1, losers, 300 ether, address(0)); // 1 win, 300 ether
         
         losers[0] = address(0x999);
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player2, losers, 200 ether); // 1 win, 200 ether
+        smallGameScore.recordMatchResult(player2, losers, 200 ether, address(0)); // 1 win, 200 ether
         
         losers[0] = address(0x999);
         vm.prank(recorder);
-        smallGameScore.recordMatchResult(player3, losers, 100 ether); // 1 win, 100 ether
+        smallGameScore.recordMatchResult(player3, losers, 100 ether, address(0)); // 1 win, 100 ether
         
         // All have 1 win, but player3 has least prize (should be evicted)
         losers[0] = player1;
         vm.prank(recorder);
         vm.expectEmit(true, false, false, false);
         emit PlayerEvicted(player3, 1, 100 ether);
-        smallGameScore.recordMatchResult(player4, losers, 50 ether);
+        smallGameScore.recordMatchResult(player4, losers, 50 ether, address(0));
         
         (uint256 p3Wins, , , ) = smallGameScore.getPlayerScore(player3);
         assertEq(p3Wins, 0); // Player3 evicted

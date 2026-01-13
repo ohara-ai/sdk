@@ -408,7 +408,7 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
                 unchecked { ++i; }
             }
             // Use try-catch to prevent DoS from buggy score contracts
-            try score.recordMatchResult(winner, losers, winnerAmount) {
+            try score.recordMatchResult(winner, losers, winnerAmount, token) {
                 // Score recorded successfully
             } catch (bytes memory reason) {
                 emit ExternalCallFailed("Score.recordMatchResult", reason);

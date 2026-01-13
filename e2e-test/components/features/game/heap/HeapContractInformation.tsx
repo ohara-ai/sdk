@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ExternalLink, Copy, Check } from 'lucide-react'
+import { Copy, Check } from 'lucide-react'
 import { usePublicClient } from 'wagmi'
 import { HEAP_ABI } from '@ohara-ai/sdk'
 

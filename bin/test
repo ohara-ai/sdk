@@ -4,7 +4,6 @@
 npm install
 
 npm run forge:build
-npm run forge:test
 npm run forge:coverage
 
 npm run update-abi

@@ -22,7 +22,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useBlockNumber, usePublicClient, useWalletClient, useAccount } from 'wagmi'
-import { formatEther, zeroAddress, parseEther, isAddress } from 'viem'
+import { formatEther, zeroAddress } from 'viem'
 import { HEAP_ABI, useTokenApproval } from '@ohara-ai/sdk'
 
 interface HeapDetailsProps {
@@ -66,7 +66,6 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
     approve,
     isApprovePending,
     isApproveConfirming,
-    isApproveSuccess,
   } = useTokenApproval({
     tokenAddress: token as `0x${string}`,
     spenderAddress: contractAddress || zeroAddress,

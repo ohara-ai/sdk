@@ -199,7 +199,7 @@ contract ScoreFactoryTest is Test {
         losers[0] = address(0xBBB);
         
         vm.prank(recorder);
-        score.recordMatchResult(winner, losers, 100 ether);
+        score.recordMatchResult(winner, losers, 100 ether, address(0));
         
         // Verify the record
         (uint256 totalWins, uint256 totalPrize, , ) = score.getPlayerScore(winner);

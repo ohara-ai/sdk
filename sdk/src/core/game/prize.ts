@@ -2,20 +2,36 @@ import { PublicClient, WalletClient, Address, Hash } from 'viem'
 import { PRIZE_ABI } from '../../abis/game/prize'
 
 export interface PrizePool {
+  token: Address
   matchesCompleted: bigint
-  winner: Address
-  highestWins: bigint
   finalized: boolean
-  prizeClaimed: boolean
+  prizeAmount: bigint
+}
+
+export interface PrizePoolWinners {
+  winners: readonly Address[]
+  winCounts: readonly bigint[]
+  claimed: readonly boolean[]
+}
+
+export enum DistributionStrategy {
+  Equal = 0,
+  Linear = 1,
+  Exponential = 2,
+  WinnerTakeAll = 3,
+  ProportionalToWins = 4,
 }
 
 export interface PrizeOperations {
-  getCurrentPoolId(): Promise<bigint>
+  getCurrentPoolId(token: Address): Promise<bigint>
   getMatchesPerPool(): Promise<bigint>
+  getWinnersCount(): Promise<bigint>
+  getDistributionStrategy(): Promise<DistributionStrategy>
   getPool(poolId: bigint): Promise<PrizePool>
+  getPoolWinners(poolId: bigint): Promise<PrizePoolWinners>
   getPoolWins(poolId: bigint, player: Address): Promise<bigint>
+  getPrizeForRank(poolId: bigint, rank: bigint): Promise<bigint>
   getTokens(): Promise<readonly Address[]>
-  getPoolPrize(poolId: bigint, token: Address): Promise<bigint>
   getClaimablePools(player: Address): Promise<readonly bigint[]>
   claimPrize(poolId: bigint): Promise<Hash>
 }
@@ -37,11 +53,12 @@ export function createClientPrizeOperations(
   }
 
   return {
-    async getCurrentPoolId(): Promise<bigint> {
+    async getCurrentPoolId(token: Address): Promise<bigint> {
       return publicClient.readContract({
         address: contractAddress,
         abi: PRIZE_ABI,
         functionName: 'getCurrentPoolId',
+        args: [token],
       })
     },
 
@@ -53,6 +70,23 @@ export function createClientPrizeOperations(
       })
     },
 
+    async getWinnersCount(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'getWinnersCount',
+      })
+    },
+
+    async getDistributionStrategy(): Promise<DistributionStrategy> {
+      const result = await publicClient.readContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'getDistributionStrategy',
+      })
+      return result as DistributionStrategy
+    },
+
     async getPool(poolId: bigint): Promise<PrizePool> {
       const result = await publicClient.readContract({
         address: contractAddress,
@@ -62,11 +96,25 @@ export function createClientPrizeOperations(
       })
 
       return {
-        matchesCompleted: result[0],
-        winner: result[1],
-        highestWins: result[2],
-        finalized: result[3],
-        prizeClaimed: result[4],
+        token: result[0],
+        matchesCompleted: result[1],
+        finalized: result[2],
+        prizeAmount: result[3],
+      }
+    },
+
+    async getPoolWinners(poolId: bigint): Promise<PrizePoolWinners> {
+      const result = await publicClient.readContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'getPoolWinners',
+        args: [poolId],
+      })
+
+      return {
+        winners: result[0],
+        winCounts: result[1],
+        claimed: result[2],
       }
     },
 
@@ -79,20 +127,20 @@ export function createClientPrizeOperations(
       })
     },
 
+    async getPrizeForRank(poolId: bigint, rank: bigint): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'getPrizeForRank',
+        args: [poolId, rank],
+      })
+    },
+
     async getTokens(): Promise<readonly Address[]> {
       return publicClient.readContract({
         address: contractAddress,
         abi: PRIZE_ABI,
         functionName: 'getTokens',
-      })
-    },
-
-    async getPoolPrize(poolId: bigint, token: Address): Promise<bigint> {
-      return publicClient.readContract({
-        address: contractAddress,
-        abi: PRIZE_ABI,
-        functionName: 'getPoolPrize',
-        args: [poolId, token],
       })
     },
 

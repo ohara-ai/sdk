@@ -6,14 +6,16 @@ import {IPrize} from "../../src/interfaces/game/IPrize.sol";
 contract MockPrize is IPrize {
     struct MatchRecord {
         address winner;
+        address token;
         uint256 timestamp;
     }
 
     MatchRecord[] public matchResults;
     
-    function recordMatchResult(address winner) external override {
+    function recordMatchResult(address winner, address token) external override {
         matchResults.push(MatchRecord({
             winner: winner,
+            token: token,
             timestamp: block.timestamp
         }));
     }
@@ -23,24 +25,31 @@ contract MockPrize is IPrize {
     }
 
     function getPool(uint256) external pure override returns (
+        address token,
         uint256 matchesCompleted,
-        address winner,
-        uint256 highestWins,
         bool finalized,
-        bool prizeClaimed
+        uint256 prizeAmount
     ) {
-        return (0, address(0), 0, false, false);
+        return (address(0), 0, false, 0);
+    }
+
+    function getPoolWinners(uint256) external pure override returns (
+        address[] memory winners,
+        uint256[] memory winCounts,
+        bool[] memory claimed
+    ) {
+        return (new address[](0), new uint256[](0), new bool[](0));
     }
 
     function getPoolWins(uint256, address) external pure override returns (uint256) {
         return 0;
     }
 
-    function getPoolPrize(uint256, address) external pure override returns (uint256) {
+    function getPrizeForRank(uint256, uint256) external pure override returns (uint256) {
         return 0;
     }
 
-    function getCurrentPoolId() external pure override returns (uint256) {
+    function getCurrentPoolId(address) external pure override returns (uint256) {
         return 1;
     }
 
@@ -48,13 +57,21 @@ contract MockPrize is IPrize {
         return 10;
     }
 
+    function getWinnersCount() external pure override returns (uint256) {
+        return 10;
+    }
+
+    function getDistributionStrategy() external pure override returns (DistributionStrategy) {
+        return DistributionStrategy.Linear;
+    }
+
     // Test helpers
     function getMatchResultCount() external view returns (uint256) {
         return matchResults.length;
     }
 
-    function getMatchResult(uint256 index) external view returns (address winner, uint256 timestamp) {
+    function getMatchResult(uint256 index) external view returns (address winner, address token, uint256 timestamp) {
         MatchRecord memory record = matchResults[index];
-        return (record.winner, record.timestamp);
+        return (record.winner, record.token, record.timestamp);
     }
 }

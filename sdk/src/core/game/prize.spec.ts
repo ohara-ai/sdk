@@ -2,10 +2,11 @@
  * Prize Operations Specification Tests
  *
  * Tests the core prize primitive operations following behavioral specifications
+ * Updated for multi-winner support with token-based pools
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { createClientPrizeOperations } from './prize'
+import { createClientPrizeOperations, DistributionStrategy } from './prize'
 import type { PrizeOperations } from './prize'
 import {
   createMockPublicClient,
@@ -19,6 +20,7 @@ import {
 describe('Prize Operations - Specification Tests', () => {
   const CONTRACT_ADDRESS = '0x5555555555555555555555555555555555555555' as const
   const PLAYER_ADDRESS = '0x1111111111111111111111111111111111111111' as const
+  const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000' as const
 
   describe('Specification: Factory Function', () => {
     it('SPEC: createClientPrizeOperations - creates operations with all methods', () => {
@@ -34,10 +36,13 @@ describe('Prize Operations - Specification Tests', () => {
       assertHasOperations(operations, [
         'getCurrentPoolId',
         'getMatchesPerPool',
+        'getWinnersCount',
+        'getDistributionStrategy',
         'getPool',
+        'getPoolWinners',
         'getPoolWins',
+        'getPrizeForRank',
         'getTokens',
-        'getPoolPrize',
         'getClaimablePools',
         'claimPrize',
       ])
@@ -60,9 +65,9 @@ describe('Prize Operations - Specification Tests', () => {
       operations = createClientPrizeOperations(CONTRACT_ADDRESS, publicClient, walletClient)
     })
 
-    it('SPEC: getCurrentPoolId() - returns current pool id', async () => {
+    it('SPEC: getCurrentPoolId() - returns current pool id for token', async () => {
       vi.spyOn(publicClient, 'readContract').mockResolvedValue(3n)
-      const id = await operations.getCurrentPoolId()
+      const id = await operations.getCurrentPoolId(NATIVE_TOKEN)
       expect(id).toBe(3n)
     })
 
@@ -72,22 +77,20 @@ describe('Prize Operations - Specification Tests', () => {
       expect(n).toBe(42n)
     })
 
-    it('SPEC: getPool() - returns structured pool object', async () => {
+    it('SPEC: getPool() - returns structured pool object with token-based fields', async () => {
       vi.spyOn(publicClient, 'readContract').mockResolvedValue([
+        NATIVE_TOKEN,
         10n,
-        PLAYER_ADDRESS,
-        7n,
         true,
-        false,
+        1000000000000000000n,
       ])
 
       const pool = await operations.getPool(1n)
       expect(pool).toEqual({
+        token: NATIVE_TOKEN,
         matchesCompleted: 10n,
-        winner: PLAYER_ADDRESS,
-        highestWins: 7n,
         finalized: true,
-        prizeClaimed: false,
+        prizeAmount: 1000000000000000000n,
       })
     })
 

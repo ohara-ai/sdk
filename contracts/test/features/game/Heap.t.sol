@@ -797,6 +797,123 @@ contract HeapTest is Test {
 
     event MaxActiveHeapsUpdated(uint256 newLimit);
     event InactiveHeapCleaned(uint256 indexed heapId, uint256 createdAt);
+
+    // Additional branch coverage tests
+    
+    function test_CannotCreateWithZeroContribution() public {
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.InvalidContributionAmount.selector);
+        heap.create{value: 0}(address(0), 0, MAX_CONTRIBUTIONS);
+    }
+    
+    function test_CannotCreateWithContributionTooHigh() public {
+        uint256 tooHigh = 1000001 ether;
+        vm.deal(contributor1, tooHigh);
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.ContributionAmountTooHigh.selector);
+        heap.create{value: tooHigh}(address(0), tooHigh, MAX_CONTRIBUTIONS);
+    }
+    
+    function test_CannotCreateWithLessThanTwoMaxContributions() public {
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.InvalidMaxContributions.selector);
+        heap.create{value: CONTRIBUTION_AMOUNT}(address(0), CONTRIBUTION_AMOUNT, 1);
+    }
+    
+    function test_CannotCreateWithTooManyMaxContributions() public {
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.TooManyContributions.selector);
+        heap.create{value: CONTRIBUTION_AMOUNT}(address(0), CONTRIBUTION_AMOUNT, 1001);
+    }
+    
+    function test_CannotCreateWithInvalidTokenAddress() public {
+        address fakeToken = address(0x1234);
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.InvalidTokenAddress.selector);
+        heap.create(fakeToken, CONTRIBUTION_AMOUNT, MAX_CONTRIBUTIONS);
+    }
+    
+    function test_SetScoreWithInvalidAddress() public {
+        address fakeScore = address(0x1234);
+        vm.prank(controller);
+        vm.expectRevert(Heap.InvalidTokenAddress.selector);
+        heap.setScore(fakeScore);
+    }
+    
+    function test_SetScoreToZeroDisables() public {
+        vm.prank(controller);
+        heap.setScore(address(gameScore));
+        
+        vm.prank(controller);
+        heap.setScore(address(0));
+        assertEq(address(heap.score()), address(0));
+    }
+    
+    function test_SetPredictionWithInvalidAddress() public {
+        address fakePrediction = address(0x1234);
+        vm.prank(controller);
+        vm.expectRevert(Heap.InvalidTokenAddress.selector);
+        heap.setPrediction(fakePrediction);
+    }
+    
+    function test_CannotSetMaxActiveHeapsTooHigh() public {
+        vm.prank(owner);
+        vm.expectRevert(Heap.LimitTooHigh.selector);
+        heap.setMaxActiveHeaps(10001);
+    }
+    
+    function test_CleanupInactiveHeapNonExistent() public {
+        vm.prank(owner);
+        vm.expectRevert(Heap.InvalidHeapId.selector);
+        heap.cleanupInactiveHeap(999);
+    }
+    
+    function test_GetActiveHeapIdsOffsetBeyondTotal() public {
+        vm.prank(contributor1);
+        heap.create{value: CONTRIBUTION_AMOUNT}(address(0), CONTRIBUTION_AMOUNT, MAX_CONTRIBUTIONS);
+        
+        uint256[] memory ids = heap.getActiveHeapIds(100, 10);
+        assertEq(ids.length, 0);
+    }
+    
+    function test_CannotContributeToNonExistentHeap() public {
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.InvalidHeapId.selector);
+        heap.contribute{value: CONTRIBUTION_AMOUNT}(999);
+    }
+    
+    function test_CannotWithdrawFromNonExistentHeap() public {
+        vm.prank(contributor1);
+        vm.expectRevert(Heap.InvalidHeapId.selector);
+        heap.withdraw(999);
+    }
+    
+    function test_CannotActivateNonExistentHeap() public {
+        vm.prank(controller);
+        vm.expectRevert(Heap.InvalidHeapId.selector);
+        heap.activate(999);
+    }
+    
+    function test_CannotFinalizeNonExistentHeap() public {
+        vm.prank(controller);
+        vm.expectRevert(Heap.InvalidHeapId.selector);
+        heap.finalize(999, contributor1);
+    }
+    
+    function test_CannotCancelNonExistentHeap() public {
+        vm.prank(controller);
+        vm.expectRevert(Heap.InvalidHeapId.selector);
+        heap.cancel(999);
+    }
+    
+    function test_CannotContributeWithWrongNativeValue() public {
+        vm.prank(contributor1);
+        uint256 heapId = heap.create{value: CONTRIBUTION_AMOUNT}(address(0), CONTRIBUTION_AMOUNT, MAX_CONTRIBUTIONS);
+        
+        vm.prank(contributor2);
+        vm.expectRevert(Heap.InsufficientContribution.selector);
+        heap.contribute{value: CONTRIBUTION_AMOUNT / 2}(heapId);
+    }
 }
 
 contract HeapSharesTest is Test {
@@ -958,6 +1075,33 @@ contract HeapSharesTest is Test {
         address[] memory tokens = heap.getShareTokens();
         assertEq(tokens.length, 1);
         assertEq(tokens[0], address(0));
+    }
+    
+    function test_CannotRegisterShareRecipientTwice() public {
+        vm.prank(controller);
+        heap.registerShareRecipient(shareRecipient, 1000);
+        
+        vm.prank(controller);
+        vm.expectRevert(Heap.ShareRecipientAlreadyExists.selector);
+        heap.registerShareRecipient(shareRecipient, 500);
+    }
+    
+    function test_CannotRegisterShareExceedingMax() public {
+        vm.prank(controller);
+        vm.expectRevert(Heap.ShareExceedsMax.selector);
+        heap.registerShareRecipient(shareRecipient, 5001);
+    }
+    
+    function test_CannotRemoveNonExistentShareRecipient() public {
+        vm.prank(controller);
+        vm.expectRevert(Heap.ShareRecipientNotFound.selector);
+        heap.removeShareRecipient(shareRecipient);
+    }
+    
+    function test_CannotClaimZeroShares() public {
+        vm.prank(shareRecipient);
+        vm.expectRevert(Heap.NoSharesToClaim.selector);
+        heap.claimShares(address(0));
     }
 }
 

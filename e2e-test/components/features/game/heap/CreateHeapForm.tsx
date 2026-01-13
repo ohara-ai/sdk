@@ -82,7 +82,7 @@ export function CreateHeapForm({ contractAddress, onHeapCreated }: CreateHeapFor
       const receipt = await publicClient.waitForTransactionReceipt({ hash })
 
       // Extract heapId from logs
-      const heapCreatedLog = receipt.logs.find((log) => {
+      const _heapCreatedLog = receipt.logs.find((log) => {
         try {
           return log.topics[0] === '0x' + 'HeapCreated'.padEnd(64, '0')
         } catch {

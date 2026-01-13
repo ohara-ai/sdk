@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import {Test} from "forge-std/Test.sol";
 import {PrizeFactory} from "../../../src/factories/game/PrizeFactory.sol";
 import {Prize} from "../../../src/features/game/Prize.sol";
+import {IPrize} from "../../../src/interfaces/game/IPrize.sol";
 import {Match} from "../../../src/features/game/Match.sol";
 
 contract PrizeFactoryTest is Test {
@@ -19,7 +20,9 @@ contract PrizeFactoryTest is Test {
         address indexed owner,
         address indexed controller,
         address matchContract,
-        uint256 matchesPerPool
+        uint256 matchesPerPool,
+        uint256 winnersCount,
+        IPrize.DistributionStrategy strategy
     );
     event DefaultMatchesPerPoolUpdated(uint256 newDefault);
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
@@ -56,16 +59,29 @@ contract PrizeFactoryTest is Test {
     
     function test_DeployPrizeWithCustomConfig() public {
         vm.prank(deployer);
-        address instance = factory.deployPrizeWithConfig(address(gameMatch), 100);
+        address instance = factory.deployPrizeWithConfig(
+            address(gameMatch), 
+            100, 
+            5, 
+            IPrize.DistributionStrategy.Exponential
+        );
         
         Prize prize = Prize(payable(instance));
         assertEq(prize.getMatchesPerPool(), 100);
+        assertEq(prize.getWinnersCount(), 5);
+        assertEq(uint256(prize.getDistributionStrategy()), uint256(IPrize.DistributionStrategy.Exponential));
     }
     
     function test_CannotDeployWithZeroMatchesPerPool() public {
         vm.prank(deployer);
         vm.expectRevert(PrizeFactory.InvalidMatchesPerPool.selector);
-        factory.deployPrizeWithConfig(address(gameMatch), 0);
+        factory.deployPrizeWithConfig(address(gameMatch), 0, 10, IPrize.DistributionStrategy.Linear);
+    }
+    
+    function test_CannotDeployWithZeroWinnersCount() public {
+        vm.prank(deployer);
+        vm.expectRevert(PrizeFactory.InvalidWinnersCount.selector);
+        factory.deployPrizeWithConfig(address(gameMatch), 100, 0, IPrize.DistributionStrategy.Linear);
     }
     
     function test_SetDefaultMatchesPerPool() public {

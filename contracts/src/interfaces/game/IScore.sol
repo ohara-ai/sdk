@@ -11,10 +11,12 @@ interface IScore {
      * @param winner The address of the winner
      * @param losers Array of addresses of losers
      * @param prize The total prize amount
+     * @param token The reward token address (address(0) for native token)
      */
     function recordMatchResult(
         address winner,
         address[] calldata losers,
-        uint256 prize
+        uint256 prize,
+        address token
     ) external;
 }

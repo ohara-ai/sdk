@@ -2,12 +2,13 @@
 pragma solidity 0.8.23;
 
 import {Prize} from "../../features/game/Prize.sol";
+import {IPrize} from "../../interfaces/game/IPrize.sol";
 import {OwnedFactory} from "../../base/OwnedFactory.sol";
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 
 /**
  * @title PrizeFactory
- * @notice Factory for deploying Prize contracts
+ * @notice Factory for deploying Prize contracts with multi-winner support
  */
 contract PrizeFactory is OwnedFactory {
     // Implementation contract for ERC-1167 clones
@@ -15,17 +16,24 @@ contract PrizeFactory is OwnedFactory {
     
     // Default configuration for new deployments
     uint256 public defaultMatchesPerPool;
+    uint256 public defaultWinnersCount;
+    IPrize.DistributionStrategy public defaultDistributionStrategy;
 
     event PrizeDeployed(
         address indexed instance,
         address indexed owner,
         address indexed controller,
         address matchContract,
-        uint256 matchesPerPool
+        uint256 matchesPerPool,
+        uint256 winnersCount,
+        IPrize.DistributionStrategy strategy
     );
     event DefaultMatchesPerPoolUpdated(uint256 newDefault);
+    event DefaultWinnersCountUpdated(uint256 newDefault);
+    event DefaultDistributionStrategyUpdated(IPrize.DistributionStrategy newDefault);
 
     error InvalidMatchesPerPool();
+    error InvalidWinnersCount();
 
     constructor() OwnedFactory(msg.sender) {
         // Deploy implementation contract for cloning
@@ -33,6 +41,8 @@ contract PrizeFactory is OwnedFactory {
         
         // Initialize with default configuration
         defaultMatchesPerPool = 42;
+        defaultWinnersCount = 10;
+        defaultDistributionStrategy = IPrize.DistributionStrategy.Linear;
     }
 
     /**
@@ -43,6 +53,25 @@ contract PrizeFactory is OwnedFactory {
         if (_defaultMatchesPerPool == 0) revert InvalidMatchesPerPool();
         defaultMatchesPerPool = _defaultMatchesPerPool;
         emit DefaultMatchesPerPoolUpdated(_defaultMatchesPerPool);
+    }
+
+    /**
+     * @notice Update the default winners count for new deployments
+     * @param _defaultWinnersCount Default number of winners per pool
+     */
+    function setDefaultWinnersCount(uint256 _defaultWinnersCount) external onlyOwner {
+        if (_defaultWinnersCount == 0 || _defaultWinnersCount > 100) revert InvalidWinnersCount();
+        defaultWinnersCount = _defaultWinnersCount;
+        emit DefaultWinnersCountUpdated(_defaultWinnersCount);
+    }
+
+    /**
+     * @notice Update the default distribution strategy for new deployments
+     * @param _defaultStrategy Default distribution strategy
+     */
+    function setDefaultDistributionStrategy(IPrize.DistributionStrategy _defaultStrategy) external onlyOwner {
+        defaultDistributionStrategy = _defaultStrategy;
+        emit DefaultDistributionStrategyUpdated(_defaultStrategy);
     }
 
     /**
@@ -59,12 +88,14 @@ contract PrizeFactory is OwnedFactory {
         // Clone the implementation contract using ERC-1167
         instance = Clones.clone(IMPLEMENTATION);
         
-        // Initialize the clone
-        Prize(payable(instance)).initialize(
+        // Initialize the clone with full config
+        Prize(payable(instance)).initializeWithConfig(
             instanceOwnerAddress,
             msg.sender,
             _matchContract,
-            defaultMatchesPerPool
+            defaultMatchesPerPool,
+            defaultWinnersCount,
+            defaultDistributionStrategy
         );
         
         emit PrizeDeployed(
@@ -72,21 +103,28 @@ contract PrizeFactory is OwnedFactory {
             instanceOwnerAddress,
             msg.sender,
             _matchContract,
-            defaultMatchesPerPool
+            defaultMatchesPerPool,
+            defaultWinnersCount,
+            defaultDistributionStrategy
         );
     }
 
     /**
-     * @notice Deploy a new Prize contract with custom matches per pool
+     * @notice Deploy a new Prize contract with custom configuration
      * @param _matchContract Address of the match contract implementing IShares
      * @param _matchesPerPool Custom matches per prize pool
+     * @param _winnersCount Number of top winners to reward
+     * @param _strategy Distribution strategy for prize allocation
      * @return instance Address of the deployed contract
      */
     function deployPrizeWithConfig(
         address _matchContract,
-        uint256 _matchesPerPool
+        uint256 _matchesPerPool,
+        uint256 _winnersCount,
+        IPrize.DistributionStrategy _strategy
     ) external returns (address instance) {
         if (_matchesPerPool == 0) revert InvalidMatchesPerPool();
+        if (_winnersCount == 0 || _winnersCount > 100) revert InvalidWinnersCount();
         
         address instanceOwnerAddress = getInstanceOwner();
         
@@ -94,11 +132,13 @@ contract PrizeFactory is OwnedFactory {
         instance = Clones.clone(IMPLEMENTATION);
         
         // Initialize the clone
-        Prize(payable(instance)).initialize(
+        Prize(payable(instance)).initializeWithConfig(
             instanceOwnerAddress,
             msg.sender,
             _matchContract,
-            _matchesPerPool
+            _matchesPerPool,
+            _winnersCount,
+            _strategy
         );
         
         emit PrizeDeployed(
@@ -106,7 +146,9 @@ contract PrizeFactory is OwnedFactory {
             instanceOwnerAddress,
             msg.sender,
             _matchContract,
-            _matchesPerPool
+            _matchesPerPool,
+            _winnersCount,
+            _strategy
         );
     }
 }

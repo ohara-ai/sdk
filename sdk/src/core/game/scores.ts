@@ -141,12 +141,14 @@ export interface ScoreOperations {
  */
 export interface ServerScoreOperations extends ScoreOperations {
   /**
-   * Record a match result with winner, losers, and prize (authorized recorder only - server-side only)
+   * Record a match result with winner, losers, prize, and token (authorized recorder only - server-side only)
+   * @param token The reward token address (address(0) for native token)
    */
   recordMatchResult(
     winner: Address,
     losers: Address[],
     prize: bigint,
+    token: Address,
   ): Promise<Hash>
 }
 
@@ -354,6 +356,7 @@ function createOperationsInternal(
       winner: Address,
       losers: Address[],
       prize: bigint,
+      token: Address,
     ): Promise<Hash> {
       // If API mode is enabled, use Ohara API
       if (oharaApiClient && chainId) {
@@ -364,6 +367,7 @@ function createOperationsInternal(
             winner: winner,
             losers: losers,
             prize: prize.toString(),
+            token: token,
           },
           chainId,
         })
@@ -391,7 +395,7 @@ function createOperationsInternal(
         address: contractAddress,
         abi: SCORE_ABI,
         functionName: 'recordMatchResult',
-        args: [winner, losers, prize],
+        args: [winner, losers, prize, token],
         account,
         chain: undefined,
       })

@@ -10,6 +10,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "DEFAULT_WINNERS_COUNT",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "FEE_BASIS_POINTS",
     "inputs": [],
     "outputs": [
@@ -37,6 +50,19 @@ export const PRIZE_ABI = [
   {
     "type": "function",
     "name": "MAX_FEE_RECIPIENTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_WINNERS",
     "inputs": [],
     "outputs": [
       {
@@ -126,6 +152,19 @@ export const PRIZE_ABI = [
         "name": "",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "distributionStrategy",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
       }
     ],
     "stateMutability": "view"
@@ -227,12 +266,31 @@ export const PRIZE_ABI = [
   {
     "type": "function",
     "name": "getCurrentPoolId",
-    "inputs": [],
+    "inputs": [
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
     "outputs": [
       {
         "name": "poolId",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getDistributionStrategy",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
       }
     ],
     "stateMutability": "view"
@@ -309,17 +367,12 @@ export const PRIZE_ABI = [
     ],
     "outputs": [
       {
-        "name": "matchesCompleted",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "winner",
+        "name": "token",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "highestWins",
+        "name": "matchesCompleted",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -329,33 +382,38 @@ export const PRIZE_ABI = [
         "internalType": "bool"
       },
       {
-        "name": "prizeClaimed",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "prizeAmount",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "getPoolPrize",
+    "name": "getPoolWinners",
     "inputs": [
       {
         "name": "poolId",
         "type": "uint256",
         "internalType": "uint256"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "outputs": [
       {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "winners",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "winCounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "claimed",
+        "type": "bool[]",
+        "internalType": "bool[]"
       }
     ],
     "stateMutability": "view"
@@ -386,6 +444,30 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "getPrizeForRank",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "rank",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getTokens",
     "inputs": [],
     "outputs": [
@@ -393,6 +475,32 @@ export const PRIZE_ABI = [
         "name": "",
         "type": "address[]",
         "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTotalPoolCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "count",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getWinnersCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -420,6 +528,44 @@ export const PRIZE_ABI = [
         "name": "_matchesPerPool",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "initializeWithConfig",
+    "inputs": [
+      {
+        "name": "_owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_controller",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_matchContract",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_matchesPerPool",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_winnersCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_strategy",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
       }
     ],
     "outputs": [],
@@ -509,6 +655,11 @@ export const PRIZE_ABI = [
         "name": "winner",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -522,6 +673,19 @@ export const PRIZE_ABI = [
         "name": "newController",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setDistributionStrategy",
+    "inputs": [
+      {
+        "name": "_strategy",
+        "type": "uint8",
+        "internalType": "enum IPrize.DistributionStrategy"
       }
     ],
     "outputs": [],
@@ -573,6 +737,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "setWinnersCount",
+    "inputs": [
+      {
+        "name": "_winnersCount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "totalFeeShare",
     "inputs": [],
     "outputs": [
@@ -612,6 +789,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "winnersCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "withdrawFees",
     "inputs": [
       {
@@ -622,6 +812,25 @@ export const PRIZE_ABI = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "ConfigUpdated",
+    "inputs": [
+      {
+        "name": "winnersCount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "strategy",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum IPrize.DistributionStrategy"
+      }
+    ],
+    "anonymous": false
   },
   {
     "type": "event",
@@ -785,6 +994,12 @@ export const PRIZE_ABI = [
         "internalType": "uint256"
       },
       {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
         "name": "winner",
         "type": "address",
         "indexed": true,
@@ -883,6 +1098,12 @@ export const PRIZE_ABI = [
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      },
+      {
+        "name": "rank",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -896,6 +1117,12 @@ export const PRIZE_ABI = [
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "matchesPerPool",
@@ -917,16 +1144,22 @@ export const PRIZE_ABI = [
         "internalType": "uint256"
       },
       {
-        "name": "winner",
+        "name": "token",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
-        "name": "totalWins",
-        "type": "uint256",
+        "name": "winners",
+        "type": "address[]",
         "indexed": false,
-        "internalType": "uint256"
+        "internalType": "address[]"
+      },
+      {
+        "name": "winCounts",
+        "type": "uint256[]",
+        "indexed": false,
+        "internalType": "uint256[]"
       }
     ],
     "anonymous": false
@@ -1027,6 +1260,16 @@ export const PRIZE_ABI = [
   {
     "type": "error",
     "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidRank",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidWinnersCount",
     "inputs": []
   },
   {

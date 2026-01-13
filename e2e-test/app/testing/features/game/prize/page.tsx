@@ -10,6 +10,9 @@ import { useOharaAi } from '@ohara-ai/sdk'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
 import { CurrentPool, ClaimPrize } from '@/components/features/game/prize'
 
+// Native token address constant
+const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000' as const
+
 export default function GamePrizePage() {
   const { isConnected, address: userAddress } = useAccount()
   const { game } = useOharaAi()
@@ -21,14 +24,18 @@ export default function GamePrizePage() {
   const [matchesPerPool, setMatchesPerPool] = useState<bigint | undefined>()
   const [poolInfo, setPoolInfo] = useState<
     | {
+        token: `0x${string}`
         matchesCompleted: bigint
-        winner: `0x${string}`
-        highestWins: bigint
         finalized: boolean
-        prizeClaimed: boolean
+        prizeAmount: bigint
       }
     | undefined
   >()
+  const [poolWinners, setPoolWinners] = useState<{
+    winners: readonly `0x${string}`[]
+    winCounts: readonly bigint[]
+    claimed: readonly boolean[]
+  } | undefined>()
   const [claimablePools, setClaimablePools] = useState<readonly bigint[]>([])
 
   useEffect(() => {
@@ -43,20 +50,25 @@ export default function GamePrizePage() {
       if (!ops) return
       try {
         const [poolId, mpp] = await Promise.all([
-          ops.getCurrentPoolId(),
+          ops.getCurrentPoolId(NATIVE_TOKEN),
           ops.getMatchesPerPool(),
         ])
         setCurrentPoolId(poolId)
         setMatchesPerPool(mpp)
 
-        const pool = await ops.getPool(poolId)
-        setPoolInfo({
-          matchesCompleted: pool.matchesCompleted,
-          winner: pool.winner,
-          highestWins: pool.highestWins,
-          finalized: pool.finalized,
-          prizeClaimed: pool.prizeClaimed,
-        })
+        if (poolId > 0n) {
+          const [pool, winners] = await Promise.all([
+            ops.getPool(poolId),
+            ops.getPoolWinners(poolId),
+          ])
+          setPoolInfo({
+            token: pool.token,
+            matchesCompleted: pool.matchesCompleted,
+            finalized: pool.finalized,
+            prizeAmount: pool.prizeAmount,
+          })
+          setPoolWinners(winners)
+        }
 
         if (userAddress) {
           const claimable = await ops.getClaimablePools(userAddress)
@@ -76,9 +88,14 @@ export default function GamePrizePage() {
     if (!userAddress) return false
     if (!poolInfo) return false
     if (!poolInfo.finalized) return false
-    if (poolInfo.prizeClaimed) return false
-    return poolInfo.winner.toLowerCase() === userAddress.toLowerCase()
-  }, [poolInfo, userAddress])
+    if (!poolWinners) return false
+    // Check if user is one of the winners and hasn't claimed
+    const winnerIndex = poolWinners.winners.findIndex(
+      w => w.toLowerCase() === userAddress.toLowerCase()
+    )
+    if (winnerIndex === -1) return false
+    return !poolWinners.claimed[winnerIndex]
+  }, [poolInfo, poolWinners, userAddress])
 
   const handleClaim = async (poolId: bigint): Promise<`0x${string}`> => {
     if (!ops) throw new Error('Prize operations not available')
@@ -98,7 +115,7 @@ export default function GamePrizePage() {
           { label: 'Current Pool', value: currentPoolId?.toString(), highlight: true },
           { label: 'Matches/Pool', value: matchesPerPool?.toString() },
           { label: 'Pool Finalized', value: poolInfo?.finalized ? 'Yes' : 'No' },
-          { label: 'Prize Claimed', value: poolInfo?.prizeClaimed ? 'Yes' : 'No' },
+          { label: 'Winners', value: poolWinners?.winners?.length?.toString() ?? '0' },
         ]}
         additionalContracts={[
           {
@@ -151,6 +168,7 @@ export default function GamePrizePage() {
                 currentPoolId={currentPoolId}
                 matchesPerPool={matchesPerPool}
                 poolInfo={poolInfo}
+                poolWinners={poolWinners}
               />
             </div>
             <div className="lg:col-span-1">

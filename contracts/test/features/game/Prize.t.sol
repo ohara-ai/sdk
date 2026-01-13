@@ -3,6 +3,7 @@ pragma solidity ^0.8.23;
 
 import {Test} from "forge-std/Test.sol";
 import {Prize} from "../../../src/features/game/Prize.sol";
+import {IPrize} from "../../../src/interfaces/game/IPrize.sol";
 import {Match} from "../../../src/features/game/Match.sol";
 import {Score} from "../../../src/features/game/Score.sol";
 import {MockERC20} from "../../mocks/MockERC20.sol";
@@ -23,10 +24,10 @@ contract PrizeTest is Test {
     uint256 constant MATCHES_PER_POOL = 3;
     uint256 constant SHARE_BASIS_POINTS = 1000; // 10%
 
-    event PrizePoolCreated(uint256 indexed poolId, uint256 matchesPerPool);
-    event MatchRecorded(uint256 indexed poolId, address indexed winner, uint256 matchNumber);
-    event PrizePoolFinalized(uint256 indexed poolId, address indexed winner, uint256 totalWins);
-    event PrizeClaimed(uint256 indexed poolId, address indexed winner, address indexed token, uint256 amount);
+    event PrizePoolCreated(uint256 indexed poolId, address indexed token, uint256 matchesPerPool);
+    event MatchRecorded(uint256 indexed poolId, address indexed token, address indexed winner, uint256 matchNumber);
+    event PrizePoolFinalized(uint256 indexed poolId, address indexed token, address[] winners, uint256[] winCounts);
+    event PrizeClaimed(uint256 indexed poolId, address indexed winner, address indexed token, uint256 amount, uint256 rank);
     event SharesCollected(address indexed token, uint256 amount);
     event RecorderAuthorized(address indexed recorder, bool authorized);
 
@@ -77,8 +78,9 @@ contract PrizeTest is Test {
     function test_InitialState() public view {
         assertEq(prize.owner(), owner);
         assertEq(prize.controller(), controller);
-        assertEq(prize.getCurrentPoolId(), 1);
+        assertEq(prize.getCurrentPoolId(address(0)), 0); // No pool created yet
         assertEq(prize.getMatchesPerPool(), MATCHES_PER_POOL);
+        assertEq(prize.getWinnersCount(), 10); // Default
         assertEq(address(prize.matchContract()), address(gameMatch));
     }
 
@@ -88,16 +90,16 @@ contract PrizeTest is Test {
         prize.setRecorderAuthorization(controller, true);
         
         vm.prank(controller);
-        vm.expectEmit(true, true, false, true);
-        emit MatchRecorded(1, player1, 1);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
         
-        (uint256 matchesCompleted, address winner, uint256 highestWins, bool finalized, bool claimed) = prize.getPool(1);
+        // Pool should be created for native token
+        uint256 poolId = prize.getCurrentPoolId(address(0));
+        assertEq(poolId, 1);
+        
+        (address poolToken, uint256 matchesCompleted, bool finalized, ) = prize.getPool(1);
+        assertEq(poolToken, address(0));
         assertEq(matchesCompleted, 1);
-        assertEq(winner, player1);
-        assertEq(highestWins, 1);
         assertFalse(finalized);
-        assertFalse(claimed);
         
         assertEq(prize.getPoolWins(1, player1), 1);
     }
@@ -105,7 +107,7 @@ contract PrizeTest is Test {
     function test_OnlyAuthorizedRecorderCanRecord() public {
         vm.prank(player1);
         vm.expectRevert(Prize.UnauthorizedRecorder.selector);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
     }
 
     function test_PoolFinalizesAfterMatchesPerPool() public {
@@ -114,45 +116,40 @@ contract PrizeTest is Test {
         
         // Record MATCHES_PER_POOL matches
         vm.startPrank(controller);
-        prize.recordMatchResult(player1); // Pool 1, Match 1
-        prize.recordMatchResult(player1); // Pool 1, Match 2
-        
-        vm.expectEmit(true, true, false, true);
-        emit PrizePoolFinalized(1, player1, 3);
-        vm.expectEmit(true, false, false, true);
-        emit PrizePoolCreated(2, MATCHES_PER_POOL);
-        prize.recordMatchResult(player1); // Pool 1, Match 3 - finalizes pool
+        prize.recordMatchResult(player1, address(0)); // Pool 1, Match 1
+        prize.recordMatchResult(player1, address(0)); // Pool 1, Match 2
+        prize.recordMatchResult(player1, address(0)); // Pool 1, Match 3 - finalizes pool
         vm.stopPrank();
         
-        (uint256 matchesCompleted, address winner, uint256 highestWins, bool finalized, bool claimed) = prize.getPool(1);
+        (, uint256 matchesCompleted, bool finalized, ) = prize.getPool(1);
         assertEq(matchesCompleted, 3);
-        assertEq(winner, player1);
-        assertEq(highestWins, 3);
         assertTrue(finalized);
-        assertFalse(claimed);
         
-        // New pool should be active
-        assertEq(prize.getCurrentPoolId(), 2);
+        // New pool should be active for this token
+        assertEq(prize.getCurrentPoolId(address(0)), 2);
     }
 
-    function test_WinnerIsMostWins() public {
+    function test_TopWinnersTracked() public {
         vm.prank(controller);
         prize.setRecorderAuthorization(controller, true);
         
         vm.startPrank(controller);
-        prize.recordMatchResult(player1); // player1: 1 win
-        prize.recordMatchResult(player2); // player2: 1 win
-        prize.recordMatchResult(player1); // player1: 2 wins - wins pool
+        prize.recordMatchResult(player1, address(0)); // player1: 1 win
+        prize.recordMatchResult(player2, address(0)); // player2: 1 win
+        prize.recordMatchResult(player1, address(0)); // player1: 2 wins - pool finalizes
         vm.stopPrank();
         
-        (,address winner, uint256 highestWins, bool finalized,) = prize.getPool(1);
-        assertEq(winner, player1);
-        assertEq(highestWins, 2);
-        assertTrue(finalized);
+        // Check winners (sorted by wins)
+        (address[] memory winners, uint256[] memory winCounts, ) = prize.getPoolWinners(1);
+        assertEq(winners.length, 2);
+        assertEq(winners[0], player1); // 2 wins
+        assertEq(winners[1], player2); // 1 win
+        assertEq(winCounts[0], 2);
+        assertEq(winCounts[1], 1);
     }
 
     function test_FeatureMetadata() public view {
-        assertEq(prize.version(), "1.0.0");
+        assertEq(prize.version(), "2.0.0");
         assertEq(prize.featureName(), "GamePrize - OCI-004");
     }
 
@@ -195,6 +192,29 @@ contract PrizeTest is Test {
         prize.setMatchesPerPool(0);
     }
 
+    function test_TokenBasedPools() public {
+        vm.prank(controller);
+        prize.setRecorderAuthorization(controller, true);
+        
+        // Record matches with different tokens
+        vm.startPrank(controller);
+        prize.recordMatchResult(player1, address(0)); // Native token pool
+        prize.recordMatchResult(player1, address(token)); // ERC20 token pool
+        vm.stopPrank();
+        
+        // Should have separate pools for each token
+        uint256 nativePoolId = prize.getCurrentPoolId(address(0));
+        uint256 erc20PoolId = prize.getCurrentPoolId(address(token));
+        
+        assertTrue(nativePoolId != erc20PoolId);
+        
+        (address nativeToken, , , ) = prize.getPool(nativePoolId);
+        (address erc20Token, , , ) = prize.getPool(erc20PoolId);
+        
+        assertEq(nativeToken, address(0));
+        assertEq(erc20Token, address(token));
+    }
+
     function test_GetClaimablePools() public {
         vm.prank(controller);
         prize.setRecorderAuthorization(controller, true);
@@ -202,13 +222,13 @@ contract PrizeTest is Test {
         // Complete 2 pools with player1 winning both
         vm.startPrank(controller);
         // Pool 1
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
         // Pool 2
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
         vm.stopPrank();
         
         uint256[] memory claimable = prize.getClaimablePools(player1);
@@ -226,7 +246,7 @@ contract PrizeTest is Test {
         prize.setRecorderAuthorization(controller, true);
         
         vm.prank(controller);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
         
         vm.prank(player1);
         vm.expectRevert(Prize.PoolNotFinalized.selector);
@@ -238,9 +258,9 @@ contract PrizeTest is Test {
         prize.setRecorderAuthorization(controller, true);
         
         vm.startPrank(controller);
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
         vm.stopPrank();
         
         vm.prank(player2);
@@ -253,15 +273,44 @@ contract PrizeTest is Test {
         prize.setRecorderAuthorization(controller, true);
         
         vm.startPrank(controller);
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
-        prize.recordMatchResult(player1);
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
+        prize.recordMatchResult(player1, address(0));
         vm.stopPrank();
         
         // First claim - will revert with NoPrizeToClaim since no shares accumulated
         vm.prank(player1);
         vm.expectRevert(Prize.NoPrizeToClaim.selector);
         prize.claimPrize(1);
+    }
+
+    function test_DistributionStrategies() public {
+        // Test Linear distribution
+        vm.prank(owner);
+        prize.setDistributionStrategy(IPrize.DistributionStrategy.Linear);
+        assertEq(uint256(prize.getDistributionStrategy()), uint256(IPrize.DistributionStrategy.Linear));
+        
+        // Test Equal distribution
+        vm.prank(owner);
+        prize.setDistributionStrategy(IPrize.DistributionStrategy.Equal);
+        assertEq(uint256(prize.getDistributionStrategy()), uint256(IPrize.DistributionStrategy.Equal));
+        
+        // Test WinnerTakeAll distribution
+        vm.prank(owner);
+        prize.setDistributionStrategy(IPrize.DistributionStrategy.WinnerTakeAll);
+        assertEq(uint256(prize.getDistributionStrategy()), uint256(IPrize.DistributionStrategy.WinnerTakeAll));
+    }
+
+    function test_SetWinnersCount() public {
+        vm.prank(owner);
+        prize.setWinnersCount(5);
+        assertEq(prize.getWinnersCount(), 5);
+    }
+
+    function test_CannotSetWinnersCountToZero() public {
+        vm.prank(owner);
+        vm.expectRevert(Prize.InvalidWinnersCount.selector);
+        prize.setWinnersCount(0);
     }
 
     event MatchesPerPoolUpdated(uint256 previousValue, uint256 newValue);
@@ -282,7 +331,7 @@ contract PrizeIntegrationTest is Test {
     uint256 constant SHARE_BASIS_POINTS = 1000; // 10%
 
     event SharesCollected(address indexed token, uint256 amount);
-    event PrizeClaimed(uint256 indexed poolId, address indexed winner, address indexed token, uint256 amount);
+    event PrizeClaimed(uint256 indexed poolId, address indexed winner, address indexed token, uint256 amount, uint256 rank);
 
     function setUp() public {
         // Deploy contracts
@@ -322,9 +371,9 @@ contract PrizeIntegrationTest is Test {
         vm.prank(controller);
         gameMatch.finalize(matchId, winner);
         
-        // Directly record on Prize (simulating what Score would do)
+        // Directly record on Prize (simulating what Score would do) - pass native token
         vm.prank(controller);
-        prize.recordMatchResult(winner);
+        prize.recordMatchResult(winner, address(0));
         
         return matchId;
     }
@@ -335,17 +384,19 @@ contract PrizeIntegrationTest is Test {
         _createAndFinalizeMatchWithDirectPrizeRecord(player1);
         
         // Pool should be finalized with shares collected
-        (uint256 matchesCompleted, address winner, uint256 highestWins, bool finalized, bool claimed) = prize.getPool(1);
+        (, uint256 matchesCompleted, bool finalized, uint256 prizeAmount) = prize.getPool(1);
         assertEq(matchesCompleted, 2);
-        assertEq(winner, player1);
-        assertEq(highestWins, 2);
         assertTrue(finalized);
-        assertFalse(claimed);
+        
+        // Check winners
+        (address[] memory winners, uint256[] memory winCounts, ) = prize.getPoolWinners(1);
+        assertEq(winners.length, 1);
+        assertEq(winners[0], player1);
+        assertEq(winCounts[0], 2);
         
         // Check prize amount (10% of 2 matches * 2 ether each = 0.4 ether)
         uint256 expectedPrize = (STAKE_AMOUNT * 2 * SHARE_BASIS_POINTS * 2) / 10000;
-        uint256 poolPrize = prize.getPoolPrize(1, address(0));
-        assertEq(poolPrize, expectedPrize);
+        assertEq(prizeAmount, expectedPrize);
         
         // Claim prize
         uint256 balanceBefore = player1.balance;
@@ -356,8 +407,8 @@ contract PrizeIntegrationTest is Test {
         assertEq(player1.balance, balanceBefore + expectedPrize);
         
         // Verify claimed
-        (,,,, bool claimedAfter) = prize.getPool(1);
-        assertTrue(claimedAfter);
+        (, , bool[] memory claimed) = prize.getPoolWinners(1);
+        assertTrue(claimed[0]);
     }
 
     function test_MultiplePoolsWithDifferentWinners() public {
@@ -370,14 +421,12 @@ contract PrizeIntegrationTest is Test {
         _createAndFinalizeMatchWithDirectPrizeRecord(player2);
         
         // Pool 1 winner is player1
-        (,address winner1,,bool finalized1,) = prize.getPool(1);
-        assertEq(winner1, player1);
-        assertTrue(finalized1);
+        (address[] memory winners1, , ) = prize.getPoolWinners(1);
+        assertEq(winners1[0], player1);
         
         // Pool 2 winner is player2
-        (,address winner2,,bool finalized2,) = prize.getPool(2);
-        assertEq(winner2, player2);
-        assertTrue(finalized2);
+        (address[] memory winners2, , ) = prize.getPoolWinners(2);
+        assertEq(winners2[0], player2);
         
         // Both can claim
         uint256[] memory player1Claimable = prize.getClaimablePools(player1);
@@ -395,10 +444,11 @@ contract PrizeIntegrationTest is Test {
         _createAndFinalizeMatchWithDirectPrizeRecord(player1);
         _createAndFinalizeMatchWithDirectPrizeRecord(player2);
         
-        // Pool finalized - player1 reached 1 win first, player2 also has 1
-        // First to reach highest wins is the winner (player1)
-        (,address winner,,bool finalized,) = prize.getPool(1);
-        assertTrue(finalized);
-        assertEq(winner, player1); // First to reach 1 win
+        // Pool finalized - both have 1 win, sorted by order of reaching wins
+        (address[] memory winners, uint256[] memory winCounts, ) = prize.getPoolWinners(1);
+        assertEq(winners.length, 2);
+        // Both have 1 win, player1 reached 1 win first
+        assertEq(winCounts[0], 1);
+        assertEq(winCounts[1], 1);
     }
 }

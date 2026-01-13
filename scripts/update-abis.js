@@ -6,6 +6,18 @@ const path = require('path')
 // Configuration: Map contract names to output file names and source types
 const CONTRACT_MAPPINGS = [
   {
+    name: 'Heap',
+    output: 'game/heap',
+    type: 'local',
+    exportName: 'HEAP_ABI',
+  },
+  {
+    name: 'HeapFactory',
+    output: 'game/heapFactory',
+    type: 'local',
+    exportName: 'HEAP_FACTORY_ABI',
+  },
+  {
     name: 'Match',
     output: 'game/match',
     type: 'local',

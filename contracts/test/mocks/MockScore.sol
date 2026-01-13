@@ -9,6 +9,7 @@ contract MockScore is IScore {
         address winner;
         address[] losers;
         uint256 prize;
+        address token;
     }
 
     MatchResult[] public results;
@@ -17,7 +18,8 @@ contract MockScore is IScore {
     function recordMatchResult(
         address winner,
         address[] calldata losers,
-        uint256 prize
+        uint256 prize,
+        address token
     ) external override {
         uint256 matchId = ++_matchCounter;
         MatchResult storage result = results.push();
@@ -25,6 +27,7 @@ contract MockScore is IScore {
         result.winner = winner;
         result.losers = losers;
         result.prize = prize;
+        result.token = token;
     }
 
     function getResultCount() external view returns (uint256) {
