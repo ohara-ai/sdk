@@ -9,6 +9,7 @@ import {
   useMemo,
 } from 'react'
 import { PublicClient, WalletClient, Address } from 'viem'
+import { createClientHeapOperations } from '../core/game/heap'
 import { createClientMatchOperations } from '../core/game/match'
 import { createClientScoreOperations as createClientScoreOperations } from '../core/game/scores'
 import { createClientPrizeOperations } from '../core/game/prize'
@@ -98,6 +99,12 @@ export function OharaAiProvider({
   const [tournamentFactory, setTournamentFactory] = useState<
     Address | undefined
   >()
+  const [heapAddress, setHeapAddress] = useState<
+    Address | undefined
+  >()
+  const [heapFactory, setHeapFactory] = useState<
+    Address | undefined
+  >()
 
   // Use provided clients/chainId (they should be passed as props from parent component)
   const effectivePublicClient = publicClient
@@ -138,6 +145,7 @@ export function OharaAiProvider({
       const predictionAddr = data.addresses?.game?.prediction
       const leagueAddr = data.addresses?.game?.league
       const tournamentAddr = data.addresses?.game?.tournament
+      const heapAddr = data.addresses?.game?.heap
       const ctrlAddr = data.addresses?.app?.controller
       const matchFactory = data.factories?.gameMatch
       const scoreFactory = data.factories?.gameScore
@@ -145,6 +153,7 @@ export function OharaAiProvider({
       const predFactory = data.factories?.prediction
       const lgFactory = data.factories?.league
       const trnFactory = data.factories?.tournament
+      const hpFactory = data.factories?.heap
 
       if (
         matchAddr &&
@@ -215,6 +224,17 @@ export function OharaAiProvider({
       if (trnFactory) {
         setTournamentFactory(trnFactory as Address)
       }
+
+      if (
+        heapAddr &&
+        heapAddr !== '0x0000000000000000000000000000000000000000'
+      ) {
+        setHeapAddress(heapAddr as Address)
+      }
+
+      if (hpFactory) {
+        setHeapFactory(hpFactory as Address)
+      }
     } catch (error) {
       console.error('Error loading contract addresses from backend:', error)
       setGameMatchAddress(undefined)
@@ -223,6 +243,7 @@ export function OharaAiProvider({
       setPredictionAddress(undefined)
       setLeagueAddress(undefined)
       setTournamentAddress(undefined)
+      setHeapAddress(undefined)
       setControllerAddress(undefined)
     }
   }
@@ -322,6 +343,17 @@ export function OharaAiProvider({
                 )
               : undefined,
         },
+        heap: {
+          address: heapAddress,
+          operations:
+            heapAddress && effectivePublicClient
+              ? createClientHeapOperations(
+                  heapAddress,
+                  effectivePublicClient,
+                  effectiveWalletClient,
+                )
+              : undefined,
+        },
       }
     },
     [
@@ -331,6 +363,7 @@ export function OharaAiProvider({
       predictionAddress,
       leagueAddress,
       tournamentAddress,
+      heapAddress,
       effectivePublicClient,
       effectiveWalletClient,
     ],
@@ -360,9 +393,10 @@ export function OharaAiProvider({
         prediction: predictionFactory,
         league: leagueFactory,
         tournament: tournamentFactory,
+        heap: heapFactory,
       },
     }),
-    [gameMatchFactory, gameScoreFactory, gamePrizeFactory, predictionFactory, leagueFactory, tournamentFactory],
+    [gameMatchFactory, gameScoreFactory, gamePrizeFactory, predictionFactory, leagueFactory, tournamentFactory, heapFactory],
   )
 
   const value: OharaAiContext = {

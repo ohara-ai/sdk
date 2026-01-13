@@ -1,4 +1,5 @@
 import { Address } from 'viem'
+import { HeapOperations, ServerHeapOperations } from '../core/game/heap'
 import { MatchOperations, ServerMatchOperations } from '../core/game/match'
 import { ScoreOperations } from '../core/game/scores'
 import { PrizeOperations } from '../core/game/prize'
@@ -57,6 +58,12 @@ export interface GameContext {
     /** Tournament operations (brackets, matches, participants) */
     operations?: TournamentOperations
   }
+  heap: {
+    /** Heap contract address */
+    address?: Address
+    /** Heap operations (create, contribute, withdraw, get) */
+    operations?: HeapOperations
+  }
 }
 
 // Game-related contracts and operations (server-side)
@@ -97,6 +104,12 @@ export interface ServerGameContext {
     /** Server tournament operations (includes createTournament, activate, resolveMatch) */
     operations?: ServerTournamentOperations
   }
+  heap: {
+    /** Heap contract address */
+    address?: Address
+    /** Server heap operations (includes activate, finalize, cancel) */
+    operations?: ServerHeapOperations
+  }
 }
 
 // Application-level contracts
@@ -123,6 +136,7 @@ export interface InternalContext {
     prediction?: Address
     league?: Address
     tournament?: Address
+    heap?: Address
   }
 }
 

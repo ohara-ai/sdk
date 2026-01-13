@@ -52,6 +52,7 @@ export {
 } from './server/oharaApiClient'
 
 // Server-only types
+export { type ServerHeapOperations } from './core/game/heap'
 export { type ServerMatchOperations } from './core/game/match'
 
 export { type ServerGameContext } from './context/OharaAiContext'

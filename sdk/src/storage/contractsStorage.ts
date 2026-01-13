@@ -13,6 +13,7 @@ export interface GameContracts {
   league?: string
   tournament?: string
   prediction?: string
+  heap?: string
 }
 
 export interface BaseContracts {

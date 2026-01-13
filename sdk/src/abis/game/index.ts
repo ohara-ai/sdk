@@ -1,3 +1,5 @@
+export * from './heap';
+export * from './heapFactory';
 export * from './match';
 export * from './matchFactory';
 export * from './prize';

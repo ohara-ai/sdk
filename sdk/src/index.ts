@@ -29,6 +29,13 @@ export type {
 
 // Core Primitives
 export {
+  type HeapOperations,
+  type HeapConfig,
+  type Heap,
+  HeapStatus,
+} from './core/game/heap'
+
+export {
   type MatchOperations,
   type MatchConfig,
   type Match,
@@ -88,6 +95,8 @@ export {
 
 // ABIs
 export {
+  HEAP_ABI,
+  HEAP_FACTORY_ABI,
   MATCH_ABI,
   SCORE_ABI,
   MATCH_FACTORY_ABI,

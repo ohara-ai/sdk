@@ -9,6 +9,7 @@ import type {
   Address,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
+import { createOperations as createHeapOperations } from '../core/game/heap'
 import { createOperations } from '../core/game/match'
 import { createClientScoreOperations } from '../core/game/scores'
 import { createClientPrizeOperations } from '../core/game/prize'
@@ -208,6 +209,18 @@ export async function createServerOharaAi(
       operations: addresses.game?.tournament
         ? createTournamentOperations(
             addresses.game.tournament as Address,
+            publicClient,
+            walletClient,
+            isApiMode ? oharaApiClient : undefined,
+            targetChainId,
+          )
+        : undefined,
+    },
+    heap: {
+      address: addresses.game?.heap as Address | undefined,
+      operations: addresses.game?.heap
+        ? createHeapOperations(
+            addresses.game.heap as Address,
             publicClient,
             walletClient,
             isApiMode ? oharaApiClient : undefined,
