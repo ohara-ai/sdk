@@ -17,6 +17,18 @@ import {
 export type { ContractType, PermissionContext, PermissionAction } from './contractConfig'
 
 // =============================================================================
+// DEPLOYMENT LOCK (prevents concurrent deployments)
+// =============================================================================
+
+/**
+ * In-memory lock to prevent concurrent deployment operations.
+ * When multiple requests call assureContractsDeployed simultaneously,
+ * subsequent callers wait for the first deployment to complete and then
+ * return the cached result (since contracts will already be deployed).
+ */
+const deploymentLocks = new Map<number, Promise<AssureContractsDeployedResult>>()
+
+// =============================================================================
 // DEPLOYMENT RESULT TYPES
 // =============================================================================
 
@@ -460,6 +472,42 @@ export async function assureContractsDeployed(
     )
   }
 
+  // Check if there's already a deployment in progress for this chain
+  const existingDeployment = deploymentLocks.get(resolvedChainId)
+  if (existingDeployment) {
+    console.log(`[assureContractsDeployed] Waiting for in-flight deployment on chainId ${resolvedChainId}`)
+    try {
+      await existingDeployment
+    } catch {
+      // Ignore errors from the original deployment - we'll re-check state below
+    }
+    // After waiting, re-run to check current state (contracts may now be deployed)
+    // Don't recurse if there's still a lock (shouldn't happen, but safety check)
+    if (!deploymentLocks.has(resolvedChainId)) {
+      return assureContractsDeployed(chainId)
+    }
+  }
+
+  // Create the deployment promise and store it in the lock map
+  const deploymentPromise = executeDeployment(resolvedChainId)
+  deploymentLocks.set(resolvedChainId, deploymentPromise)
+
+  try {
+    const result = await deploymentPromise
+    return result
+  } finally {
+    // Always release the lock when done
+    deploymentLocks.delete(resolvedChainId)
+  }
+}
+
+/**
+ * Internal function that executes the actual deployment logic.
+ * This is separated from assureContractsDeployed to enable the locking mechanism.
+ */
+async function executeDeployment(
+  resolvedChainId: number,
+): Promise<AssureContractsDeployedResult> {
   console.log(`[assureContractsDeployed] Starting for chainId ${resolvedChainId}`)
 
   // Load required contracts from requirements.json (empty array if file doesn't exist)

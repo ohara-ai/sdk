@@ -8,3 +8,7 @@ export * from './score';
 export * from './scoreFactory';
 export * from './tournament';
 export * from './tournamentFactory';
+export * from './league';
+export * from './leagueFactory';
+export * from './prediction';
+export * from './predictionFactory';

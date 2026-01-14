@@ -20,23 +20,57 @@ npm run update-abi
 npm run sdk:build
 npm run sdk:test
 
+[ ! -f .env ] && cp .env.example .env
 [ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
-
-npm run e2e:build
 
 # Browser tests via Docker
 echo "Starting browser tests..."
 
 PLAYWRIGHT_PORT=3100
 APP_PORT=3000
+ANVIL_PORT=8545
 PLAYWRIGHT_VERSION="1.52.0"
 
 cleanup() {
   echo "Cleaning up..."
   [ -n "$APP_PID" ] && kill $APP_PID 2>/dev/null || true
+  [ -n "$ANVIL_PID" ] && kill $ANVIL_PID 2>/dev/null || true
   docker stop playwright-test-server 2>/dev/null || true
 }
 trap cleanup EXIT
+
+# Kill any existing anvil process
+if command -v fuser &> /dev/null; then
+  fuser -k "$ANVIL_PORT/tcp" 2>/dev/null || true
+elif command -v ss &> /dev/null; then
+  ss -tlnp "sport = :$ANVIL_PORT" 2>/dev/null | awk 'NR>1 {match($0, /pid=([0-9]+)/, arr); if(arr[1]) print arr[1]}' | xargs -r kill 2>/dev/null || true
+elif command -v lsof &> /dev/null; then
+  lsof -ti:$ANVIL_PORT | xargs -r kill 2>/dev/null || true
+fi
+sleep 1
+
+# Start anvil for local blockchain
+echo "Starting anvil..."
+anvil --host 0.0.0.0 &
+ANVIL_PID=$!
+
+# Wait for anvil to be ready
+for i in {1..30}; do
+  if curl -s -X POST -H "Content-Type: application/json" \
+    --data '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
+    "http://127.0.0.1:$ANVIL_PORT" >/dev/null 2>&1; then
+    echo "Anvil ready"
+    break
+  fi
+  sleep 1
+done
+
+# Run e2e setup (deploy factories, devworld token, fund controller)
+echo "Running e2e setup..."
+npm run e2e:setup
+
+# Build e2e app (after setup so env vars are available)
+npm run e2e:build
 
 # Stop any existing playwright container first (by name and by image)
 docker stop playwright-test-server 2>/dev/null || true
@@ -45,7 +79,16 @@ docker rm playwright-test-server 2>/dev/null || true
 docker ps -q --filter "ancestor=mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble" | xargs -r docker kill 2>/dev/null || true
 
 # Kill any existing Next.js server on the app port
-lsof -ti:$APP_PORT | xargs -r kill 2>/dev/null || true
+# Use fuser if available, otherwise try ss+awk, fallback to lsof
+if command -v fuser &> /dev/null; then
+  fuser -k "$APP_PORT/tcp" 2>/dev/null || true
+elif command -v ss &> /dev/null; then
+  ss -tlnp "sport = :$APP_PORT" 2>/dev/null | awk 'NR>1 {match($0, /pid=([0-9]+)/, arr); if(arr[1]) print arr[1]}' | xargs -r kill 2>/dev/null || true
+elif command -v lsof &> /dev/null; then
+  lsof -ti:$APP_PORT | xargs -r kill 2>/dev/null || true
+fi
+# Give processes time to terminate
+sleep 1
 
 # Start Playwright Docker server
 echo "Starting Playwright Docker server..."

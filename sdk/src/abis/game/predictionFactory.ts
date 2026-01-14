@@ -19,6 +19,13 @@ export const PREDICTION_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "acceptOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "deployPrediction",
     "inputs": [
       {
@@ -126,10 +133,23 @@ export const PREDICTION_FACTORY_ABI = [
   },
   {
     "type": "function",
+    "name": "pendingOwner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "setInstanceOwner",
     "inputs": [
       {
-        "name": "_instanceOwner",
+        "name": "_newInstanceOwner",
         "type": "address",
         "internalType": "address"
       }
@@ -153,6 +173,25 @@ export const PREDICTION_FACTORY_ABI = [
   {
     "type": "event",
     "name": "InstanceOwnerUpdated",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferInitiated",
     "inputs": [
       {
         "name": "previousOwner",
@@ -233,7 +272,17 @@ export const PREDICTION_FACTORY_ABI = [
   },
   {
     "type": "error",
+    "name": "ERC1167FailedCreateClone",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NoPendingOwner",
     "inputs": []
   },
   {
