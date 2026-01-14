@@ -24,6 +24,8 @@ import {
   Target,
   Factory,
   Info,
+  Users,
+  Brackets,
 } from 'lucide-react'
 import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import { Button } from '@/components/ui/button'
@@ -38,7 +40,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 
-type ContractType = 'Score' | 'Match' | 'Prize' | 'Prediction'
+type ContractType = 'Score' | 'Match' | 'Prize' | 'Prediction' | 'League' | 'Tournament'
 
 interface ContractConfig {
   type: ContractType
@@ -86,6 +88,24 @@ const GAME_CONTRACTS: ContractConfig[] = [
     testPath: '/testing/features/game/prediction',
     dependsOn: ['Match'],
   },
+  {
+    type: 'League',
+    name: 'League',
+    description: 'Cycle-based player rankings and seasonal leaderboards',
+    icon: <Users className="w-4 h-4 text-blue-600" />,
+    iconBg: 'bg-blue-100',
+    testPath: '/testing/features/game/league',
+    dependsOn: ['Match'],
+  },
+  {
+    type: 'Tournament',
+    name: 'Tournament',
+    description: 'Bracket-based elimination tournaments with seeding',
+    icon: <Brackets className="w-4 h-4 text-rose-600" />,
+    iconBg: 'bg-rose-100',
+    testPath: '/testing/features/game/tournament',
+    dependsOn: ['Score'],
+  },
 ]
 
 interface ContractValidation {
@@ -119,6 +139,13 @@ interface FactoryConfig {
   Prediction: {
     matchAddress?: string
   } | null
+  League: {
+    cycleDuration?: number
+    maxCyclesKept?: number
+  } | null
+  Tournament: {
+    maxParticipants?: number
+  } | null
 }
 
 export default function Home() {
@@ -144,22 +171,32 @@ export default function Home() {
     Score: null,
     Prize: null,
     Prediction: null,
+    League: null,
+    Tournament: null,
   })
   const [showFactoryInfoDialog, setShowFactoryInfoDialog] = useState<ContractType | null>(null)
   const [isLoadingFactoryConfig, setIsLoadingFactoryConfig] = useState(false)
 
-  const deployedContracts = {
+  const deployedContracts: Record<ContractType, `0x${string}` | undefined> = {
     Score: game.scores?.address,
     Match: game.match?.address,
     Prize: game.prize?.address,
     Prediction: game.prediction?.address,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    League: (game as any).league?.address,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Tournament: (game as any).tournament?.address,
   }
 
-  const factoryAddresses = {
+  const factoryAddresses: Record<ContractType, `0x${string}` | undefined> = {
     Score: internal.factories?.gameScore,
     Match: internal.factories?.gameMatch,
     Prize: internal.factories?.gamePrize,
     Prediction: internal.factories?.prediction,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    League: (internal.factories as any)?.league,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Tournament: (internal.factories as any)?.tournament,
   }
 
   const truncateAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`

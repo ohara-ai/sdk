@@ -18,7 +18,6 @@ contract DeployTournamentFactory is Script {
         // Deploy factory
         TournamentFactory factory = new TournamentFactory();
         console.log("TournamentFactory deployed at:", address(factory));
-        console.log("Tournament implementation at:", factory.IMPLEMENTATION());
         
         vm.stopBroadcast();
     }

@@ -168,7 +168,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
 
     // Filter to only supported contract types
     const validContracts = data.contracts.filter(
-      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament',
+      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament' || c === 'Prediction',
     )
 
     console.log(

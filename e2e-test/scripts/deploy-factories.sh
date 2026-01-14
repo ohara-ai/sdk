@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 # Deploy factory contracts to the network
-# Deploys game.MatchFactory and game.ScoreFactory
-# Deploys game.PrizeFactory
+# Deploys all game factories: Match, Score, Prize, League, Tournament, Prediction
 
 set -e
 
@@ -50,5 +49,32 @@ forge script ../contracts/script/game/DeployPrizeFactory.s.sol:DeployPrizeFactor
   --rpc-url "$RPC_URL" --broadcast
 
 echo ""
+
+# Deploy game.LeagueFactory
+echo "🏭 Deploying game.LeagueFactory..."
+forge script ../contracts/script/game/DeployLeagueFactory.s.sol:DeployLeagueFactory \
+  --rpc-url "$RPC_URL" --broadcast
+
+echo ""
+
+# Deploy game.TournamentFactory
+echo "🏭 Deploying game.TournamentFactory..."
+forge script ../contracts/script/game/DeployTournamentFactory.s.sol:DeployTournamentFactory \
+  --rpc-url "$RPC_URL" --broadcast
+
+echo ""
+
+# Deploy game.PredictionFactory
+echo "🏭 Deploying game.PredictionFactory..."
+forge script ../contracts/script/game/DeployPredictionFactory.s.sol:DeployPredictionFactory \
+  --rpc-url "$RPC_URL" --broadcast
+
+echo ""
 echo "✅ Factory contracts deployed successfully!"
-echo "   Update .env.local with the deployed addresses"
+echo "   Update .env.local with the deployed addresses for:"
+echo "   - NEXT_PUBLIC_GAME_MATCH_FACTORY"
+echo "   - NEXT_PUBLIC_GAME_SCORE_FACTORY"
+echo "   - NEXT_PUBLIC_GAME_PRIZE_FACTORY"
+echo "   - NEXT_PUBLIC_LEAGUE_FACTORY"
+echo "   - NEXT_PUBLIC_TOURNAMENT_FACTORY"
+echo "   - NEXT_PUBLIC_PREDICTION_FACTORY"
