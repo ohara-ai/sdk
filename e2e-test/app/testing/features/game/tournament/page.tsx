@@ -14,7 +14,7 @@ import {
   TournamentBracket,
 } from '@/components/features/game/tournament'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
-import { Brackets, Trophy, Plus, RefreshCw, Loader2 } from 'lucide-react'
+import { Brackets, Trophy, RefreshCw, Loader2 } from 'lucide-react'
 import { useAccount, useBlockNumber } from 'wagmi'
 import { useOharaAi, TournamentStatus } from '@ohara-ai/sdk'
 import type { TournamentView } from '@ohara-ai/sdk'

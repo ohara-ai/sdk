@@ -2,6 +2,12 @@
 
 set -e
 
+# Get script directory for reliable path handling
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+cd "$ROOT_DIR"
+
 # Test contracts
 npm install
 
@@ -17,7 +23,6 @@ npm run sdk:test
 [ ! -f e2e-test/.env ] && cp e2e-test/.env.example e2e-test/.env
 
 npm run e2e:build
-npm run e2e:test
 
 # Browser tests via Docker
 echo "Starting browser tests..."
@@ -32,6 +37,15 @@ cleanup() {
   docker stop playwright-test-server 2>/dev/null || true
 }
 trap cleanup EXIT
+
+# Stop any existing playwright container first (by name and by image)
+docker stop playwright-test-server 2>/dev/null || true
+docker rm playwright-test-server 2>/dev/null || true
+# Also kill any other playwright containers that might be running
+docker ps -q --filter "ancestor=mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble" | xargs -r docker kill 2>/dev/null || true
+
+# Kill any existing Next.js server on the app port
+lsof -ti:$APP_PORT | xargs -r kill 2>/dev/null || true
 
 # Start Playwright Docker server
 echo "Starting Playwright Docker server..."
@@ -48,9 +62,8 @@ docker run \
 
 # Start the e2e app server
 echo "Starting e2e app server..."
-cd e2e-test && npm run start -- -p $APP_PORT &
+(cd "$ROOT_DIR/e2e-test" && npm run start -- -p $APP_PORT) &
 APP_PID=$!
-cd ..
 
 # Wait for services to be ready
 echo "Waiting for services..."
@@ -76,9 +89,11 @@ done
 
 # Run browser tests
 echo "Running browser tests..."
-cd e2e-test
-PW_TEST_CONNECT_WS_ENDPOINT="ws://127.0.0.1:$PLAYWRIGHT_PORT/" TEST_PORT="$APP_PORT" npm run test:browser
-cd ..
+(cd "$ROOT_DIR/e2e-test" && PW_TEST_CONNECT_WS_ENDPOINT="ws://127.0.0.1:$PLAYWRIGHT_PORT/" TEST_PORT="$APP_PORT" npm run test)
 
 echo "All tests completed successfully!"
 
+# Cleanup
+docker stop playwright-test-server 2>/dev/null || true
+docker rm playwright-test-server 2>/dev/null || true
+echo "Cleanup complete"
