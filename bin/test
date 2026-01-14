@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 # Test contracts
 npm install
 
@@ -16,4 +18,67 @@ npm run sdk:test
 
 npm run e2e:build
 npm run e2e:test
+
+# Browser tests via Docker
+echo "Starting browser tests..."
+
+PLAYWRIGHT_PORT=3100
+APP_PORT=3000
+PLAYWRIGHT_VERSION="1.52.0"
+
+cleanup() {
+  echo "Cleaning up..."
+  [ -n "$APP_PID" ] && kill $APP_PID 2>/dev/null || true
+  docker stop playwright-test-server 2>/dev/null || true
+}
+trap cleanup EXIT
+
+# Start Playwright Docker server
+echo "Starting Playwright Docker server..."
+docker run \
+  --name playwright-test-server \
+  -p "$PLAYWRIGHT_PORT:$PLAYWRIGHT_PORT" \
+  --rm \
+  --init \
+  --add-host=host.docker.internal:host-gateway \
+  --workdir /home/pwuser \
+  --user pwuser \
+  "mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble" \
+  /bin/sh -c "npx -y playwright@${PLAYWRIGHT_VERSION} run-server --port $PLAYWRIGHT_PORT --host 0.0.0.0" &
+
+# Start the e2e app server
+echo "Starting e2e app server..."
+cd e2e-test && npm run start -- -p $APP_PORT &
+APP_PID=$!
+cd ..
+
+# Wait for services to be ready
+echo "Waiting for services..."
+sleep 5
+
+# Wait for Playwright server
+for i in {1..30}; do
+  if curl -s "http://127.0.0.1:$PLAYWRIGHT_PORT" >/dev/null 2>&1; then
+    echo "Playwright server ready"
+    break
+  fi
+  sleep 1
+done
+
+# Wait for app server
+for i in {1..30}; do
+  if curl -s "http://127.0.0.1:$APP_PORT" >/dev/null 2>&1; then
+    echo "App server ready"
+    break
+  fi
+  sleep 1
+done
+
+# Run browser tests
+echo "Running browser tests..."
+cd e2e-test
+PW_TEST_CONNECT_WS_ENDPOINT="ws://127.0.0.1:$PLAYWRIGHT_PORT/" TEST_PORT="$APP_PORT" npm run test:browser
+cd ..
+
+echo "All tests completed successfully!"
 
