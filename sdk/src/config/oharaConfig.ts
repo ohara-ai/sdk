@@ -21,6 +21,7 @@ export interface OharaConfig {
     league?: Address
     tournament?: Address
     prediction?: Address
+    heap?: Address
   }
 
   /** Public token/coin addresses */
@@ -64,6 +65,7 @@ export function loadConfig(): OharaConfig {
   const leagueFactory = process.env.NEXT_PUBLIC_LEAGUE_FACTORY as Address | undefined
   const tournamentFactory = process.env.NEXT_PUBLIC_TOURNAMENT_FACTORY as Address | undefined
   const predictionFactory = process.env.NEXT_PUBLIC_PREDICTION_FACTORY as Address | undefined
+  const heapFactory = process.env.NEXT_PUBLIC_HEAP_FACTORY as Address | undefined
 
   // Public addresses (optional)
   const token = process.env.NEXT_PUBLIC_HELLOWORLD_TOKEN as Address | undefined
@@ -88,6 +90,7 @@ export function loadConfig(): OharaConfig {
       league: leagueFactory,
       tournament: tournamentFactory,
       prediction: predictionFactory,
+      heap: heapFactory,
     },
     publicAddresses: {
       token,

@@ -26,6 +26,7 @@ import {
   Info,
   Users,
   Brackets,
+  Coins,
 } from 'lucide-react'
 import { OnchainKitWallet } from '@/components/OnchainKitWallet'
 import { Button } from '@/components/ui/button'
@@ -40,7 +41,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'
 
-type ContractType = 'Score' | 'Match' | 'Prize' | 'Prediction' | 'League' | 'Tournament'
+type ContractType = 'Score' | 'Match' | 'Prize' | 'Prediction' | 'League' | 'Tournament' | 'Heap'
 
 interface ContractConfig {
   type: ContractType
@@ -106,6 +107,15 @@ const GAME_CONTRACTS: ContractConfig[] = [
     testPath: '/testing/features/game/tournament',
     dependsOn: ['Score'],
   },
+  {
+    type: 'Heap',
+    name: 'Heap',
+    description: 'Token collection pools with contribution-based entries',
+    icon: <Coins className="w-4 h-4 text-orange-600" />,
+    iconBg: 'bg-orange-100',
+    testPath: '/testing/features/game/heap',
+    dependsOn: ['Score'],
+  },
 ]
 
 interface ContractValidation {
@@ -146,6 +156,9 @@ interface FactoryConfig {
   Tournament: {
     maxParticipants?: number
   } | null
+  Heap: {
+    defaultMaxActiveHeaps?: number
+  } | null
 }
 
 export default function Home() {
@@ -173,6 +186,7 @@ export default function Home() {
     Prediction: null,
     League: null,
     Tournament: null,
+    Heap: null,
   })
   const [showFactoryInfoDialog, setShowFactoryInfoDialog] = useState<ContractType | null>(null)
   const [isLoadingFactoryConfig, setIsLoadingFactoryConfig] = useState(false)
@@ -182,10 +196,9 @@ export default function Home() {
     Match: game.match?.address,
     Prize: game.prize?.address,
     Prediction: game.prediction?.address,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    League: (game as any).league?.address,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Tournament: (game as any).tournament?.address,
+    League: game.league?.address,
+    Tournament: game.tournament?.address,
+    Heap: game.heap?.address,
   }
 
   const factoryAddresses: Record<ContractType, `0x${string}` | undefined> = {
@@ -193,10 +206,9 @@ export default function Home() {
     Match: internal.factories?.gameMatch,
     Prize: internal.factories?.gamePrize,
     Prediction: internal.factories?.prediction,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    League: (internal.factories as any)?.league,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Tournament: (internal.factories as any)?.tournament,
+    League: internal.factories?.league,
+    Tournament: internal.factories?.tournament,
+    Heap: internal.factories?.heap,
   }
 
   const truncateAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -282,31 +294,67 @@ export default function Home() {
   }, [loadPlan, validateContracts])
 
   useEffect(() => {
-    if (deployedContracts.Score || deployedContracts.Match || deployedContracts.Prize) {
+    if (deployedContracts.Score || deployedContracts.Match || deployedContracts.Prize || 
+        deployedContracts.League || deployedContracts.Tournament || deployedContracts.Prediction ||
+        deployedContracts.Heap) {
       validateContracts()
     }
-  }, [deployedContracts.Score, deployedContracts.Match, deployedContracts.Prize, validateContracts])
+  }, [deployedContracts.Score, deployedContracts.Match, deployedContracts.Prize, 
+      deployedContracts.League, deployedContracts.Tournament, deployedContracts.Prediction,
+      deployedContracts.Heap, validateContracts])
 
   // Toggle contract selection with dependency management
+  // Dependencies from CONTRACT_CONFIG:
+  // - Match depends on Score
+  // - Prize depends on Score, Match
+  // - League depends on Match (which depends on Score)
+  // - Tournament depends on Score
+  // - Prediction depends on Match (which depends on Score)
+  // - Heap depends on Score
   const toggleContract = (type: ContractType) => {
     const newSelected = new Set(selectedContracts)
 
     if (newSelected.has(type)) {
+      // Deselecting - remove dependents
       newSelected.delete(type)
       if (type === 'Score') {
+        // Score is required by: Match, Prize, Tournament, Heap
         newSelected.delete('Match')
         newSelected.delete('Prize')
+        newSelected.delete('Tournament')
+        newSelected.delete('Heap')
+        // Match is required by: League, Prediction
+        newSelected.delete('League')
+        newSelected.delete('Prediction')
       }
       if (type === 'Match') {
+        // Match is required by: Prize, League, Prediction
         newSelected.delete('Prize')
+        newSelected.delete('League')
+        newSelected.delete('Prediction')
       }
     } else {
+      // Selecting - add dependencies
       newSelected.add(type)
       if (type === 'Match') {
         newSelected.add('Score')
       }
       if (type === 'Prize') {
         newSelected.add('Match')
+        newSelected.add('Score')
+      }
+      if (type === 'League') {
+        newSelected.add('Match')
+        newSelected.add('Score')
+      }
+      if (type === 'Tournament') {
+        newSelected.add('Score')
+      }
+      if (type === 'Prediction') {
+        newSelected.add('Match')
+        newSelected.add('Score')
+      }
+      if (type === 'Heap') {
         newSelected.add('Score')
       }
     }
@@ -683,10 +731,10 @@ export default function Home() {
             <div className="space-y-4">
               {/* Contracts */}
               <div className="space-y-1.5">
-                {(['Score', 'Match', 'Prize'] as ContractType[])
-                  .filter((c) => selectedContracts.has(c))
-                  .map((contractType, index) => {
-                    const contract = GAME_CONTRACTS.find((c) => c.type === contractType)!
+                {GAME_CONTRACTS
+                  .filter((c) => selectedContracts.has(c.type))
+                  .map((contract, index) => {
+                    const contractType = contract.type
                     const status = getContractStatus(contractType)
                     const address = deployedContracts[contractType]
 
@@ -719,10 +767,10 @@ export default function Home() {
                   })}
               </div>
 
-              {/* Permissions */}
-              {(selectedContracts.has('Match') && selectedContracts.has('Score')) || selectedContracts.has('Prize') ? (
+              {/* Permissions & Dependencies */}
+              {selectedContracts.size > 0 && (
                 <div className="p-2.5 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-xs font-medium text-blue-800 mb-1.5">Permissions to configure:</p>
+                  <p className="text-xs font-medium text-blue-800 mb-1.5">Configuration actions:</p>
                   <ul className="text-xs text-blue-700 space-y-0.5">
                     {selectedContracts.has('Match') && selectedContracts.has('Score') && (
                       <li className="flex items-center gap-1.5">
@@ -742,9 +790,45 @@ export default function Home() {
                         </li>
                       </>
                     )}
+                    {selectedContracts.has('League') && selectedContracts.has('Match') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        League → linked to Match contract
+                      </li>
+                    )}
+                    {selectedContracts.has('Tournament') && selectedContracts.has('Score') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        Tournament → linked to Score contract
+                      </li>
+                    )}
+                    {selectedContracts.has('Prediction') && selectedContracts.has('Match') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        Prediction → linked to Match contract
+                      </li>
+                    )}
+                    {selectedContracts.has('Prediction') && selectedContracts.has('Tournament') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        Prediction → linked to Tournament contract
+                      </li>
+                    )}
+                    {selectedContracts.has('Prediction') && selectedContracts.has('League') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        Prediction → linked to League contract
+                      </li>
+                    )}
+                    {selectedContracts.has('Heap') && selectedContracts.has('Score') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        Heap → linked to Score contract
+                      </li>
+                    )}
                   </ul>
                 </div>
-              ) : null}
+              )}
             </div>
 
             <div className="mt-6 flex gap-3">

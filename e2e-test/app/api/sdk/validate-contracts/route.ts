@@ -5,7 +5,7 @@ import { getContracts } from '@ohara-ai/sdk/server'
 export const dynamic = 'force-dynamic'
 
 interface ContractValidation {
-  type: 'Score' | 'Match' | 'Prize'
+  type: 'Score' | 'Match' | 'Prize' | 'League' | 'Tournament' | 'Prediction' | 'Heap'
   address: string | undefined
   existsOnChain: boolean
   source: 'local' | 'api' | 'none'
@@ -83,6 +83,46 @@ export async function GET() {
       address: prizeAddress,
       existsOnChain: prizeExists,
       source: prizeAddress ? 'api' : 'none',
+    })
+
+    // Check League
+    const leagueAddress = contracts.game?.league
+    const leagueExists = await contractExistsOnChain(leagueAddress, rpcUrl)
+    validations.push({
+      type: 'League',
+      address: leagueAddress,
+      existsOnChain: leagueExists,
+      source: leagueAddress ? 'api' : 'none',
+    })
+
+    // Check Tournament
+    const tournamentAddress = contracts.game?.tournament
+    const tournamentExists = await contractExistsOnChain(tournamentAddress, rpcUrl)
+    validations.push({
+      type: 'Tournament',
+      address: tournamentAddress,
+      existsOnChain: tournamentExists,
+      source: tournamentAddress ? 'api' : 'none',
+    })
+
+    // Check Prediction
+    const predictionAddress = contracts.game?.prediction
+    const predictionExists = await contractExistsOnChain(predictionAddress, rpcUrl)
+    validations.push({
+      type: 'Prediction',
+      address: predictionAddress,
+      existsOnChain: predictionExists,
+      source: predictionAddress ? 'api' : 'none',
+    })
+
+    // Check Heap
+    const heapAddress = contracts.game?.heap
+    const heapExists = await contractExistsOnChain(heapAddress, rpcUrl)
+    validations.push({
+      type: 'Heap',
+      address: heapAddress,
+      existsOnChain: heapExists,
+      source: heapAddress ? 'api' : 'none',
     })
 
     // Determine overall status

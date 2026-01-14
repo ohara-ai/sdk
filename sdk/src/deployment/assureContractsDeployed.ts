@@ -168,7 +168,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
 
     // Filter to only supported contract types
     const validContracts = data.contracts.filter(
-      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament' || c === 'Prediction',
+      (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament' || c === 'Prediction' || c === 'Heap',
     )
 
     console.log(
@@ -296,6 +296,18 @@ async function getExistingContracts(
       } else {
         console.log(
           `[assureContractsDeployed] Stored Tournament address ${contracts.game.tournament} not found on-chain (will redeploy)`,
+        )
+      }
+    }
+
+    // Check for Heap contract in game context and verify on-chain
+    if (contracts.game?.heap) {
+      const existsOnChain = await contractExistsOnChain(contracts.game.heap, rpcUrl)
+      if (existsOnChain) {
+        contractMap.set('Heap', { address: contracts.game.heap })
+      } else {
+        console.log(
+          `[assureContractsDeployed] Stored Heap address ${contracts.game.heap} not found on-chain (will redeploy)`,
         )
       }
     }

@@ -51,6 +51,10 @@ export async function GET() {
         gameMatch: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY,
         gameScore: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY,
         gamePrize: process.env.NEXT_PUBLIC_GAME_PRIZE_FACTORY,
+        prediction: process.env.NEXT_PUBLIC_PREDICTION_FACTORY,
+        league: process.env.NEXT_PUBLIC_LEAGUE_FACTORY,
+        tournament: process.env.NEXT_PUBLIC_TOURNAMENT_FACTORY,
+        heap: process.env.NEXT_PUBLIC_HEAP_FACTORY,
       },
       // Include deployment status for debugging
       deployment: {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Deploy factory contracts to the network
-# Deploys all game factories: Match, Score, Prize, League, Tournament, Prediction
+# Deploys all game factories: Match, Score, Prize, League, Tournament, Prediction, Heap
 
 set -e
 
@@ -70,6 +70,13 @@ forge script ../contracts/script/game/DeployPredictionFactory.s.sol:DeployPredic
   --rpc-url "$RPC_URL" --broadcast
 
 echo ""
+
+# Deploy game.HeapFactory
+echo "🏭 Deploying game.HeapFactory..."
+forge script ../contracts/script/game/DeployHeapFactory.s.sol:DeployHeapFactory \
+  --rpc-url "$RPC_URL" --broadcast
+
+echo ""
 echo "✅ Factory contracts deployed successfully!"
 echo "   Update .env.local with the deployed addresses for:"
 echo "   - NEXT_PUBLIC_GAME_MATCH_FACTORY"
@@ -78,3 +85,4 @@ echo "   - NEXT_PUBLIC_GAME_PRIZE_FACTORY"
 echo "   - NEXT_PUBLIC_LEAGUE_FACTORY"
 echo "   - NEXT_PUBLIC_TOURNAMENT_FACTORY"
 echo "   - NEXT_PUBLIC_PREDICTION_FACTORY"
+echo "   - NEXT_PUBLIC_HEAP_FACTORY"

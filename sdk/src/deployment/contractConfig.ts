@@ -5,6 +5,7 @@ import { deployEventBus } from './deployEventBus'
 import { deployLeague } from './deployLeague'
 import { deployTournament } from './deployTournament'
 import { deployPrediction } from './deployPrediction'
+import { deployHeap } from './deployHeap'
 import type { DeploymentResult } from './deploymentService'
 import { SCORE_ABI } from '../abis/game/score'
 import { MATCH_ABI } from '../abis/game/match'
@@ -18,7 +19,7 @@ import { EVENT_BUS_ABI } from '../abis/base/eventBus'
 /**
  * Supported contract types
  */
-export type ContractType = 'Score' | 'Match' | 'Prize' | 'EventBus' | 'League' | 'Tournament' | 'Prediction'
+export type ContractType = 'Score' | 'Match' | 'Prize' | 'EventBus' | 'League' | 'Tournament' | 'Prediction' | 'Heap'
 
 /**
  * Context passed to permission functions
@@ -309,6 +310,23 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
 
     getPermissionActions: () => {
       // Prediction doesn't require special permission setup
+      return []
+    },
+  },
+
+  Heap: {
+    // Heap depends on Score for recording results
+    dependencies: ['Score'],
+
+    buildDeployParams: (deployedAddresses: Record<string, string>) => ({
+      scoreAddress: deployedAddresses['Score'] as `0x${string}` | undefined,
+    }),
+
+    deploy: async (params: Record<string, unknown>) =>
+      deployHeap(params as { scoreAddress?: `0x${string}` }),
+
+    getPermissionActions: () => {
+      // Heap doesn't require special permission setup
       return []
     },
   },

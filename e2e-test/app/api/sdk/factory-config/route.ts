@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const type = searchParams.get('type')
 
-  if (!type || !['Match', 'Score', 'Prize'].includes(type)) {
+  if (!type || !['Match', 'Score', 'Prize', 'League', 'Tournament', 'Prediction', 'Heap'].includes(type)) {
     return NextResponse.json({ error: 'Invalid factory type' }, { status: 400 })
   }
 
@@ -68,6 +68,10 @@ export async function GET(request: NextRequest) {
     Match: process.env.NEXT_PUBLIC_GAME_MATCH_FACTORY,
     Score: process.env.NEXT_PUBLIC_GAME_SCORE_FACTORY,
     Prize: process.env.NEXT_PUBLIC_GAME_PRIZE_FACTORY,
+    League: process.env.NEXT_PUBLIC_LEAGUE_FACTORY,
+    Tournament: process.env.NEXT_PUBLIC_TOURNAMENT_FACTORY,
+    Prediction: process.env.NEXT_PUBLIC_PREDICTION_FACTORY,
+    Heap: process.env.NEXT_PUBLIC_HEAP_FACTORY,
   }
 
   const factoryAddress = factoryAddresses[type as keyof typeof factoryAddresses]
@@ -139,6 +143,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         defaultMatchesPerPool: Number(defaultMatchesPerPool),
       })
+    }
+
+    // League, Tournament, Prediction, Heap factories don't have on-chain config to read
+    // Just return empty config to confirm factory exists
+    if (type === 'League' || type === 'Tournament' || type === 'Prediction' || type === 'Heap') {
+      return NextResponse.json({})
     }
 
     return NextResponse.json({ error: 'Unknown factory type' }, { status: 400 })

@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
 
     // Filter to only valid contract types
     const validContracts = contracts.filter(
-      (c): c is 'Score' | 'Match' | 'Prize' | 'League' | 'Tournament' | 'Prediction' =>
-        c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament' || c === 'Prediction',
+      (c): c is 'Score' | 'Match' | 'Prize' | 'League' | 'Tournament' | 'Prediction' | 'Heap' =>
+        c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament' || c === 'Prediction' || c === 'Heap',
     )
 
     // Create storage directory if needed
