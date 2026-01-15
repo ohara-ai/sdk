@@ -33,7 +33,7 @@ export async function deployGameScore(
       chainId,
     })
 
-    console.log('Deployed GameScore via Ohara API:', JSON.stringify(result))
+    console.debug('Deployed GameScore via Ohara API:', JSON.stringify(result))
 
     // Wait for transaction confirmation
     const status = await apiClient.waitForTransaction(result.data.txHash)

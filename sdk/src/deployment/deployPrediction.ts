@@ -43,7 +43,7 @@ export async function deployPrediction(
       chainId,
     })
 
-    console.log('Deployed Prediction via Ohara API:', JSON.stringify(result))
+    console.debug('Deployed Prediction via Ohara API:', JSON.stringify(result))
 
     const status = await apiClient.waitForTransaction(result.data.txHash)
 

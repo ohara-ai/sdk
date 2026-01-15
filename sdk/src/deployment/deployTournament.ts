@@ -41,7 +41,7 @@ export async function deployTournament(
       chainId,
     })
 
-    console.log('Deployed Tournament via Ohara API:', JSON.stringify(result))
+    console.debug('Deployed Tournament via Ohara API:', JSON.stringify(result))
 
     const status = await apiClient.waitForTransaction(result.data.txHash)
 

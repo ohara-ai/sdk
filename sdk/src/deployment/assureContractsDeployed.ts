@@ -174,7 +174,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
     const data: RequirementsFile = JSON.parse(content)
 
     if (!data.contracts || !Array.isArray(data.contracts)) {
-      console.log('[assureContractsDeployed] No contracts array in requirements.json')
+      console.debug('[assureContractsDeployed] No contracts array in requirements.json')
       return []
     }
 
@@ -183,7 +183,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
       (c): c is ContractType => c === 'Score' || c === 'Match' || c === 'Prize' || c === 'League' || c === 'Tournament' || c === 'Prediction' || c === 'Heap',
     )
 
-    console.log(
+    console.debug(
       `[assureContractsDeployed] Loaded ${validContracts.length} required contract(s) from requirements.json:`,
       validContracts.join(', ') || 'none',
     )
@@ -191,7 +191,7 @@ async function getRequiredContracts(): Promise<ContractType[]> {
     return validContracts
   } catch (error) {
     // File doesn't exist or can't be parsed - return empty array
-    console.log(
+    console.debug(
       '[assureContractsDeployed] Could not read requirements.json, using empty array:',
       error instanceof Error ? error.message : String(error),
     )
@@ -246,7 +246,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('Score', { address: contracts.game.score })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored Score address ${contracts.game.score} not found on-chain (will redeploy)`,
         )
       }
@@ -258,7 +258,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('Match', { address: contracts.game.match })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored Match address ${contracts.game.match} not found on-chain (will redeploy)`,
         )
       }
@@ -270,7 +270,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('Prize', { address: contracts.game.prize })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored Prize address ${contracts.game.prize} not found on-chain (will redeploy)`,
         )
       }
@@ -282,7 +282,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('Prediction', { address: contracts.game.prediction })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored Prediction address ${contracts.game.prediction} not found on-chain (will redeploy)`,
         )
       }
@@ -294,7 +294,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('League', { address: contracts.game.league })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored League address ${contracts.game.league} not found on-chain (will redeploy)`,
         )
       }
@@ -306,7 +306,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('Tournament', { address: contracts.game.tournament })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored Tournament address ${contracts.game.tournament} not found on-chain (will redeploy)`,
         )
       }
@@ -318,7 +318,7 @@ async function getExistingContracts(
       if (existsOnChain) {
         contractMap.set('Heap', { address: contracts.game.heap })
       } else {
-        console.log(
+        console.debug(
           `[assureContractsDeployed] Stored Heap address ${contracts.game.heap} not found on-chain (will redeploy)`,
         )
       }
@@ -362,7 +362,7 @@ async function executePermissions(
 
   // In API mode, permissions are handled by the API
   if (OharaApiClient.isConfigured()) {
-    console.log('[executePermissions] API mode - permissions handled by Ohara API')
+    console.debug('[executePermissions] API mode - permissions handled by Ohara API')
     return results
   }
 
@@ -370,7 +370,7 @@ async function executePermissions(
   const actions = collectPermissionActions(context)
   
   if (actions.length === 0) {
-    console.log('[executePermissions] No permission actions needed')
+    console.debug('[executePermissions] No permission actions needed')
     return results
   }
 
@@ -396,7 +396,7 @@ async function executePermissions(
 
   // Execute each permission action
   for (const action of actions) {
-    console.log(`[executePermissions] ${action.description}`)
+    console.debug(`[executePermissions] ${action.description}`)
     
     try {
       const txHash = await walletClient.writeContract({
@@ -414,7 +414,7 @@ async function executePermissions(
         success: true,
         txHash,
       })
-      console.log(`[executePermissions] Success, tx: ${txHash}`)
+      console.debug(`[executePermissions] Success, tx: ${txHash}`)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       console.error(`[executePermissions] Failed: ${errorMessage}`)
@@ -475,7 +475,7 @@ export async function assureContractsDeployed(
   // Check if there's already a deployment in progress for this chain
   const existingDeployment = deploymentLocks.get(resolvedChainId)
   if (existingDeployment) {
-    console.log(`[assureContractsDeployed] Waiting for in-flight deployment on chainId ${resolvedChainId}`)
+    console.debug(`[assureContractsDeployed] Waiting for in-flight deployment on chainId ${resolvedChainId}`)
     try {
       await existingDeployment
     } catch {
@@ -508,14 +508,14 @@ export async function assureContractsDeployed(
 async function executeDeployment(
   resolvedChainId: number,
 ): Promise<AssureContractsDeployedResult> {
-  console.log(`[assureContractsDeployed] Starting for chainId ${resolvedChainId}`)
+  console.debug(`[assureContractsDeployed] Starting for chainId ${resolvedChainId}`)
 
   // Load required contracts from requirements.json (empty array if file doesn't exist)
   const requiredContracts = await getRequiredContracts()
 
   // If no contracts are required, return early with success
   if (requiredContracts.length === 0) {
-    console.log('[assureContractsDeployed] No contracts required, skipping deployment')
+    console.debug('[assureContractsDeployed] No contracts required, skipping deployment')
     return {
       success: true,
       message: 'No contracts required. Skipping deployment.',
@@ -530,7 +530,7 @@ async function executeDeployment(
 
   // Fetch existing contracts
   const existingContracts = await getExistingContracts(resolvedChainId)
-  console.log(
+  console.debug(
     `[assureContractsDeployed] Found ${existingContracts.size} existing contract(s):`,
     Array.from(existingContracts.keys()).join(', ') || 'none',
   )
@@ -570,7 +570,7 @@ async function executeDeployment(
 
   // If all contracts already exist, return early
   if (pendingCount === 0) {
-    console.log(
+    console.debug(
       `[assureContractsDeployed] All ${existingCount} contract(s) already exist`,
     )
     return {
@@ -594,14 +594,14 @@ async function executeDeployment(
 
     // Skip contracts that already exist
     if (results[i].status === 'already_exists') {
-      console.log(
+      console.debug(
         `[assureContractsDeployed] Skipping ${planItem.type} - already deployed at ${results[i].contractAddress}`,
       )
       continue
     }
 
     results[i].status = 'deploying'
-    console.log(
+    console.debug(
       `[assureContractsDeployed] Deploying ${planItem.type} (step ${i + 1}/${deploymentPlan.length})`,
     )
 
@@ -633,7 +633,7 @@ async function executeDeployment(
       results[i].txHash = result.transactionHash
       deployedAddresses[planItem.type] = result.address
       totalDeployed++
-      console.log(
+      console.debug(
         `[assureContractsDeployed] Successfully deployed ${planItem.type} at ${result.address}`,
       )
     } catch (error) {
@@ -666,7 +666,7 @@ async function executeDeployment(
   }
 
   // Set permissions after all deployments are complete
-  console.log('[assureContractsDeployed] Setting contract permissions...')
+  console.debug('[assureContractsDeployed] Setting contract permissions...')
   const permissionResults = await executePermissions(permissionContext)
 
   // Count permission failures
@@ -698,7 +698,7 @@ async function executeDeployment(
       ? `Contract deployment complete: ${messageParts.join(', ')}`
       : 'No contracts to deploy'
 
-  console.log(`[assureContractsDeployed] ${message}`)
+  console.debug(`[assureContractsDeployed] ${message}`)
 
   return {
     success,

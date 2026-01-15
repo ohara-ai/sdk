@@ -41,7 +41,7 @@ export async function deployLeague(
       chainId,
     })
 
-    console.log('Deployed League via Ohara API:', JSON.stringify(result))
+    console.debug('Deployed League via Ohara API:', JSON.stringify(result))
 
     const status = await apiClient.waitForTransaction(result.data.txHash)
 

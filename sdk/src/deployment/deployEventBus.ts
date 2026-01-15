@@ -41,7 +41,7 @@ export async function deployEventBus(
       chainId,
     })
 
-    console.log('Deployed EventBus via Ohara API:', JSON.stringify(result))
+    console.debug('Deployed EventBus via Ohara API:', JSON.stringify(result))
 
     // Wait for transaction confirmation
     const status = await apiClient.waitForTransaction(result.data.txHash)

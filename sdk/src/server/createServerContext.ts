@@ -101,7 +101,7 @@ export async function createServerOharaAi(
 
   if (isApiMode) {
     oharaApiClient = getOharaApiClient()
-    console.log('Ohara API client configured:', oharaApiClient)
+    console.debug('Ohara API client configured:', oharaApiClient)
   }
 
   // Create clients

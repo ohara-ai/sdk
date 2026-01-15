@@ -76,7 +76,7 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
         targetChain = KNOWN_CHAINS.find(c => c.id === targetChainId)
       }
       
-      console.log('[OharaAiWagmiProvider] Attempting chain switch:', {
+      console.debug('[OharaAiWagmiProvider] Attempting chain switch:', {
         from: wagmiChainId,
         to: targetChainId,
         chainInConfig: !!wagmiConfig.chains.find(c => c.id === targetChainId),
@@ -88,7 +88,7 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
         { chainId: targetChainId },
         {
           onSuccess: () => {
-            console.log('[OharaAiWagmiProvider] Chain switch successful to:', targetChainId)
+            console.debug('[OharaAiWagmiProvider] Chain switch successful to:', targetChainId)
             setIsSwitchingChain(false)
           },
           onError: (error) => {
@@ -109,7 +109,7 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
   // Debug wallet connection
   useEffect(() => {
     if (isHydrated) {
-      console.log('[OharaAiWagmiProvider] Wallet status:', {
+      console.debug('[OharaAiWagmiProvider] Wallet status:', {
         status: walletStatus,
         hasWallet: !!walletClient,
         walletChainId: walletClient?.chain?.id,
@@ -163,7 +163,7 @@ export function OharaAiWagmiProvider({ children, chainId: propChainId }: OharaAi
   // Debug logging
   useEffect(() => {
     if (isHydrated) {
-      console.log('[OharaAiWagmiProvider] Debug Info:', {
+      console.debug('[OharaAiWagmiProvider] Debug Info:', {
         isHydrated,
         isSwitchingChain,
         isChainMismatch,

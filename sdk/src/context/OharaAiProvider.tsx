@@ -113,12 +113,12 @@ export function OharaAiProvider({
 
   // Function to load addresses from backend
   const loadAddresses = async () => {
-    console.log('[OharaAiProvider] loadAddresses called:', {
+    console.debug('[OharaAiProvider] loadAddresses called:', {
       isWindow: typeof window !== 'undefined',
     })
     
     if (typeof window === 'undefined') {
-      console.log('[OharaAiProvider] Skipping loadAddresses - not in browser')
+      console.debug('[OharaAiProvider] Skipping loadAddresses - not in browser')
       return
     }
 
