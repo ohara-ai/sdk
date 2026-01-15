@@ -40,7 +40,7 @@ contract PrizeFactory is OwnedFactory {
         IMPLEMENTATION = address(new Prize());
         
         // Initialize with default configuration
-        defaultMatchesPerPool = 42;
+        defaultMatchesPerPool = 10;
         defaultWinnersCount = 10;
         defaultDistributionStrategy = IPrize.DistributionStrategy.Linear;
     }

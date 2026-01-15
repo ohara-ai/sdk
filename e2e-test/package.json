@@ -17,7 +17,8 @@
     "setup": "rm -f ohara-ai-data/* || true && npm run deploy-devworld-token && npm run deploy-factories && npm run fund-controller",
     "deploy-factories": "./scripts/deploy-factories.sh",
     "deploy-devworld-token": "./scripts/deploy-devworld-token.sh",
-    "fund-controller": "./scripts/fund-controller.sh"
+    "fund-controller": "./scripts/fund-controller.sh",
+    "populate": "tsx scripts/populate-contracts.ts"
   },
   "dependencies": {
     "@coinbase/onchainkit": "^1.1.2",
