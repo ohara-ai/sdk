@@ -28,6 +28,7 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
     
     // Capacity limits
     uint256 public maxActiveHeaps;
+    uint256 public constant DEFAULT_MAX_ACTIVE_HEAPS = 100;
     uint256 public constant ABSOLUTE_MAX_ACTIVE_HEAPS = 10000;
     uint256 public constant MAX_CONTRIBUTIONS_LIMIT = 1000;
     uint256 public constant MAX_CONTRIBUTION_AMOUNT = 1000000 ether;
@@ -91,7 +92,7 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
      * @param _owner Owner address
      * @param _controller Controller address
      * @param _score Score contract address
-     * @param _maxActiveHeaps Maximum active heaps
+     * @param _maxActiveHeaps Maximum active heaps (0 = use contract default)
      * @param _feeRecipients Fee recipient addresses
      * @param _feeShares Fee shares in basis points
      */
@@ -111,8 +112,8 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
             score = IScore(_score);
         }
         
-        // Set capacity limit
-        maxActiveHeaps = _maxActiveHeaps;
+        // Set capacity limit (use contract default when 0 is passed)
+        maxActiveHeaps = _maxActiveHeaps == 0 ? DEFAULT_MAX_ACTIVE_HEAPS : _maxActiveHeaps;
         
         // Initialize fees if provided
         if (_feeRecipients.length > 0) {

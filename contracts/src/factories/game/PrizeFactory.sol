@@ -39,28 +39,27 @@ contract PrizeFactory is OwnedFactory {
         // Deploy implementation contract for cloning
         IMPLEMENTATION = address(new Prize());
         
-        // Initialize with default configuration
-        defaultMatchesPerPool = 10;
-        defaultWinnersCount = 10;
+        // Initialize with default configuration (0 = use contract defaults)
+        defaultMatchesPerPool = 0;
+        defaultWinnersCount = 0;
         defaultDistributionStrategy = IPrize.DistributionStrategy.Linear;
     }
 
     /**
      * @notice Update the default matches per pool for new deployments
-     * @param _defaultMatchesPerPool Default matches per prize pool
+     * @param _defaultMatchesPerPool Default matches per prize pool (0 = use contract default)
      */
     function setDefaultMatchesPerPool(uint256 _defaultMatchesPerPool) external onlyOwner {
-        if (_defaultMatchesPerPool == 0) revert InvalidMatchesPerPool();
         defaultMatchesPerPool = _defaultMatchesPerPool;
         emit DefaultMatchesPerPoolUpdated(_defaultMatchesPerPool);
     }
 
     /**
      * @notice Update the default winners count for new deployments
-     * @param _defaultWinnersCount Default number of winners per pool
+     * @param _defaultWinnersCount Default number of winners per pool (0 = use contract default)
      */
     function setDefaultWinnersCount(uint256 _defaultWinnersCount) external onlyOwner {
-        if (_defaultWinnersCount == 0 || _defaultWinnersCount > 100) revert InvalidWinnersCount();
+        if (_defaultWinnersCount > 100) revert InvalidWinnersCount();
         defaultWinnersCount = _defaultWinnersCount;
         emit DefaultWinnersCountUpdated(_defaultWinnersCount);
     }
@@ -123,8 +122,7 @@ contract PrizeFactory is OwnedFactory {
         uint256 _winnersCount,
         IPrize.DistributionStrategy _strategy
     ) external returns (address instance) {
-        if (_matchesPerPool == 0) revert InvalidMatchesPerPool();
-        if (_winnersCount == 0 || _winnersCount > 100) revert InvalidWinnersCount();
+        if (_winnersCount > 100) revert InvalidWinnersCount();
         
         address instanceOwnerAddress = getInstanceOwner();
         

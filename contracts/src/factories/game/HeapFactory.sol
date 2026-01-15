@@ -36,14 +36,14 @@ contract HeapFactory is OwnedFactory {
         // Deploy implementation contract for cloning
         IMPLEMENTATION = address(new Heap());
         
-        // Initialize with default limit
-        defaultMaxActiveHeaps = 100;
+        // Initialize with default limit (0 = use contract default)
+        defaultMaxActiveHeaps = 0;
         // Default fees can be configured via setDefaultFees after deployment
     }
 
     /**
      * @notice Update the default max active heaps for new deployments
-     * @param _defaultMaxActiveHeaps Default maximum active heaps
+     * @param _defaultMaxActiveHeaps Default maximum active heaps (0 = use contract default)
      */
     function setDefaultMaxActiveHeaps(uint256 _defaultMaxActiveHeaps) external onlyOwner {
         defaultMaxActiveHeaps = _defaultMaxActiveHeaps;

@@ -68,6 +68,7 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     // Constants
     uint256 public constant MAX_WINNERS = 100;
     uint256 public constant DEFAULT_WINNERS_COUNT = 10;
+    uint256 public constant DEFAULT_MATCHES_PER_POOL = 10;
 
     event ShareContractAdded(address indexed shareContract);
     event ShareContractRemoved(address indexed shareContract);
@@ -140,11 +141,14 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
             _addShareContract(_shareContract);
         }
         
-        if (_matchesPerPool == 0) revert InvalidMatchesPerPool();
-        if (_winnersCount == 0 || _winnersCount > MAX_WINNERS) revert InvalidWinnersCount();
+        // Use contract defaults when 0 is passed
+        matchesPerPool = _matchesPerPool == 0 ? DEFAULT_MATCHES_PER_POOL : _matchesPerPool;
+        winnersCount = _winnersCount == 0 ? DEFAULT_WINNERS_COUNT : _winnersCount;
         
-        matchesPerPool = _matchesPerPool;
-        winnersCount = _winnersCount;
+        // Validate after applying defaults
+        if (matchesPerPool == 0) revert InvalidMatchesPerPool();
+        if (winnersCount > MAX_WINNERS) revert InvalidWinnersCount();
+        
         distributionStrategy = _strategy;
     }
 

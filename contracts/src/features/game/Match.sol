@@ -28,6 +28,7 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
     
     // Capacity limits
     uint256 public maxActiveMatches;
+    uint256 public constant DEFAULT_MAX_ACTIVE_MATCHES = 100;
     uint256 public constant ABSOLUTE_MAX_ACTIVE_MATCHES = 10000;
     uint256 public constant MAX_PLAYERS_LIMIT = 100;
     uint256 public constant MAX_STAKE_AMOUNT = 1000000 ether;
@@ -92,7 +93,7 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
      * @param _owner Owner address
      * @param _controller Controller address
      * @param _score Score contract address
-     * @param _maxActiveMatches Maximum active matches
+     * @param _maxActiveMatches Maximum active matches (0 = use contract default)
      * @param _feeRecipients Fee recipient addresses
      * @param _feeShares Fee shares in basis points
      */
@@ -112,8 +113,8 @@ contract Match is IMatch, IShares, IFeature, FeatureController, Initializable {
             score = IScore(_score);
         }
         
-        // Set capacity limit
-        maxActiveMatches = _maxActiveMatches;
+        // Set capacity limit (use contract default when 0 is passed)
+        maxActiveMatches = _maxActiveMatches == 0 ? DEFAULT_MAX_ACTIVE_MATCHES : _maxActiveMatches;
         
         // Initialize fees if provided
         if (_feeRecipients.length > 0) {

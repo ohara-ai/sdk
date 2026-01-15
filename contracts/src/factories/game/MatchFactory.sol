@@ -36,14 +36,14 @@ contract MatchFactory is OwnedFactory {
         // Deploy implementation contract for cloning
         IMPLEMENTATION = address(new Match());
         
-        // Initialize with default limit
-        defaultMaxActiveMatches = 100;
+        // Initialize with default limit (0 = use contract default)
+        defaultMaxActiveMatches = 0;
         // Default fees can be configured via setDefaultFees after deployment
     }
 
     /**
      * @notice Update the default max active matches for new deployments
-     * @param _defaultMaxActiveMatches Default maximum active matches
+     * @param _defaultMaxActiveMatches Default maximum active matches (0 = use contract default)
      */
     function setDefaultMaxActiveMatches(uint256 _defaultMaxActiveMatches) external onlyOwner {
         defaultMaxActiveMatches = _defaultMaxActiveMatches;

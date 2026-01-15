@@ -29,13 +29,13 @@ contract TournamentFactory is OwnedFactory {
         // Deploy implementation contract for cloning
         IMPLEMENTATION = address(new Tournament());
         
-        // Default max active tournaments
-        defaultMaxActiveTournaments = 100;
+        // Default max active tournaments (0 = use contract default)
+        defaultMaxActiveTournaments = 0;
     }
 
     /**
      * @notice Update the default max active tournaments for new deployments
-     * @param _maxActive Default max active tournaments
+     * @param _maxActive Default max active tournaments (0 = use contract default)
      */
     function setDefaultMaxActiveTournaments(uint256 _maxActive) external onlyOwner {
         uint256 previous = defaultMaxActiveTournaments;

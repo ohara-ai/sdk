@@ -33,17 +33,17 @@ contract ScoreFactory is OwnedFactory {
         // Deploy implementation contract for cloning
         IMPLEMENTATION = address(new Score());
         
-        // Initialize with default limits
-        maxLosersPerMatch = 50;
-        maxTotalPlayers = 1000;
-        maxTotalMatches = 100;
+        // Initialize with default limits (0 = use contract defaults)
+        maxLosersPerMatch = 0;
+        maxTotalPlayers = 0;
+        maxTotalMatches = 0;
     }
 
     /**
      * @notice Update the limits used for new deployments
-     * @param _maxLosersPerMatch Maximum losers per match
-     * @param _maxTotalPlayers Maximum total players
-     * @param _maxTotalMatches Maximum total matches
+     * @param _maxLosersPerMatch Maximum losers per match (0 = use contract default)
+     * @param _maxTotalPlayers Maximum total players (0 = use contract default)
+     * @param _maxTotalMatches Maximum total matches (0 = use contract default)
      */
     function setDeploymentLimits(
         uint256 _maxLosersPerMatch,

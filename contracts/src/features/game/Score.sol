@@ -64,6 +64,11 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     uint256 public maxTotalPlayers; // Cap total unique players
     uint256 public maxTotalMatches; // Cap total matches
 
+    // Default limits
+    uint256 public constant DEFAULT_MAX_LOSERS_PER_MATCH = 50;
+    uint256 public constant DEFAULT_MAX_TOTAL_PLAYERS = 1000;
+    uint256 public constant DEFAULT_MAX_TOTAL_MATCHES = 100;
+
     event RecorderAuthorized(address indexed recorder, bool authorized);
     event ScoreRecorded(
         uint256 indexed matchId,
@@ -92,9 +97,9 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
      * @notice Initialize the Score contract (replaces constructor for clones)
      * @param _owner Owner address
      * @param _controller Controller address
-     * @param _maxLosersPerMatch Maximum losers per match
-     * @param _maxTotalPlayers Maximum total players
-     * @param _maxTotalMatches Maximum total matches
+     * @param _maxLosersPerMatch Maximum losers per match (0 = use contract default)
+     * @param _maxTotalPlayers Maximum total players (0 = use contract default)
+     * @param _maxTotalMatches Maximum total matches (0 = use contract default)
      */
     function initialize(
         address _owner,
@@ -106,9 +111,10 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
         // Initialize FeatureController (sets owner and controller)
         _initializeFeatureController(_owner, _controller);
         
-        maxLosersPerMatch = _maxLosersPerMatch;
-        maxTotalPlayers = _maxTotalPlayers;
-        maxTotalMatches = _maxTotalMatches;
+        // Use contract defaults when 0 is passed
+        maxLosersPerMatch = _maxLosersPerMatch == 0 ? DEFAULT_MAX_LOSERS_PER_MATCH : _maxLosersPerMatch;
+        maxTotalPlayers = _maxTotalPlayers == 0 ? DEFAULT_MAX_TOTAL_PLAYERS : _maxTotalPlayers;
+        maxTotalMatches = _maxTotalMatches == 0 ? DEFAULT_MAX_TOTAL_MATCHES : _maxTotalMatches;
     }
 
     /**

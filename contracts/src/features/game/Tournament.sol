@@ -39,6 +39,7 @@ contract Tournament is ITournament, IFeature, FeatureController, Initializable {
     IPrediction public prediction;
     uint256 public maxActiveTournaments;
 
+    uint256 public constant DEFAULT_MAX_ACTIVE_TOURNAMENTS = 100;
     uint256 public constant MAX_ACTIVE = 1000;
     uint256 public constant MAX_PARTICIPANTS = 64;
 
@@ -58,6 +59,13 @@ contract Tournament is ITournament, IFeature, FeatureController, Initializable {
 
     constructor() FeatureController(address(0), address(0)) {}
 
+    /**
+     * @notice Initialize the Tournament contract
+     * @param _owner Owner address
+     * @param _controller Controller address
+     * @param _scoreContract Score contract address
+     * @param _maxActive Maximum active tournaments (0 = use contract default)
+     */
     function initialize(
         address _owner,
         address _controller,
@@ -66,7 +74,7 @@ contract Tournament is ITournament, IFeature, FeatureController, Initializable {
     ) external initializer {
         _initializeFeatureController(_owner, _controller);
         scoreContract = _scoreContract;
-        maxActiveTournaments = _maxActive;
+        maxActiveTournaments = _maxActive == 0 ? DEFAULT_MAX_ACTIVE_TOURNAMENTS : _maxActive;
     }
 
     /**
