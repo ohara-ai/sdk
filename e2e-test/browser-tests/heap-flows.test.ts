@@ -2,11 +2,13 @@
  * Heap E2E Flow Tests
  * 
  * Tests the complete heap lifecycle with multiple users:
- * 1. User 1 creates a heap with contribution amount
- * 2. User 1 adds multiple contributions
- * 3. User 2 adds multiple contributions
- * 4. Heap is activated
- * 5. Heap is finalized with user 1 as winner
+ * 1. User 1 creates a heap (auto-contributes as first contributor)
+ * 2. User 1 adds an additional contribution (same user can contribute multiple times)
+ * 3. User 2 connects and adds contributions
+ * 4. Heap is activated (requires status=Open and at least 1 contributor)
+ * 5. Heap is finalized with User 1 as winner (requires status=Active)
+ * 
+ * Contract State Machine: Open -> Active -> Finalized/Cancelled
  * 
  * These tests serve as the foundation for Score, Prize, Tournament, 
  * League, and Prediction contract testing alongside Match tests.
@@ -86,8 +88,9 @@ test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
       console.log(`[Test] Step 1 Complete: Heap #${heapId} created by User 1 (first contribution automatic)`)
       expect(heapId).toBeGreaterThanOrEqual(0)
       
-      // ========== STEP 2: User 1 adds additional contributions ==========
-      console.log('[Test] Step 2: User 1 adding additional contributions')
+      // ========== STEP 2: User 1 adds additional contribution ==========
+      // Note: Same user can contribute multiple times - each contribution adds to their total
+      console.log('[Test] Step 2: User 1 adding additional contribution')
       
       // Navigate to Heaps tab and select the heap
       await user1Page.getByRole('tab', { name: 'Heaps' }).click()
@@ -99,13 +102,16 @@ test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
       await heapCard1.click()
       await user1Page.waitForTimeout(1000)
       
-      // User 1 contributes again (2nd contribution)
+      // Verify heap is still in Open status (required for contributions)
+      await expect(user1Page.getByText('Open')).toBeVisible({ timeout: 5000 })
+      
+      // User 1 contributes again (2nd contribution - increases their contribution amount)
       const contributeButton1 = user1Page.getByRole('button', { name: 'Contribute to Heap' })
       await expect(contributeButton1).toBeVisible({ timeout: 10000 })
       await contributeButton1.click()
       await user1Page.waitForTimeout(3000) // Wait for transaction
       
-      console.log('[Test] Step 2 Complete: User 1 made additional contribution')
+      console.log('[Test] Step 2 Complete: User 1 made additional contribution (now has 2x contribution amount)')
       
       // ========== STEP 3: User 2 opens page, connects wallet, and adds contributions ==========
       console.log('[Test] Step 3: User 2 navigating to heap page and connecting wallet')
@@ -153,6 +159,7 @@ test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
       console.log('[Test] Step 3 Complete: User 2 added contributions to heap')
       
       // ========== STEP 4: Activate the heap ==========
+      // Contract requires: status=Open AND contributors.length >= 1
       console.log('[Test] Step 4: Activating the heap')
       
       // User 1 refreshes and activates
@@ -164,7 +171,10 @@ test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
       await heapCardUser1Activate.click()
       await user1Page.waitForTimeout(2000)
       
-      // Should see Activate button now that multiple contributors have joined
+      // Verify heap is still Open before activation
+      await expect(user1Page.getByText('Open')).toBeVisible({ timeout: 5000 })
+      
+      // Activate button appears when heap is Open and has at least 1 contributor
       const activateButton = user1Page.getByRole('button', { name: 'Activate Heap' })
       await expect(activateButton).toBeVisible({ timeout: 15000 })
       await activateButton.click()
@@ -177,6 +187,7 @@ test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
       console.log('[Test] Step 4 Complete: Heap activated')
       
       // ========== STEP 5: Finalize the heap with User 1 as winner ==========
+      // Contract requires: status=Active AND winner must be a contributor
       console.log('[Test] Step 5: Finalizing the heap with User 1 as winner')
       
       // Wait a moment for state to propagate
@@ -186,8 +197,8 @@ test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
       const winnerSelect = user1Page.locator('select')
       await expect(winnerSelect).toBeVisible({ timeout: 10000 })
       
-      // Select User 1's address (first option after "Select Winner")
-      await winnerSelect.selectOption({ index: 1 }) // First contributor (User 1)
+      // Select User 1's address explicitly (User 1 = ANVIL_ACCOUNTS.user2)
+      await winnerSelect.selectOption({ value: ANVIL_ACCOUNTS.user2.address })
       
       // Click Finalize Heap button
       const finalizeButton = user1Page.getByRole('button', { name: 'Finalize Heap' })
@@ -291,15 +302,16 @@ test.describe('Heap Foundation - For Score/Prize/Tournament Integration', () => 
         await user1Page.getByRole('button', { name: 'Activate Heap' }).click()
         await user1Page.waitForTimeout(5000)
         
-        // Finalize with alternating winner
+        // Finalize with alternating winner (select by explicit address)
+        const winnerAddress = i % 2 === 0 ? ANVIL_ACCOUNTS.user2.address : ANVIL_ACCOUNTS.user3.address
         const winnerSelect = user1Page.locator('select')
-        await winnerSelect.selectOption({ index: i % 2 === 0 ? 1 : 2 }) // Alternate winners
+        await winnerSelect.selectOption({ value: winnerAddress })
         await user1Page.getByRole('button', { name: 'Finalize Heap' }).click()
         await user1Page.waitForTimeout(5000)
         
         heapResults.push({
           heapId,
-          winner: i % 2 === 0 ? ANVIL_ACCOUNTS.user2.address : ANVIL_ACCOUNTS.user3.address
+          winner: winnerAddress
         })
         
         console.log(`[Test] Heap ${i + 1}/3 completed: Heap #${heapId}`)

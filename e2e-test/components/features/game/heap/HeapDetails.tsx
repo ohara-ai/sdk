@@ -162,20 +162,22 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
   }
 
   const handleActivate = async () => {
-    if (!contractAddress || !walletClient) return
+    if (!contractAddress) return
 
     try {
       setActivatePending(true)
       setError(null)
 
-      const hash = await walletClient.writeContract({
-        address: contractAddress,
-        abi: HEAP_ABI,
-        functionName: 'activate',
-        args: [BigInt(heapId)],
+      const response = await fetch('/api/sdk/game/heap/activate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heapId }),
       })
 
-      await publicClient?.waitForTransactionReceipt({ hash })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to activate heap')
+      }
     } catch (err) {
       console.error('[HeapDetails] Activate error:', err)
       setError(err instanceof Error ? err.message : 'Failed to activate')
@@ -185,20 +187,22 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
   }
 
   const handleFinalize = async () => {
-    if (!contractAddress || !walletClient || !winnerAddress) return
+    if (!contractAddress || !winnerAddress) return
 
     try {
       setFinalizePending(true)
       setError(null)
 
-      const hash = await walletClient.writeContract({
-        address: contractAddress,
-        abi: HEAP_ABI,
-        functionName: 'finalize',
-        args: [BigInt(heapId), winnerAddress as `0x${string}`],
+      const response = await fetch('/api/sdk/game/heap/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heapId, winner: winnerAddress }),
       })
 
-      await publicClient?.waitForTransactionReceipt({ hash })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to finalize heap')
+      }
     } catch (err) {
       console.error('[HeapDetails] Finalize error:', err)
       setError(err instanceof Error ? err.message : 'Failed to finalize')
@@ -208,20 +212,22 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
   }
 
   const handleCancel = async () => {
-    if (!contractAddress || !walletClient) return
+    if (!contractAddress) return
 
     try {
       setCancelPending(true)
       setError(null)
 
-      const hash = await walletClient.writeContract({
-        address: contractAddress,
-        abi: HEAP_ABI,
-        functionName: 'cancel',
-        args: [BigInt(heapId)],
+      const response = await fetch('/api/sdk/game/heap/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ heapId }),
       })
 
-      await publicClient?.waitForTransactionReceipt({ hash })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to cancel heap')
+      }
     } catch (err) {
       console.error('[HeapDetails] Cancel error:', err)
       setError(err instanceof Error ? err.message : 'Failed to cancel')
@@ -269,7 +275,7 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
   const isContributor = address && heap.contributors.includes(address)
   const canContribute = heap.status === 0 && heap.contributors.length < heap.maxContributions
   const canWithdraw = heap.status === 0 && isContributor
-  const canActivate = heap.status === 0 && heap.contributors.length >= 2
+  const canActivate = heap.status === 0 && heap.contributors.length >= 1
   const canFinalize = heap.status === 1
   const canCancel = heap.status === 1
 

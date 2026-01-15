@@ -40,7 +40,7 @@ contract PrizeFactoryTest is Test {
     
     function test_InitialState() public view {
         assertEq(factory.owner(), factoryOwner);
-        assertEq(factory.defaultMatchesPerPool(), 42);
+        assertEq(factory.defaultMatchesPerPool(), 10);
         assertTrue(factory.IMPLEMENTATION() != address(0));
     }
     
@@ -53,8 +53,10 @@ contract PrizeFactoryTest is Test {
         Prize prize = Prize(payable(instance));
         assertEq(prize.owner(), factoryOwner);
         assertEq(prize.controller(), deployer);
-        assertEq(address(prize.matchContract()), address(gameMatch));
-        assertEq(prize.getMatchesPerPool(), 42);
+        address[] memory shareContracts = prize.getShareContracts();
+        assertEq(shareContracts.length, 1);
+        assertEq(shareContracts[0], address(gameMatch));
+        assertEq(prize.getMatchesPerPool(), 10);
     }
     
     function test_DeployPrizeWithCustomConfig() public {
@@ -123,7 +125,8 @@ contract PrizeFactoryTest is Test {
         address instance = factory.deployPrize(address(0));
         
         Prize prize = Prize(payable(instance));
-        assertEq(address(prize.matchContract()), address(0));
+        address[] memory shareContracts = prize.getShareContracts();
+        assertEq(shareContracts.length, 0);
     }
     
     function test_MultipleDeploys() public {

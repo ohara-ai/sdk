@@ -64,6 +64,15 @@ const GAME_CONTRACTS: ContractConfig[] = [
     dependsOn: ['Score'],
   },
   {
+    type: 'Heap',
+    name: 'Heap',
+    description: 'Token collection pools with contribution-based entries',
+    icon: <Coins className="w-4 h-4 text-orange-600" />,
+    iconBg: 'bg-orange-100',
+    testPath: '/testing/features/game/heap',
+    dependsOn: ['Score'],
+  },
+  {
     type: 'Score',
     name: 'Score',
     description: 'Tracks player stats, match results, and leaderboards',
@@ -78,15 +87,6 @@ const GAME_CONTRACTS: ContractConfig[] = [
     icon: <Gift className="w-4 h-4 text-emerald-600" />,
     iconBg: 'bg-emerald-100',
     testPath: '/testing/features/game/prize',
-    dependsOn: ['Match', 'Score'],
-  },
-  {
-    type: 'Prediction',
-    name: 'Prediction',
-    description: 'Prediction markets for betting on match outcomes',
-    icon: <Target className="w-4 h-4 text-cyan-600" />,
-    iconBg: 'bg-cyan-100',
-    testPath: '/testing/features/game/prediction',
     dependsOn: ['Match'],
   },
   {
@@ -108,13 +108,12 @@ const GAME_CONTRACTS: ContractConfig[] = [
     dependsOn: ['Score'],
   },
   {
-    type: 'Heap',
-    name: 'Heap',
-    description: 'Token collection pools with contribution-based entries',
-    icon: <Coins className="w-4 h-4 text-orange-600" />,
-    iconBg: 'bg-orange-100',
-    testPath: '/testing/features/game/heap',
-    dependsOn: ['Score'],
+    type: 'Prediction',
+    name: 'Prediction',
+    description: 'Prediction markets for betting on match outcomes',
+    icon: <Target className="w-4 h-4 text-cyan-600" />,
+    iconBg: 'bg-cyan-100',
+    testPath: '/testing/features/game/prediction',
   },
 ]
 
@@ -304,13 +303,13 @@ export default function Home() {
       deployedContracts.Heap, validateContracts])
 
   // Toggle contract selection with dependency management
-  // Dependencies from CONTRACT_CONFIG:
-  // - Match depends on Score
-  // - Prize depends on Score, Match
-  // - League depends on Match (which depends on Score)
-  // - Tournament depends on Score
-  // - Prediction depends on Match (which depends on Score)
-  // - Heap depends on Score
+  // Dependencies from factory contracts:
+  // - Match depends on Score (optional)
+  // - Prize depends on Match
+  // - League depends on Match (optional)
+  // - Tournament depends on Score (optional)
+  // - Prediction has no required dependencies (Match, Tournament, League all optional)
+  // - Heap depends on Score (optional)
   const toggleContract = (type: ContractType) => {
     const newSelected = new Set(selectedContracts)
 
@@ -318,20 +317,18 @@ export default function Home() {
       // Deselecting - remove dependents
       newSelected.delete(type)
       if (type === 'Score') {
-        // Score is required by: Match, Prize, Tournament, Heap
+        // Score is used by: Match, Tournament, Heap
         newSelected.delete('Match')
-        newSelected.delete('Prize')
         newSelected.delete('Tournament')
         newSelected.delete('Heap')
-        // Match is required by: League, Prediction
-        newSelected.delete('League')
-        newSelected.delete('Prediction')
-      }
-      if (type === 'Match') {
-        // Match is required by: Prize, League, Prediction
+        // Match is used by: Prize, League
         newSelected.delete('Prize')
         newSelected.delete('League')
-        newSelected.delete('Prediction')
+      }
+      if (type === 'Match') {
+        // Match is used by: Prize, League
+        newSelected.delete('Prize')
+        newSelected.delete('League')
       }
     } else {
       // Selecting - add dependencies
@@ -348,10 +345,6 @@ export default function Home() {
         newSelected.add('Score')
       }
       if (type === 'Tournament') {
-        newSelected.add('Score')
-      }
-      if (type === 'Prediction') {
-        newSelected.add('Match')
         newSelected.add('Score')
       }
       if (type === 'Heap') {
@@ -637,7 +630,7 @@ export default function Home() {
                         </span>
                         {contract.dependsOn && (
                           <span className="text-xs text-gray-500">
-                            (requires {contract.dependsOn.join(', ')})
+                            (depends on {contract.dependsOn.join(', ')})
                           </span>
                         )}
                       </div>
@@ -778,17 +771,11 @@ export default function Home() {
                         Match → authorized to record scores on Score
                       </li>
                     )}
-                    {selectedContracts.has('Prize') && (
-                      <>
-                        <li className="flex items-center gap-1.5">
-                          <span className="w-1 h-1 rounded-full bg-blue-400" />
-                          Prize → wired to Score contract
-                        </li>
-                        <li className="flex items-center gap-1.5">
-                          <span className="w-1 h-1 rounded-full bg-blue-400" />
-                          Prize → registered as Match share recipient
-                        </li>
-                      </>
+                    {selectedContracts.has('Prize') && selectedContracts.has('Match') && (
+                      <li className="flex items-center gap-1.5">
+                        <span className="w-1 h-1 rounded-full bg-blue-400" />
+                        Prize → linked to Match contract
+                      </li>
                     )}
                     {selectedContracts.has('League') && selectedContracts.has('Match') && (
                       <li className="flex items-center gap-1.5">

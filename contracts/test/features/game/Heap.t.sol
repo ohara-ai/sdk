@@ -283,7 +283,7 @@ contract HeapTest is Test {
         assertEq(uint256(status), uint256(IHeap.HeapStatus.Active));
     }
 
-    function test_CannotActivateWithLessThanTwoContributors() public {
+    function test_CanActivateWithOneContributor() public {
         vm.prank(contributor1);
         uint256 heapId = heap.create{value: CONTRIBUTION_AMOUNT}(
             address(0),
@@ -291,9 +291,16 @@ contract HeapTest is Test {
             MAX_CONTRIBUTIONS
         );
 
+        address[] memory expectedContributors = new address[](1);
+        expectedContributors[0] = contributor1;
+
         vm.prank(controller);
-        vm.expectRevert(Heap.InvalidHeapStatus.selector);
+        vm.expectEmit(true, false, false, true);
+        emit HeapActivated(heapId, expectedContributors);
         heap.activate(heapId);
+
+        (, , , , IHeap.HeapStatus status, , ) = heap.getHeap(heapId);
+        assertEq(uint256(status), uint256(IHeap.HeapStatus.Active));
     }
 
     function test_OnlyControllerCanActivate() public {

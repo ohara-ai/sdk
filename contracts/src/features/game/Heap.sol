@@ -347,7 +347,7 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
         Heap storage h = _heaps[heapId];
         if (h.contributionAmount == 0) revert InvalidHeapId();
         if (h.status != HeapStatus.Open) revert InvalidHeapStatus();
-        if (h.contributors.length < 2) revert InvalidHeapStatus();
+        if (h.contributors.length < 1) revert InvalidHeapStatus();
 
         h.status = HeapStatus.Active;
 

@@ -81,7 +81,9 @@ contract PrizeTest is Test {
         assertEq(prize.getCurrentPoolId(address(0)), 0); // No pool created yet
         assertEq(prize.getMatchesPerPool(), MATCHES_PER_POOL);
         assertEq(prize.getWinnersCount(), 10); // Default
-        assertEq(address(prize.matchContract()), address(gameMatch));
+        address[] memory shareContracts = prize.getShareContracts();
+        assertEq(shareContracts.length, 1);
+        assertEq(shareContracts[0], address(gameMatch));
     }
 
     function test_RecordMatchResult() public {

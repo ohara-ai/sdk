@@ -37,7 +37,10 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     uint256 public matchesPerPool;
     uint256 public winnersCount;
     DistributionStrategy public distributionStrategy;
-    IShares public matchContract;
+    
+    // Share source contracts (Match, Heap, etc.)
+    IShares[] private _shareContracts;
+    mapping(address => bool) private _shareContractExists;
     
     // Global pool counter
     uint256 private _poolIdCounter;
@@ -66,12 +69,15 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     uint256 public constant MAX_WINNERS = 100;
     uint256 public constant DEFAULT_WINNERS_COUNT = 10;
 
-    event MatchContractUpdated(address indexed previousMatch, address indexed newMatch);
+    event ShareContractAdded(address indexed shareContract);
+    event ShareContractRemoved(address indexed shareContract);
     event MatchesPerPoolUpdated(uint256 previousValue, uint256 newValue);
     event RecorderAuthorized(address indexed recorder, bool authorized);
 
     error UnauthorizedRecorder();
-    error InvalidMatchContract();
+    error InvalidShareContract();
+    error ShareContractAlreadyExists();
+    error ShareContractNotFound();
     error InvalidMatchesPerPool();
     error InvalidWinnersCount();
     error PoolNotFinalized();
@@ -90,19 +96,19 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
      * @notice Initialize the Prize contract (replaces constructor for clones)
      * @param _owner Owner address
      * @param _controller Controller address
-     * @param _matchContract Address of the match contract implementing IShares
+     * @param _shareContract Address of the initial share contract implementing IShares
      * @param _matchesPerPool Number of matches per prize pool
      */
     function initialize(
         address _owner,
         address _controller,
-        address _matchContract,
+        address _shareContract,
         uint256 _matchesPerPool
     ) external initializer {
         _initializeFeatureController(_owner, _controller);
         
-        if (_matchContract != address(0)) {
-            matchContract = IShares(_matchContract);
+        if (_shareContract != address(0)) {
+            _addShareContract(_shareContract);
         }
         
         if (_matchesPerPool == 0) revert InvalidMatchesPerPool();
@@ -115,7 +121,7 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
      * @notice Initialize with full configuration
      * @param _owner Owner address
      * @param _controller Controller address
-     * @param _matchContract Address of the match contract implementing IShares
+     * @param _shareContract Address of the initial share contract implementing IShares
      * @param _matchesPerPool Number of matches per prize pool
      * @param _winnersCount Number of top winners to reward
      * @param _strategy Distribution strategy for prize allocation
@@ -123,15 +129,15 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     function initializeWithConfig(
         address _owner,
         address _controller,
-        address _matchContract,
+        address _shareContract,
         uint256 _matchesPerPool,
         uint256 _winnersCount,
         DistributionStrategy _strategy
     ) external initializer {
         _initializeFeatureController(_owner, _controller);
         
-        if (_matchContract != address(0)) {
-            matchContract = IShares(_matchContract);
+        if (_shareContract != address(0)) {
+            _addShareContract(_shareContract);
         }
         
         if (_matchesPerPool == 0) revert InvalidMatchesPerPool();
@@ -143,16 +149,60 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     }
 
     /**
-     * @notice Set the match contract implementing IShares
-     * @param _matchContract Address of the match contract (address(0) to disable)
+     * @notice Add a share contract (e.g., Match, Heap)
+     * @param _shareContract Address of the share contract implementing IShares
      */
-    function setMatchContract(address _matchContract) external onlyController {
-        if (_matchContract != address(0) && _matchContract.code.length == 0) {
-            revert InvalidMatchContract();
+    function addShareContract(address _shareContract) external onlyController {
+        _addShareContract(_shareContract);
+    }
+
+    /**
+     * @notice Remove a share contract
+     * @param _shareContract Address of the share contract to remove
+     */
+    function removeShareContract(address _shareContract) external onlyController {
+        if (!_shareContractExists[_shareContract]) revert ShareContractNotFound();
+        
+        // Remove from array using swap-and-pop
+        uint256 length = _shareContracts.length;
+        for (uint256 i = 0; i < length;) {
+            if (address(_shareContracts[i]) == _shareContract) {
+                _shareContracts[i] = _shareContracts[length - 1];
+                _shareContracts.pop();
+                break;
+            }
+            unchecked { ++i; }
         }
-        address previousMatch = address(matchContract);
-        matchContract = IShares(_matchContract);
-        emit MatchContractUpdated(previousMatch, _matchContract);
+        
+        delete _shareContractExists[_shareContract];
+        emit ShareContractRemoved(_shareContract);
+    }
+
+    /**
+     * @notice Internal function to add a share contract
+     * @param _shareContract Address of the share contract
+     */
+    function _addShareContract(address _shareContract) internal {
+        if (_shareContract == address(0) || _shareContract.code.length == 0) {
+            revert InvalidShareContract();
+        }
+        if (_shareContractExists[_shareContract]) revert ShareContractAlreadyExists();
+        
+        _shareContracts.push(IShares(_shareContract));
+        _shareContractExists[_shareContract] = true;
+        emit ShareContractAdded(_shareContract);
+    }
+
+    /**
+     * @notice Get all registered share contracts
+     * @return contracts Array of share contract addresses
+     */
+    function getShareContracts() external view returns (address[] memory contracts) {
+        uint256 length = _shareContracts.length;
+        contracts = new address[](length);
+        for (uint256 i = 0; i < length; i++) {
+            contracts[i] = address(_shareContracts[i]);
+        }
     }
 
     /**
@@ -252,8 +302,8 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
         PrizePool storage pool = _pools[poolId];
         pool.finalized = true;
         
-        // Collect shares for this token
-        if (address(matchContract) != address(0)) {
+        // Collect shares from all registered share contracts
+        if (_shareContracts.length > 0) {
             _collectSharesForPool(poolId);
         }
         
@@ -267,22 +317,27 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
     }
 
     /**
-     * @notice Collect shares from match contract for pool's token
+     * @notice Collect shares from all share contracts for pool's token
      * @param poolId Pool ID to collect for
      */
     function _collectSharesForPool(uint256 poolId) internal {
         PrizePool storage pool = _pools[poolId];
         address token = pool.token;
         
-        uint256 pending = matchContract.getPendingShares(address(this), token);
-        if (pending > 0) {
-            uint256 balanceBefore = _getBalance(token);
-            matchContract.claimShares(token);
-            uint256 balanceAfter = _getBalance(token);
-            uint256 received = balanceAfter - balanceBefore;
-            
-            pool.prizeAmount += received;
-            emit SharesCollected(token, received);
+        uint256 length = _shareContracts.length;
+        for (uint256 i = 0; i < length;) {
+            IShares shareContract = _shareContracts[i];
+            uint256 pending = shareContract.getPendingShares(address(this), token);
+            if (pending > 0) {
+                uint256 balanceBefore = _getBalance(token);
+                shareContract.claimShares(token);
+                uint256 balanceAfter = _getBalance(token);
+                uint256 received = balanceAfter - balanceBefore;
+                
+                pool.prizeAmount += received;
+                emit SharesCollected(token, received);
+            }
+            unchecked { ++i; }
         }
     }
 
