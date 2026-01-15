@@ -20,7 +20,19 @@ export const ANVIL_ACCOUNTS = {
     privateKey: '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a' as const,
     address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' as const,
   },
+  // Account #3 - use for multi-user testing
+  user3: {
+    privateKey: '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6' as const,
+    address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' as const,
+  },
+  // Account #4 - additional user for tournament/league tests
+  user4: {
+    privateKey: '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a' as const,
+    address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65' as const,
+  },
 } as const
+
+export type AnvilAccount = keyof typeof ANVIL_ACCOUNTS
 
 // Script to inject into the browser to mock window.ethereum
 export function createMockEthereumScript(privateKey: string, address: string, rpcUrl: string, chainId: number) {
