@@ -140,7 +140,7 @@ contract MatchFactoryTest is Test {
     }
 
     function test_DefaultMaxActiveMatches() public view {
-        assertEq(factory.defaultMaxActiveMatches(), 100);
+        assertEq(factory.defaultMaxActiveMatches(), 0); // 0 = use contract default
     }
 
     function test_DeployedGameMatchUsesFactoryDefault() public {
@@ -167,11 +167,11 @@ contract MatchFactoryTest is Test {
     }
 
     function test_NewDeploymentsUseUpdatedDefault() public {
-        // Deploy with default (100)
+        // Deploy with default (0 = contract default of 100)
         address instance1 = factory.deployMatch(address(0));
         Match gameMatch1 = Match(instance1);
         
-        assertEq(gameMatch1.maxActiveMatches(), 100);
+        assertEq(gameMatch1.maxActiveMatches(), 100); // Contract default
         
         // Update default
         factory.setDefaultMaxActiveMatches(200);

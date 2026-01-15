@@ -40,7 +40,7 @@ contract PrizeFactoryTest is Test {
     
     function test_InitialState() public view {
         assertEq(factory.owner(), factoryOwner);
-        assertEq(factory.defaultMatchesPerPool(), 10);
+        assertEq(factory.defaultMatchesPerPool(), 0); // 0 = use contract default
         assertTrue(factory.IMPLEMENTATION() != address(0));
     }
     
@@ -74,16 +74,20 @@ contract PrizeFactoryTest is Test {
         assertEq(uint256(prize.getDistributionStrategy()), uint256(IPrize.DistributionStrategy.Exponential));
     }
     
-    function test_CannotDeployWithZeroMatchesPerPool() public {
+    function test_DeployWithZeroMatchesPerPoolUsesDefault() public {
         vm.prank(deployer);
-        vm.expectRevert(PrizeFactory.InvalidMatchesPerPool.selector);
-        factory.deployPrizeWithConfig(address(gameMatch), 0, 10, IPrize.DistributionStrategy.Linear);
+        address instance = factory.deployPrizeWithConfig(address(gameMatch), 0, 10, IPrize.DistributionStrategy.Linear);
+        
+        Prize prize = Prize(payable(instance));
+        assertEq(prize.getMatchesPerPool(), 10); // Uses contract default
     }
     
-    function test_CannotDeployWithZeroWinnersCount() public {
+    function test_DeployWithZeroWinnersCountUsesDefault() public {
         vm.prank(deployer);
-        vm.expectRevert(PrizeFactory.InvalidWinnersCount.selector);
-        factory.deployPrizeWithConfig(address(gameMatch), 100, 0, IPrize.DistributionStrategy.Linear);
+        address instance = factory.deployPrizeWithConfig(address(gameMatch), 100, 0, IPrize.DistributionStrategy.Linear);
+        
+        Prize prize = Prize(payable(instance));
+        assertEq(prize.getWinnersCount(), 10); // Uses contract default
     }
     
     function test_SetDefaultMatchesPerPool() public {
@@ -101,10 +105,17 @@ contract PrizeFactoryTest is Test {
         factory.setDefaultMatchesPerPool(100);
     }
     
-    function test_CannotSetDefaultMatchesPerPoolToZero() public {
+    function test_CanSetDefaultMatchesPerPoolToZero() public {
         vm.prank(factoryOwner);
-        vm.expectRevert(PrizeFactory.InvalidMatchesPerPool.selector);
         factory.setDefaultMatchesPerPool(0);
+        
+        assertEq(factory.defaultMatchesPerPool(), 0);
+        
+        // Deploy and verify contract default is used
+        vm.prank(deployer);
+        address instance = factory.deployPrize(address(gameMatch));
+        Prize prize = Prize(payable(instance));
+        assertEq(prize.getMatchesPerPool(), 10); // Contract default
     }
     
     function test_SetInstanceOwner() public {

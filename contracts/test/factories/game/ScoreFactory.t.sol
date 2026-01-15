@@ -213,9 +213,9 @@ contract ScoreFactoryTest is Test {
     event InstanceOwnerUpdated(address indexed previousOwner, address indexed newOwner);
 
     function test_DefaultLimits() public view {
-        assertEq(factory.maxLosersPerMatch(), 50);
-        assertEq(factory.maxTotalPlayers(), 1000);
-        assertEq(factory.maxTotalMatches(), 100);
+        assertEq(factory.maxLosersPerMatch(), 0); // 0 = use contract default
+        assertEq(factory.maxTotalPlayers(), 0); // 0 = use contract default
+        assertEq(factory.maxTotalMatches(), 0); // 0 = use contract default
     }
 
     function test_DeployedScoreUsesFactoryLimits() public {
@@ -244,11 +244,11 @@ contract ScoreFactoryTest is Test {
     }
 
     function test_NewDeploymentsUseUpdatedLimits() public {
-        // Deploy with default limits
+        // Deploy with default limits (0 = contract defaults)
         address instance1 = factory.deployScore();
         Score score1 = Score(instance1);
         
-        assertEq(score1.maxLosersPerMatch(), 50);
+        assertEq(score1.maxLosersPerMatch(), 50); // Contract default
         
         // Update limits
         factory.setDeploymentLimits(100, 20000, 200000);

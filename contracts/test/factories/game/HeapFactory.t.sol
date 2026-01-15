@@ -37,7 +37,7 @@ contract HeapFactoryTest is Test {
     
     function test_InitialState() public view {
         assertEq(factory.owner(), factoryOwner);
-        assertEq(factory.defaultMaxActiveHeaps(), 100);
+        assertEq(factory.defaultMaxActiveHeaps(), 0); // 0 = use contract default
         assertTrue(factory.IMPLEMENTATION() != address(0));
         
         // Default fees should be empty

@@ -28,7 +28,7 @@ contract TournamentFactoryTest is Test {
     function test_InitialState() public view {
         assertEq(factory.owner(), owner);
         assertTrue(factory.IMPLEMENTATION() != address(0));
-        assertEq(factory.defaultMaxActiveTournaments(), 100);
+        assertEq(factory.defaultMaxActiveTournaments(), 0); // 0 = use contract default
     }
     
     function test_DeployTournament() public {
