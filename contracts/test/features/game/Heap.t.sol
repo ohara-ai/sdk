@@ -472,17 +472,35 @@ contract HeapTest is Test {
         heap.contribute{value: CONTRIBUTION_AMOUNT}(heapId);
     }
 
-    function test_CannotContributeTwice() public {
+    function test_CanContributeMultipleTimes() public {
         vm.prank(contributor1);
         uint256 heapId = heap.create{value: CONTRIBUTION_AMOUNT}(
             address(0),
             CONTRIBUTION_AMOUNT,
-            MAX_CONTRIBUTIONS
+            5 // Allow more contributions
         );
 
+        // Contributor1 contributes again
         vm.prank(contributor1);
-        vm.expectRevert(Heap.ContributorAlreadyJoined.selector);
         heap.contribute{value: CONTRIBUTION_AMOUNT}(heapId);
+
+        // Verify contribution is accumulated
+        assertEq(heap.getContribution(heapId, contributor1), CONTRIBUTION_AMOUNT * 2);
+        
+        // Verify contributor is only in the array once
+        (, , , address[] memory contributors, , , ) = heap.getHeap(heapId);
+        assertEq(contributors.length, 1);
+        assertEq(contributors[0], contributor1);
+
+        // Contributor1 contributes a third time
+        vm.prank(contributor1);
+        heap.contribute{value: CONTRIBUTION_AMOUNT}(heapId);
+
+        assertEq(heap.getContribution(heapId, contributor1), CONTRIBUTION_AMOUNT * 3);
+        
+        // Still only one entry in contributors array
+        (, , , address[] memory contributors2, , , ) = heap.getHeap(heapId);
+        assertEq(contributors2.length, 1);
     }
 
     function test_FeatureMetadata() public view {

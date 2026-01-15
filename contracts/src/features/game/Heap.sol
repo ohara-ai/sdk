@@ -70,7 +70,6 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
     error MaxActiveHeapsReached();
     error HeapNotInactive();
     error InvalidTokenAddress();
-    error ContributorAlreadyJoined();
     error ContributionAmountTooHigh();
     error TooManyContributions();
     error LimitTooHigh();
@@ -281,7 +280,6 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
         if (h.contributionAmount == 0) revert InvalidHeapId();
         if (h.status != HeapStatus.Open) revert InvalidHeapStatus();
         if (h.contributors.length >= h.maxContributions) revert MaxContributionsReached();
-        if (h.contributions[contributor] > 0) revert ContributorAlreadyJoined();
 
         // Handle contribution
         if (h.token == address(0)) {
@@ -294,8 +292,11 @@ contract Heap is IHeap, IShares, IFeature, FeatureController, Initializable {
             IERC20(h.token).safeTransferFrom(contributor, address(this), h.contributionAmount);
         }
 
-        h.contributors.push(contributor);
-        h.contributions[contributor] = h.contributionAmount;
+        // Only add to contributors array if this is their first contribution
+        if (h.contributions[contributor] == 0) {
+            h.contributors.push(contributor);
+        }
+        h.contributions[contributor] += h.contributionAmount;
 
         emit ContributionAdded(heapId, contributor, h.contributionAmount, h.contributors.length);
     }

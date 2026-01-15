@@ -267,7 +267,7 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
   }
 
   const isContributor = address && heap.contributors.includes(address)
-  const canContribute = heap.status === 0 && !isContributor && heap.contributors.length < heap.maxContributions
+  const canContribute = heap.status === 0 && heap.contributors.length < heap.maxContributions
   const canWithdraw = heap.status === 0 && isContributor
   const canActivate = heap.status === 0 && heap.contributors.length >= 2
   const canFinalize = heap.status === 1
