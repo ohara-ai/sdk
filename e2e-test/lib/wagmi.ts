@@ -11,7 +11,7 @@ const preferredChainId = process.env.NEXT_PUBLIC_SDK_CHAIN_ID
   : null
 
 // Available chains
-const allChains = [anvil, baseSepolia, base]
+const allChains = [anvil, baseSepolia, base] as const
 
 // Reorder chains to prioritize the preferred chain
 const chains = preferredChainId
@@ -44,6 +44,7 @@ export const config = createConfig({
     [base.id]: http(rpcUrl),
   },
   storage: createStorage({
+    key: `wagmi-e2e-${preferredChainId || 'default'}`,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
   }),
   ssr: true,

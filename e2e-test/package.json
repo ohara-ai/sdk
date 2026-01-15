@@ -39,7 +39,7 @@
     "server-only": "^0.0.1",
     "tailwind-merge": "^2.5.5",
     "viem": "^2.21.45",
-    "wagmi": "^2.12.29"
+    "wagmi": "~2.19.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
