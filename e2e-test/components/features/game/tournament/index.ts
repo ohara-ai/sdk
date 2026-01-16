@@ -1,2 +1,5 @@
 export { TournamentContractInformation } from './TournamentContractInformation'
 export { TournamentBracket } from './TournamentBracket'
+export { CreateTournamentForm } from './CreateTournamentForm'
+export { TournamentActions } from './TournamentActions'
+export { TournamentAdminSettings } from './TournamentAdminSettings'

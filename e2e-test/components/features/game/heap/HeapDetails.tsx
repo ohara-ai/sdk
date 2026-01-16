@@ -48,8 +48,11 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
   const [activatePending, setActivatePending] = useState(false)
   const [finalizePending, setFinalizePending] = useState(false)
   const [cancelPending, setCancelPending] = useState(false)
+  const [claimSharesPending, setClaimSharesPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [winnerAddress, setWinnerAddress] = useState('')
+  const [pendingShares, setPendingShares] = useState<bigint>(0n)
+  const [shareTokens, setShareTokens] = useState<string[]>([])
 
   const publicClient = usePublicClient()
   const { data: walletClient } = useWalletClient()
@@ -73,7 +76,7 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
     enabled: !!heap && !isNativeToken,
   })
 
-  // Fetch heap details
+  // Fetch heap details and share information
   useEffect(() => {
     if (!contractAddress || !publicClient) {
       setHeap(null)
@@ -101,6 +104,30 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
           winner,
           createdAt,
         })
+
+        // Fetch share tokens
+        try {
+          const tokens = await publicClient.readContract({
+            address: contractAddress,
+            abi: HEAP_ABI,
+            functionName: 'getShareTokens',
+          }) as string[]
+          setShareTokens(tokens)
+
+          // Fetch pending shares for current user if connected
+          if (address && tokens.length > 0) {
+            const shares = await publicClient.readContract({
+              address: contractAddress,
+              abi: HEAP_ABI,
+              functionName: 'getPendingShares',
+              args: [address, tokens[0] as `0x${string}`],
+            }) as bigint
+            setPendingShares(shares)
+          }
+        } catch (err) {
+          console.error('[HeapDetails] Error fetching share info:', err)
+        }
+
         setError(null)
       } catch (err) {
         console.error('[HeapDetails] Error fetching heap:', err)
@@ -112,7 +139,7 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
     }
 
     fetchHeap()
-  }, [contractAddress, publicClient, heapId, blockNumber])
+  }, [contractAddress, publicClient, heapId, blockNumber, address])
 
   const handleContribute = async () => {
     if (!contractAddress || !walletClient || !heap) return
@@ -233,6 +260,29 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
       setError(err instanceof Error ? err.message : 'Failed to cancel')
     } finally {
       setCancelPending(false)
+    }
+  }
+
+  const handleClaimShares = async () => {
+    if (!contractAddress || !walletClient || shareTokens.length === 0) return
+
+    try {
+      setClaimSharesPending(true)
+      setError(null)
+
+      const hash = await walletClient.writeContract({
+        address: contractAddress,
+        abi: HEAP_ABI,
+        functionName: 'claimShares',
+        args: [shareTokens[0] as `0x${string}`],
+      })
+
+      await publicClient?.waitForTransactionReceipt({ hash })
+    } catch (err) {
+      console.error('[HeapDetails] Claim shares error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to claim shares')
+    } finally {
+      setClaimSharesPending(false)
     }
   }
 
@@ -375,7 +425,13 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
               )}
               <Button
                 onClick={handleContribute}
-                disabled={contributePending || (!isNativeToken && needsApproval)}
+                disabled={
+                  contributePending ||
+                  needsApproval ||
+                  heap.status !== 0 ||
+                  heap.contributors.length >= heap.maxContributions
+                }
+                variant="user"
                 className="w-full"
               >
                 {contributePending ? 'Contributing...' : 'Contribute to Heap'}
@@ -386,8 +442,8 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
           {canWithdraw && (
             <Button
               onClick={handleWithdraw}
-              disabled={withdrawPending}
-              variant="outline"
+              disabled={withdrawPending || heap.status !== 0}
+              variant="user"
               className="w-full"
             >
               {withdrawPending ? 'Withdrawing...' : 'Withdraw Contribution'}
@@ -399,7 +455,8 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
             <Button
               onClick={handleActivate}
               disabled={activatePending}
-              className="w-full bg-blue-500 hover:bg-blue-600"
+              variant="controller"
+              className="w-full"
             >
               <Play className="w-4 h-4 mr-2" />
               {activatePending ? 'Activating...' : 'Activate Heap'}
@@ -423,7 +480,8 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
               <Button
                 onClick={handleFinalize}
                 disabled={finalizePending || !winnerAddress}
-                className="w-full bg-green-500 hover:bg-green-600"
+                variant="controller"
+                className="w-full"
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" />
                 {finalizePending ? 'Finalizing...' : 'Finalize Heap'}
@@ -434,13 +492,37 @@ export function HeapDetails({ contractAddress, heapId }: HeapDetailsProps) {
           {canCancel && (
             <Button
               onClick={handleCancel}
-              disabled={cancelPending}
-              variant="destructive"
+              disabled={cancelPending || heap.status === 2}
+              variant="admin"
               className="w-full"
             >
               <XCircle className="w-4 h-4 mr-2" />
               {cancelPending ? 'Cancelling...' : 'Cancel Heap'}
             </Button>
+          )}
+
+          {/* Share recipient actions */}
+          {pendingShares > 0n && shareTokens.length > 0 && (
+            <div className="space-y-2 pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                You have pending shares to claim
+              </p>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm">Pending Shares:</span>
+                <span className="font-semibold">
+                  {formatEther(pendingShares)} {shareTokens[0] === zeroAddress ? 'ETH' : 'Token'}
+                </span>
+              </div>
+              <Button
+                onClick={handleClaimShares}
+                disabled={claimSharesPending}
+                variant="user"
+                className="w-full"
+              >
+                <Coins className="w-4 h-4 mr-2" />
+                {claimSharesPending ? 'Claiming...' : 'Claim Shares'}
+              </Button>
+            </div>
           )}
 
           {error && (

@@ -8,7 +8,7 @@ import { Gift, Trophy, Swords } from 'lucide-react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useOharaAi } from '@ohara-ai/sdk'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
-import { CurrentPool, ClaimPrize } from '@/components/features/game/prize'
+import { CurrentPool, ClaimPrize, ConfigPanel, ShareContractsPanel, RecorderAuthPanel, PoolExplorer } from '@/components/features/game/prize'
 
 // Native token address constant
 const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000' as const
@@ -37,6 +37,11 @@ export default function GamePrizePage() {
     claimed: readonly boolean[]
   } | undefined>()
   const [claimablePools, setClaimablePools] = useState<readonly bigint[]>([])
+  const [winnersCount, setWinnersCount] = useState<bigint | undefined>()
+  const [distributionStrategy, setDistributionStrategy] = useState<number | undefined>()
+  const [shareContracts, setShareContracts] = useState<readonly `0x${string}`[]>([])
+  const [totalPoolCount, setTotalPoolCount] = useState<bigint | undefined>()
+  const [tokens, setTokens] = useState<readonly `0x${string}`[]>([])
 
   useEffect(() => {
     setMounted(true)
@@ -49,12 +54,22 @@ export default function GamePrizePage() {
     const fetchInfo = async () => {
       if (!ops) return
       try {
-        const [poolId, mpp] = await Promise.all([
+        const [poolId, mpp, wc, ds, sc, tpc, tkns] = await Promise.all([
           ops.getCurrentPoolId(NATIVE_TOKEN),
           ops.getMatchesPerPool(),
+          ops.getWinnersCount(),
+          ops.getDistributionStrategy(),
+          ops.getShareContracts(),
+          ops.getTotalPoolCount(),
+          ops.getTokens(),
         ])
         setCurrentPoolId(poolId)
         setMatchesPerPool(mpp)
+        setWinnersCount(wc)
+        setDistributionStrategy(ds)
+        setShareContracts(sc)
+        setTotalPoolCount(tpc)
+        setTokens(tkns)
 
         if (poolId > 0n) {
           const [pool, winners] = await Promise.all([
@@ -100,6 +115,46 @@ export default function GamePrizePage() {
   const handleClaim = async (poolId: bigint): Promise<`0x${string}`> => {
     if (!ops) throw new Error('Prize operations not available')
     return await ops.claimPrize(poolId)
+  }
+
+  const handleSetWinnersCount = async (count: bigint): Promise<`0x${string}`> => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.setWinnersCount(count)
+  }
+
+  const handleSetDistributionStrategy = async (strategy: number): Promise<`0x${string}`> => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.setDistributionStrategy(strategy)
+  }
+
+  const handleSetMatchesPerPool = async (matches: bigint): Promise<`0x${string}`> => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.setMatchesPerPool(matches)
+  }
+
+  const handleAddShareContract = async (address: `0x${string}`): Promise<`0x${string}`> => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.addShareContract(address)
+  }
+
+  const handleRemoveShareContract = async (address: `0x${string}`): Promise<`0x${string}`> => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.removeShareContract(address)
+  }
+
+  const handleSetRecorderAuthorization = async (recorder: `0x${string}`, authorized: boolean): Promise<`0x${string}`> => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.setRecorderAuthorization(recorder, authorized)
+  }
+
+  const handleGetPool = async (poolId: bigint) => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.getPool(poolId)
+  }
+
+  const handleGetPoolWinners = async (poolId: bigint) => {
+    if (!ops) throw new Error('Prize operations not available')
+    return await ops.getPoolWinners(poolId)
   }
 
   return (
@@ -162,21 +217,54 @@ export default function GamePrizePage() {
             </CardHeader>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <CurrentPool
-                currentPoolId={currentPoolId}
+          <div className="space-y-6">
+            {/* Current Pool and Claims */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <CurrentPool
+                  currentPoolId={currentPoolId}
+                  matchesPerPool={matchesPerPool}
+                  poolInfo={poolInfo}
+                  poolWinners={poolWinners}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <ClaimPrize
+                  claimablePools={claimablePools}
+                  canClaimCurrent={canClaimCurrent}
+                  currentPoolId={currentPoolId}
+                  onClaim={handleClaim}
+                />
+              </div>
+            </div>
+
+            {/* Owner Configuration */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ConfigPanel
+                winnersCount={winnersCount}
+                distributionStrategy={distributionStrategy}
                 matchesPerPool={matchesPerPool}
-                poolInfo={poolInfo}
-                poolWinners={poolWinners}
+                onSetWinnersCount={handleSetWinnersCount}
+                onSetDistributionStrategy={handleSetDistributionStrategy}
+                onSetMatchesPerPool={handleSetMatchesPerPool}
+              />
+              <PoolExplorer
+                totalPoolCount={totalPoolCount}
+                tokens={tokens}
+                onGetPool={handleGetPool}
+                onGetPoolWinners={handleGetPoolWinners}
               />
             </div>
-            <div className="lg:col-span-1">
-              <ClaimPrize
-                claimablePools={claimablePools}
-                canClaimCurrent={canClaimCurrent}
-                currentPoolId={currentPoolId}
-                onClaim={handleClaim}
+
+            {/* Controller Functions */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ShareContractsPanel
+                shareContracts={shareContracts}
+                onAddShareContract={handleAddShareContract}
+                onRemoveShareContract={handleRemoveShareContract}
+              />
+              <RecorderAuthPanel
+                onSetRecorderAuthorization={handleSetRecorderAuthorization}
               />
             </div>
           </div>

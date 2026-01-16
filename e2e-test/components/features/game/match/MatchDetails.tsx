@@ -685,6 +685,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
 
           {canJoin && (
             <Button
+              variant="user"
               className="w-full"
               onClick={handleJoinMatch}
               disabled={isJoining || needsApproval || !isWalletReady}
@@ -694,7 +695,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
           )}
           {canWithdraw && (
             <Button
-              variant="outline"
+              variant="user"
               className="w-full"
               onClick={handleLeaveMatch}
               disabled={isWithdrawing || !isWalletReady}
@@ -721,10 +722,10 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                 </div>
               </div>
               <Button
+                variant="controller"
                 className="w-full"
                 onClick={handleActivateMatch}
                 disabled={isActivating || !isWalletReady}
-                variant="default"
               >
                 {isActivating ? (
                   <>
@@ -756,9 +757,9 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                     </div>
                   </div>
                   <Button
+                    variant="controller"
                     className="w-full"
                     onClick={() => setShowWinnerPicker(true)}
-                    variant="default"
                   >
                     <Flag className="w-4 h-4 mr-2" />
                     Finalize Match
@@ -811,6 +812,7 @@ export function MatchDetails({ matchId, onMatchDeleted }: MatchDetailsProps) {
                       Cancel
                     </Button>
                     <Button
+                      variant="controller"
                       className="flex-1"
                       onClick={handleFinalizeMatch}
                       disabled={!selectedWinner || isFinalizing || !isWalletReady}

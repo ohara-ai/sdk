@@ -9,8 +9,8 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Copy, Check } from 'lucide-react'
-import { usePublicClient } from 'wagmi'
+import { Copy, Check, Users, Percent } from 'lucide-react'
+import { usePublicClient, useBlockNumber } from 'wagmi'
 import { HEAP_ABI } from '@ohara-ai/sdk'
 
 interface HeapContractInformationProps {
@@ -26,8 +26,15 @@ export function HeapContractInformation({ contractAddress }: HeapContractInforma
     activeHeapCount: bigint
     featureName: string
     version: string
+    feeRecipients: readonly string[]
+    feeShares: readonly bigint[]
+    totalFeeShare: bigint
+    shareRecipients: readonly string[]
+    shareShares: readonly bigint[]
+    totalShareBasisPoints: bigint
   } | null>(null)
   const publicClient = usePublicClient()
+  const { data: blockNumber } = useBlockNumber({ watch: true })
 
   useEffect(() => {
     if (!contractAddress || !publicClient) {
@@ -70,6 +77,26 @@ export function HeapContractInformation({ contractAddress }: HeapContractInforma
           }) as Promise<string>,
         ])
 
+        // Fetch fee configuration
+        const feeConfig = await publicClient.readContract({
+          address: contractAddress,
+          abi: HEAP_ABI,
+          functionName: 'getFeeConfiguration',
+        }) as [readonly string[], readonly bigint[], bigint]
+
+        // Fetch share configuration
+        const shareConfig = await publicClient.readContract({
+          address: contractAddress,
+          abi: HEAP_ABI,
+          functionName: 'getShareRecipients',
+        }) as [readonly string[], readonly bigint[]]
+
+        const totalShareBasisPoints = await publicClient.readContract({
+          address: contractAddress,
+          abi: HEAP_ABI,
+          functionName: 'totalShareBasisPoints',
+        }) as bigint
+
         setContractInfo({
           owner,
           controller,
@@ -77,6 +104,12 @@ export function HeapContractInformation({ contractAddress }: HeapContractInforma
           activeHeapCount,
           featureName,
           version,
+          feeRecipients: feeConfig[0],
+          feeShares: feeConfig[1],
+          totalFeeShare: feeConfig[2],
+          shareRecipients: shareConfig[0],
+          shareShares: shareConfig[1],
+          totalShareBasisPoints,
         })
       } catch (err) {
         console.error('[HeapContractInformation] Error fetching contract info:', err)
@@ -85,7 +118,7 @@ export function HeapContractInformation({ contractAddress }: HeapContractInforma
     }
 
     fetchContractInfo()
-  }, [contractAddress, publicClient])
+  }, [contractAddress, publicClient, blockNumber])
 
   const copyToClipboard = async () => {
     if (!contractAddress) return
@@ -167,6 +200,54 @@ export function HeapContractInformation({ contractAddress }: HeapContractInforma
                 {contractInfo.activeHeapCount.toString()} / {contractInfo.maxActiveHeaps.toString()}
               </span>
             </div>
+
+            {/* Fee Configuration */}
+            {contractInfo.feeRecipients.length > 0 && (
+              <div className="pt-4 border-t space-y-2">
+                <div className="flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-semibold">Fee Configuration</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Total Fee:</span>
+                    <span className="font-semibold">{(Number(contractInfo.totalFeeShare) / 100).toFixed(2)}%</span>
+                  </div>
+                  {contractInfo.feeRecipients.map((recipient, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs">
+                      <code className="text-muted-foreground">
+                        {recipient.slice(0, 6)}...{recipient.slice(-4)}
+                      </code>
+                      <span>{(Number(contractInfo.feeShares[idx]) / 100).toFixed(2)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Share Configuration */}
+            {contractInfo.shareRecipients.length > 0 && (
+              <div className="pt-4 border-t space-y-2">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm font-semibold">Share Recipients</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Total Share:</span>
+                    <span className="font-semibold">{(Number(contractInfo.totalShareBasisPoints) / 100).toFixed(2)}%</span>
+                  </div>
+                  {contractInfo.shareRecipients.map((recipient, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs">
+                      <code className="text-muted-foreground">
+                        {recipient.slice(0, 6)}...{recipient.slice(-4)}
+                      </code>
+                      <span>{(Number(contractInfo.shareShares[idx]) / 100).toFixed(2)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         )}
       </CardContent>

@@ -33,7 +33,15 @@ export interface PrizeOperations {
   getPrizeForRank(poolId: bigint, rank: bigint): Promise<bigint>
   getTokens(): Promise<readonly Address[]>
   getClaimablePools(player: Address): Promise<readonly bigint[]>
+  getTotalPoolCount(): Promise<bigint>
+  getShareContracts(): Promise<readonly Address[]>
   claimPrize(poolId: bigint): Promise<Hash>
+  setWinnersCount(count: bigint): Promise<Hash>
+  setDistributionStrategy(strategy: DistributionStrategy): Promise<Hash>
+  setMatchesPerPool(matches: bigint): Promise<Hash>
+  addShareContract(shareContract: Address): Promise<Hash>
+  removeShareContract(shareContract: Address): Promise<Hash>
+  setRecorderAuthorization(recorder: Address, authorized: boolean): Promise<Hash>
 }
 
 export function createClientPrizeOperations(
@@ -153,6 +161,22 @@ export function createClientPrizeOperations(
       })
     },
 
+    async getTotalPoolCount(): Promise<bigint> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'getTotalPoolCount',
+      })
+    },
+
+    async getShareContracts(): Promise<readonly Address[]> {
+      return publicClient.readContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'getShareContracts',
+      })
+    },
+
     async claimPrize(poolId: bigint): Promise<Hash> {
       const wallet = requireWallet()
       const account = wallet.account
@@ -163,6 +187,96 @@ export function createClientPrizeOperations(
         abi: PRIZE_ABI,
         functionName: 'claimPrize',
         args: [poolId],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async setWinnersCount(count: bigint): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'setWinnersCount',
+        args: [count],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async setDistributionStrategy(strategy: DistributionStrategy): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'setDistributionStrategy',
+        args: [strategy],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async setMatchesPerPool(matches: bigint): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'setMatchesPerPool',
+        args: [matches],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async addShareContract(shareContract: Address): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'addShareContract',
+        args: [shareContract],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async removeShareContract(shareContract: Address): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'removeShareContract',
+        args: [shareContract],
+        account,
+        chain: undefined,
+      })
+    },
+
+    async setRecorderAuthorization(recorder: Address, authorized: boolean): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: PRIZE_ABI,
+        functionName: 'setRecorderAuthorization',
+        args: [recorder, authorized],
         account,
         chain: undefined,
       })

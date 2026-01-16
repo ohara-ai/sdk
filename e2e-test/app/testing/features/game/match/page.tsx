@@ -16,6 +16,9 @@ import {
   MatchDetails,
 } from '@/components/features/game/match'
 import { FeeWithdrawal } from '@/components/features/game/match/FeeWithdrawal'
+import { MatchAdminActions } from '@/components/features/game/match/MatchAdminActions'
+import { MatchOwnerSettings } from '@/components/features/game/match/MatchOwnerSettings'
+import { ShareWithdrawal } from '@/components/features/game/match/ShareWithdrawal'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
 import { Swords, Trophy } from 'lucide-react'
 import { useAccount, useBlockNumber } from 'wagmi'
@@ -206,7 +209,7 @@ export default function GameMatchPage() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
+                <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1">
                   <TabsTrigger
                     value="matches"
                     className="data-[state=active]:bg-white"
@@ -218,6 +221,12 @@ export default function GameMatchPage() {
                     className="data-[state=active]:bg-white"
                   >
                     Create Match
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="admin"
+                    className="data-[state=active]:bg-white"
+                  >
+                    Admin
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="matches" className="mt-6">
@@ -238,6 +247,23 @@ export default function GameMatchPage() {
                     }}
                   />
                 </TabsContent>
+                <TabsContent value="admin" className="mt-6">
+                  <div className="space-y-6">
+                    <MatchAdminActions
+                      matchId={selectedMatchId}
+                      onActionComplete={() => {
+                        // Refresh data after admin actions
+                        console.log('[GameMatchPage] Admin action completed')
+                      }}
+                    />
+                    <MatchOwnerSettings
+                      onActionComplete={() => {
+                        // Refresh data after owner actions
+                        console.log('[GameMatchPage] Owner action completed')
+                      }}
+                    />
+                  </div>
+                </TabsContent>
               </Tabs>
             </div>
 
@@ -247,6 +273,7 @@ export default function GameMatchPage() {
                 onMatchDeleted={() => setSelectedMatchId(null)}
               />
               <FeeWithdrawal />
+              <ShareWithdrawal />
             </div>
           </div>
         )}

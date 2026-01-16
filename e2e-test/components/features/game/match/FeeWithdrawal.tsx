@@ -207,7 +207,8 @@ export function FeeWithdrawal() {
                     disabled={
                       isWithdrawing || isWithdrawConfirming || fee.amount === 0n || !isWalletReady
                     }
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    variant="user"
+                    className="w-full"
                   >
                     {isWithdrawing
                       ? 'Confirming...'

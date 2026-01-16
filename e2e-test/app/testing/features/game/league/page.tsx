@@ -15,6 +15,9 @@ import {
   Leaderboard,
   CycleConfig,
   CycleStatus,
+  LeagueActions,
+  CycleDetails,
+  PlayerRankLookup,
 } from '@/components/features/game/league'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
 import { Trophy, Swords } from 'lucide-react'
@@ -179,31 +182,52 @@ export default function LeaguePage() {
             </CardHeader>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Main content - Leaderboard */}
-            <div className="lg:col-span-3">
-              <Leaderboard leaderboard={leaderboard} cycleId={currentCycleId} />
+          <div className="space-y-6">
+            {/* Main Grid - Leaderboard and Sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Main content - Leaderboard */}
+              <div className="lg:col-span-3">
+                <Leaderboard leaderboard={leaderboard} cycleId={currentCycleId} />
+              </div>
+
+              {/* Sidebar */}
+              <div className="lg:col-span-1 space-y-6">
+                <CycleInfo
+                  currentCycleId={currentCycleId}
+                  cycle={cycle}
+                  isCycleStarted={isCycleStarted}
+                />
+
+                <PlayerStats
+                  playerStats={playerStats}
+                  cycleId={currentCycleId}
+                />
+
+                <CycleConfig
+                  cycleDuration={cycleDuration}
+                  maxCyclesKept={maxCyclesKept}
+                  cyclePlayerCount={cyclePlayerCount}
+                  cycleTokenCount={cycleTokenCount}
+                />
+              </div>
             </div>
 
-            {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-              <CycleInfo
-                currentCycleId={currentCycleId}
-                cycle={cycle}
-                isCycleStarted={isCycleStarted}
-              />
+            {/* Additional Features Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Admin Actions */}
+              <div className="lg:col-span-1">
+                <LeagueActions />
+              </div>
 
-              <PlayerStats
-                playerStats={playerStats}
-                cycleId={currentCycleId}
-              />
+              {/* Cycle Details */}
+              <div className="lg:col-span-1">
+                <CycleDetails cycleId={currentCycleId} />
+              </div>
 
-              <CycleConfig
-                cycleDuration={cycleDuration}
-                maxCyclesKept={maxCyclesKept}
-                cyclePlayerCount={cyclePlayerCount}
-                cycleTokenCount={cycleTokenCount}
-              />
+              {/* Player Rank Lookup */}
+              <div className="lg:col-span-1">
+                <PlayerRankLookup />
+              </div>
             </div>
           </div>
         )}

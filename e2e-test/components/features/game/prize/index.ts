@@ -1,2 +1,6 @@
 export { CurrentPool } from './CurrentPool'
 export { ClaimPrize } from './ClaimPrize'
+export { ConfigPanel } from './ConfigPanel'
+export { ShareContractsPanel } from './ShareContractsPanel'
+export { RecorderAuthPanel } from './RecorderAuthPanel'
+export { PoolExplorer } from './PoolExplorer'

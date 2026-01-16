@@ -15,6 +15,7 @@ import {
   CreateHeapForm,
   HeapDetails,
   HeapContractInformation,
+  ControllerActions,
 } from '@/components/features/game/heap'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
 import { Coins, Trophy } from 'lucide-react'
@@ -120,7 +121,7 @@ export default function HeapPage() {
                 onValueChange={setActiveTab}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100 p-1">
+                <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1">
                   <TabsTrigger
                     value="heaps"
                     className="data-[state=active]:bg-white"
@@ -132,6 +133,12 @@ export default function HeapPage() {
                     className="data-[state=active]:bg-white"
                   >
                     Create Heap
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="admin"
+                    className="data-[state=active]:bg-white"
+                  >
+                    Admin
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="heaps" className="mt-6">
@@ -153,6 +160,9 @@ export default function HeapPage() {
                       setActiveTab('heaps')
                     }}
                   />
+                </TabsContent>
+                <TabsContent value="admin" className="mt-6">
+                  <ControllerActions contractAddress={heapAddress} />
                 </TabsContent>
               </Tabs>
             </div>

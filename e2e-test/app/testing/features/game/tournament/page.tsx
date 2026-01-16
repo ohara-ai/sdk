@@ -12,13 +12,17 @@ import {
 import {
   TournamentContractInformation,
   TournamentBracket,
+  CreateTournamentForm,
+  TournamentActions,
+  TournamentAdminSettings,
 } from '@/components/features/game/tournament'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
-import { Brackets, Trophy, RefreshCw, Loader2 } from 'lucide-react'
+import { Brackets, Trophy, RefreshCw, Loader2, Users, Settings } from 'lucide-react'
 import { useAccount, useBlockNumber } from 'wagmi'
 import { useOharaAi, TournamentStatus } from '@ohara-ai/sdk'
 import type { TournamentView } from '@ohara-ai/sdk'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface TournamentListItem {
   id: bigint
@@ -40,6 +44,8 @@ export default function TournamentPage() {
   const [maxParticipants, setMaxParticipants] = useState<bigint | undefined>()
   const [loading, setLoading] = useState(true)
   const [selectedTournament, setSelectedTournament] = useState<bigint | null>(null)
+  const [selectedTournamentData, setSelectedTournamentData] = useState<TournamentView | null>(null)
+  const [activeTab, setActiveTab] = useState('view')
 
   useEffect(() => {
     setMounted(true)
@@ -82,6 +88,13 @@ export default function TournamentPage() {
         // Select first tournament if none selected
         if (tournamentList.length > 0 && selectedTournament === null) {
           setSelectedTournament(tournamentList[0].id)
+          setSelectedTournamentData(tournamentList[0].data)
+        } else if (selectedTournament !== null) {
+          // Update selected tournament data
+          const selected = tournamentList.find(t => t.id === selectedTournament)
+          if (selected) {
+            setSelectedTournamentData(selected.data)
+          }
         }
       } catch (error) {
         console.error('Error fetching tournament data:', error)
@@ -91,7 +104,17 @@ export default function TournamentPage() {
     }
 
     fetchData()
-  }, [tournamentOps, blockNumber, selectedTournament])
+  }, [tournamentOps, blockNumber])
+
+  const handleActionComplete = () => {
+    setLoading(true)
+  }
+
+  const handleTournamentSelect = (id: bigint, data: TournamentView) => {
+    setSelectedTournament(id)
+    setSelectedTournamentData(data)
+    setActiveTab('view')
+  }
 
   const getStatusColor = (status: TournamentStatus) => {
     switch (status) {
@@ -189,29 +212,73 @@ export default function TournamentPage() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Main content - Bracket or placeholder */}
+            {/* Main content - Tabbed interface */}
             <div className="lg:col-span-3">
-              {loading ? (
-                <Card className="border-2 border-gray-200">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <CardTitle className="text-gray-900">Loading tournaments...</CardTitle>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="view" className="flex items-center gap-2">
+                    <Brackets className="w-4 h-4" />
+                    View Bracket
+                  </TabsTrigger>
+                  <TabsTrigger value="create" className="flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Create
+                  </TabsTrigger>
+                  <TabsTrigger value="admin" className="flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    Admin
+                  </TabsTrigger>
+                  <TabsTrigger value="info" className="flex items-center gap-2">
+                    <Trophy className="w-4 h-4" />
+                    Info
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="view" className="mt-6">
+                  {loading ? (
+                    <Card className="border-2 border-gray-200">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <CardTitle className="text-gray-900">Loading tournaments...</CardTitle>
+                        </div>
+                      </CardHeader>
+                    </Card>
+                  ) : selectedTournament !== null ? (
+                    <div className="space-y-6">
+                      <TournamentBracket tournamentId={selectedTournament} />
+                      {selectedTournamentData && (
+                        <TournamentActions
+                          tournamentId={selectedTournament}
+                          tournament={selectedTournamentData}
+                          onActionComplete={handleActionComplete}
+                        />
+                      )}
                     </div>
-                  </CardHeader>
-                </Card>
-              ) : selectedTournament !== null ? (
-                <TournamentBracket tournamentId={selectedTournament} />
-              ) : (
-                <Card className="border-2 border-gray-200">
-                  <CardHeader>
-                    <CardTitle className="text-gray-900">No Tournaments</CardTitle>
-                    <CardDescription className="text-gray-600">
-                      No tournaments have been created yet. Create one to get started.
-                    </CardDescription>
-                  </CardHeader>
-                </Card>
-              )}
+                  ) : (
+                    <Card className="border-2 border-gray-200">
+                      <CardHeader>
+                        <CardTitle className="text-gray-900">No Tournaments</CardTitle>
+                        <CardDescription className="text-gray-600">
+                          No tournaments have been created yet. Switch to the Create tab to get started.
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="create" className="mt-6">
+                  <CreateTournamentForm />
+                </TabsContent>
+
+                <TabsContent value="admin" className="mt-6">
+                  <TournamentAdminSettings />
+                </TabsContent>
+
+                <TabsContent value="info" className="mt-6">
+                  <TournamentContractInformation />
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Sidebar */}
@@ -239,7 +306,7 @@ export default function TournamentPage() {
                       {tournaments.map((t) => (
                         <button
                           key={t.id.toString()}
-                          onClick={() => setSelectedTournament(t.id)}
+                          onClick={() => handleTournamentSelect(t.id, t.data)}
                           className={`w-full text-left p-2 rounded-lg border transition-colors ${
                             selectedTournament === t.id
                               ? 'border-rose-300 bg-rose-50'
@@ -263,9 +330,6 @@ export default function TournamentPage() {
                   )}
                 </div>
               </Card>
-
-              {/* Contract Information */}
-              <TournamentContractInformation />
             </div>
           </div>
         )}

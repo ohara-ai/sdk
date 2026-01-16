@@ -121,6 +121,12 @@ export interface MatchOperations {
    * @param token The token address (use zeroAddress for native token/ETH)
    */
   getPendingShares(recipient: Address, token: Address): Promise<bigint>
+
+  /**
+   * Claim accumulated shares (for share recipients only)
+   * @param token The token address (use zeroAddress for native token/ETH)
+   */
+  claimShares(token: Address): Promise<Hash>
 }
 
 /**
@@ -455,6 +461,21 @@ function createOperationsInternal(
         abi: MATCH_ABI,
         functionName: 'getPendingShares',
         args: [recipient, token],
+      })
+    },
+
+    async claimShares(token: Address): Promise<Hash> {
+      const wallet = requireWallet()
+      const account = wallet.account
+      if (!account) throw new Error('No account found in wallet')
+
+      return wallet.writeContract({
+        address: contractAddress,
+        abi: MATCH_ABI,
+        functionName: 'claimShares',
+        args: [token],
+        account,
+        chain: undefined,
       })
     },
   }

@@ -12,6 +12,10 @@ import {
 import {
   PlayerStats,
   Leaderboard,
+  ControllerOperations,
+  OwnerOperations,
+  ContractDetails,
+  MatchHistory,
 } from '@/components/features/game/score'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
 import { Trophy, Swords } from 'lucide-react'
@@ -126,13 +130,32 @@ export default function GameScorePage() {
             </CardHeader>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
-              <Leaderboard topPlayersByWins={topPlayersByWins} />
+          <div className="space-y-6">
+            {/* Leaderboard and Player Stats */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="lg:col-span-3">
+                <Leaderboard topPlayersByWins={topPlayersByWins} />
+              </div>
+              <div className="lg:col-span-1">
+                <PlayerStats playerScore={playerScore} />
+              </div>
             </div>
 
-            <div className="lg:col-span-1">
-              <PlayerStats playerScore={playerScore} />
+            {/* Contract Details and Match History */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ContractDetails contractAddress={game.scores?.address} />
+              <MatchHistory contractAddress={game.scores?.address} />
+            </div>
+
+            {/* Controller and Owner Operations */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ControllerOperations contractAddress={game.scores?.address} />
+              <OwnerOperations
+                contractAddress={game.scores?.address}
+                currentMaxLosersPerMatch={maxLosersPerMatch}
+                currentMaxTotalPlayers={maxTotalPlayers}
+                currentMaxTotalMatches={maxTotalMatches}
+              />
             </div>
           </div>
         )}

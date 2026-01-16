@@ -13,6 +13,9 @@ import {
   PredictionContractInformation,
   MarketList,
   MarketDetails,
+  ControllerActions,
+  UserActions,
+  UserPredictionInfo,
 } from '@/components/features/game/prediction'
 import { FeaturePageHeader } from '@/components/features/game/FeaturePageHeader'
 import { Target, Swords } from 'lucide-react'
@@ -25,10 +28,15 @@ export default function PredictionPage() {
 
   const [selectedMarketId, setSelectedMarketId] = useState<bigint | null>(null)
   const [mounted, setMounted] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   useState(() => {
     setMounted(true)
   })
+
+  const handleActionComplete = () => {
+    setRefreshKey(prev => prev + 1)
+  }
 
   return (
     <main className="min-h-screen bg-white">
@@ -77,13 +85,22 @@ export default function PredictionPage() {
               contractAddress={game.prediction?.address}
             />
 
+            <ControllerActions contractAddress={game.prediction?.address} />
+
             {selectedMarketId ? (
-              <MarketDetails
-                marketId={selectedMarketId}
-                onBack={() => setSelectedMarketId(null)}
-              />
+              <div className="space-y-6">
+                <MarketDetails
+                  marketId={selectedMarketId}
+                  onBack={() => setSelectedMarketId(null)}
+                />
+                <UserPredictionInfo marketId={selectedMarketId} key={`info-${refreshKey}`} />
+                <UserActions 
+                  marketId={selectedMarketId} 
+                  onActionComplete={handleActionComplete}
+                />
+              </div>
             ) : (
-              <MarketList onSelectMarket={setSelectedMarketId} />
+              <MarketList onSelectMarket={setSelectedMarketId} key={`list-${refreshKey}`} />
             )}
           </div>
         )}

@@ -66,7 +66,7 @@ export function ClaimPrize({
                 </code>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="user"
                   onClick={() => handleClaim(pid)}
                   disabled={isClaiming}
                   className="flex-1"
@@ -81,6 +81,7 @@ export function ClaimPrize({
         {canClaimCurrent && currentPoolId !== undefined && (
           <Button
             size="sm"
+            variant="user"
             onClick={() => handleClaim(currentPoolId)}
             disabled={isClaiming}
             className="w-full"
