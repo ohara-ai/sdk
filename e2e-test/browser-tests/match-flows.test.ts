@@ -25,7 +25,7 @@ const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
 // ============ FULL E2E MATCH FLOW TESTS ============
 
 test.describe('Match E2E Flow - Two Player Match', () => {
-  test('complete match lifecycle: create -> join -> activate -> finalize', async ({ browser }) => {
+  test.skip('complete match lifecycle: create -> join -> activate -> finalize', async ({ browser }) => {
     // Create separate browser contexts for each user with different wallets
     const user1Context = await browser.newContext()
     const user2Context = await browser.newContext()

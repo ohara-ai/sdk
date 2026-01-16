@@ -6,6 +6,19 @@ export const TOURNAMENT_ABI = [
   },
   {
     "type": "function",
+    "name": "DEFAULT_MAX_ACTIVE_TOURNAMENTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "FEE_BASIS_POINTS",
     "inputs": [],
     "outputs": [

@@ -10,6 +10,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "DEFAULT_MATCHES_PER_POOL",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "DEFAULT_WINNERS_COUNT",
     "inputs": [],
     "outputs": [
@@ -77,6 +90,19 @@ export const PRIZE_ABI = [
     "type": "function",
     "name": "acceptOwnership",
     "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "addShareContract",
+    "inputs": [
+      {
+        "name": "_shareContract",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
@@ -468,6 +494,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "getShareContracts",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "contracts",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getTokens",
     "inputs": [],
     "outputs": [
@@ -520,7 +559,7 @@ export const PRIZE_ABI = [
         "internalType": "address"
       },
       {
-        "name": "_matchContract",
+        "name": "_shareContract",
         "type": "address",
         "internalType": "address"
       },
@@ -548,7 +587,7 @@ export const PRIZE_ABI = [
         "internalType": "address"
       },
       {
-        "name": "_matchContract",
+        "name": "_shareContract",
         "type": "address",
         "internalType": "address"
       },
@@ -570,19 +609,6 @@ export const PRIZE_ABI = [
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "matchContract",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IShares"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -667,6 +693,19 @@ export const PRIZE_ABI = [
   },
   {
     "type": "function",
+    "name": "removeShareContract",
+    "inputs": [
+      {
+        "name": "_shareContract",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setController",
     "inputs": [
       {
@@ -686,19 +725,6 @@ export const PRIZE_ABI = [
         "name": "_strategy",
         "type": "uint8",
         "internalType": "enum IPrize.DistributionStrategy"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setMatchContract",
-    "inputs": [
-      {
-        "name": "_matchContract",
-        "type": "address",
-        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -966,25 +992,6 @@ export const PRIZE_ABI = [
   },
   {
     "type": "event",
-    "name": "MatchContractUpdated",
-    "inputs": [
-      {
-        "name": "previousMatch",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "newMatch",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "MatchRecorded",
     "inputs": [
       {
@@ -1185,6 +1192,32 @@ export const PRIZE_ABI = [
   },
   {
     "type": "event",
+    "name": "ShareContractAdded",
+    "inputs": [
+      {
+        "name": "shareContract",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ShareContractRemoved",
+    "inputs": [
+      {
+        "name": "shareContract",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "SharesCollected",
     "inputs": [
       {
@@ -1249,11 +1282,6 @@ export const PRIZE_ABI = [
   },
   {
     "type": "error",
-    "name": "InvalidMatchContract",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "InvalidMatchesPerPool",
     "inputs": []
   },
@@ -1265,6 +1293,11 @@ export const PRIZE_ABI = [
   {
     "type": "error",
     "name": "InvalidRank",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidShareContract",
     "inputs": []
   },
   {
@@ -1315,6 +1348,16 @@ export const PRIZE_ABI = [
   {
     "type": "error",
     "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ShareContractAlreadyExists",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ShareContractNotFound",
     "inputs": []
   },
   {

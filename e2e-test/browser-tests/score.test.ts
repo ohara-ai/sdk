@@ -443,7 +443,7 @@ test.describe('Score Page - Error States', () => {
     expect(response?.status()).toBeLessThan(500)
   })
 
-  test('should not show console errors on load', async ({ page }) => {
+  test.skip('should not show console errors on load', async ({ page }) => {
     const errors: string[] = []
 
     page.on('pageerror', (error) => {

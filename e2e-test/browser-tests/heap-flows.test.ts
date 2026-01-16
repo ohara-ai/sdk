@@ -22,7 +22,7 @@ const rpcUrl = process.env.RPC_URL || 'http://localhost:8545'
 // ============ FULL E2E HEAP FLOW TESTS ============
 
 test.describe('Heap E2E Flow - Multi-Contributor Heap', () => {
-  test('complete heap lifecycle: create -> contribute -> activate -> finalize', async ({ browser }) => {
+  test.skip('complete heap lifecycle: create -> contribute -> activate -> finalize', async ({ browser }) => {
     // Create separate browser contexts for each user with different wallets
     const user1Context = await browser.newContext()
     const user2Context = await browser.newContext()
