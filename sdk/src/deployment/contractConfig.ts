@@ -192,9 +192,9 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
         {
           targetContract: scoreAddress,
           abi: SCORE_ABI,
-          functionName: 'setPrize',
+          functionName: 'addScoreListener',
           args: [prizeAddress],
-          description: 'Configure Score to forward winners to Prize pools',
+          description: 'Register Prize as score listener to receive match results',
         },
         {
           targetContract: prizeAddress,
@@ -258,19 +258,34 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
   },
 
   League: {
-    // League depends on Match for recording results
-    dependencies: ['Match'],
+    // League depends on Score for receiving match result notifications
+    dependencies: ['Score'],
 
     buildDeployParams: (deployedAddresses: Record<string, string>) => ({
-      matchAddress: deployedAddresses['Match'] as `0x${string}` | undefined,
+      scoreAddress: deployedAddresses['Score'] as `0x${string}` | undefined,
     }),
 
     deploy: async (params: Record<string, unknown>) =>
-      deployLeague(params as { matchAddress?: `0x${string}` }),
+      deployLeague(params as { scoreAddress?: `0x${string}` }),
 
-    getPermissionActions: () => {
-      // League doesn't require special permission setup
-      return []
+    getPermissionActions: (context: PermissionContext) => {
+      const scoreAddress = context.deployedAddresses['Score']
+      const leagueAddress = context.deployedAddresses['League']
+
+      if (!scoreAddress || !leagueAddress) return []
+
+      // Only set wiring if League was deployed in this batch
+      if (!context.deployedInBatch.has('League')) return []
+
+      return [
+        {
+          targetContract: scoreAddress,
+          abi: SCORE_ABI,
+          functionName: 'addScoreListener',
+          args: [leagueAddress],
+          description: 'Register League as score listener to receive match results',
+        },
+      ]
     },
   },
 
@@ -285,9 +300,24 @@ export const CONTRACT_CONFIG: Record<ContractType, ContractConfig> = {
     deploy: async (params: Record<string, unknown>) =>
       deployTournament(params as { scoreAddress?: `0x${string}` }),
 
-    getPermissionActions: () => {
-      // Tournament doesn't require special permission setup
-      return []
+    getPermissionActions: (context: PermissionContext) => {
+      const scoreAddress = context.deployedAddresses['Score']
+      const tournamentAddress = context.deployedAddresses['Tournament']
+
+      if (!scoreAddress || !tournamentAddress) return []
+
+      // Only set wiring if Tournament was deployed in this batch
+      if (!context.deployedInBatch.has('Tournament')) return []
+
+      return [
+        {
+          targetContract: scoreAddress,
+          abi: SCORE_ABI,
+          functionName: 'addScoreListener',
+          args: [tournamentAddress],
+          description: 'Register Tournament as score listener to receive match results',
+        },
+      ]
     },
   },
 

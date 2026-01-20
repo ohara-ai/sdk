@@ -10,7 +10,7 @@ contract LeagueTest is Test {
     
     address public owner = address(0x1);
     address public controller = address(0x2);
-    address public matchContract = address(0x3);
+    address public scoreContract = address(0x3);
     address public player1 = address(0x4);
     address public player2 = address(0x5);
     address public player3 = address(0x6);
@@ -22,14 +22,14 @@ contract LeagueTest is Test {
     event MatchRecorded(uint256 indexed cycleId, address indexed winner, address[] losers, address token, uint256 totalPrize);
     event PlayerRegistered(uint256 indexed cycleId, address indexed player);
     event CycleFinalized(uint256 indexed cycleId, address indexed token, address[] topPlayers, uint256[] topAmounts);
-    event MatchContractUpdated(address indexed previousMatch, address indexed newMatch);
+    event ScoreContractUpdated(address indexed previousScore, address indexed newScore);
     event CycleDurationUpdated(uint256 previousDuration, uint256 newDuration);
     event CycleCleanedUp(uint256 indexed cycleId);
     event MaxCyclesKeptUpdated(uint256 previousValue, uint256 newValue);
     
     function setUp() public {
         league = new League();
-        league.initialize(owner, controller, matchContract, 0);
+        league.initialize(owner, controller, scoreContract, 0);
     }
     
     // ============ Initialization Tests ============
@@ -37,7 +37,7 @@ contract LeagueTest is Test {
     function test_InitialState() public view {
         assertEq(league.owner(), owner);
         assertEq(league.controller(), controller);
-        assertEq(league.matchContract(), matchContract);
+        assertEq(league.scoreContract(), scoreContract);
         assertEq(league.cycleDuration(), league.DEFAULT_CYCLE_DURATION());
         assertEq(league.maxCyclesKept(), league.DEFAULT_MAX_CYCLES_KEPT());
         assertFalse(league.isCycleStarted());
@@ -46,16 +46,16 @@ contract LeagueTest is Test {
     function test_InitializeWithCustomDuration() public {
         League newLeague = new League();
         uint256 customDuration = 86400; // 1 day
-        newLeague.initialize(owner, controller, matchContract, customDuration);
+        newLeague.initialize(owner, controller, scoreContract, customDuration);
         
         assertEq(newLeague.cycleDuration(), customDuration);
     }
     
-    function test_InitializeWithZeroMatchContract() public {
+    function test_InitializeWithZeroScoreContract() public {
         League newLeague = new League();
         newLeague.initialize(owner, controller, address(0), 0);
         
-        assertEq(newLeague.matchContract(), address(0));
+        assertEq(newLeague.scoreContract(), address(0));
     }
     
     function test_Initialize_RevertInvalidDuration() public {
@@ -63,7 +63,7 @@ contract LeagueTest is Test {
         
         // Too short
         vm.expectRevert(League.InvalidCycleDuration.selector);
-        newLeague.initialize(owner, controller, matchContract, 1000); // Less than MIN_CYCLE_DURATION
+        newLeague.initialize(owner, controller, scoreContract, 1000); // Less than MIN_CYCLE_DURATION
     }
     
     function test_Initialize_RevertDurationTooLong() public {
@@ -71,32 +71,32 @@ contract LeagueTest is Test {
         
         // Too long
         vm.expectRevert(League.InvalidCycleDuration.selector);
-        newLeague.initialize(owner, controller, matchContract, 3000000); // More than MAX_CYCLE_DURATION
+        newLeague.initialize(owner, controller, scoreContract, 3000000); // More than MAX_CYCLE_DURATION
     }
     
     // ============ Admin Functions Tests ============
     
-    function test_SetMatchContract() public {
-        address newMatchContract = address(0x99);
+    function test_SetScoreContract() public {
+        address newScoreContract = address(0x99);
         
         vm.prank(controller);
         vm.expectEmit(true, true, false, true);
-        emit MatchContractUpdated(matchContract, newMatchContract);
-        league.setMatchContract(newMatchContract);
+        emit ScoreContractUpdated(scoreContract, newScoreContract);
+        league.setScoreContract(newScoreContract);
         
-        assertEq(league.matchContract(), newMatchContract);
+        assertEq(league.scoreContract(), newScoreContract);
     }
     
-    function test_SetMatchContract_RevertZeroAddress() public {
+    function test_SetScoreContract_RevertZeroAddress() public {
         vm.prank(controller);
-        vm.expectRevert(League.InvalidMatchContract.selector);
-        league.setMatchContract(address(0));
+        vm.expectRevert(League.InvalidScoreContract.selector);
+        league.setScoreContract(address(0));
     }
     
-    function test_SetMatchContract_OnlyController() public {
+    function test_SetScoreContract_OnlyController() public {
         vm.prank(player1);
         vm.expectRevert();
-        league.setMatchContract(address(0x99));
+        league.setScoreContract(address(0x99));
     }
     
     function test_SetPrediction() public {
@@ -160,8 +160,8 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         assertTrue(league.isCycleStarted());
         assertEq(league.getCurrentCycleId(), 0);
@@ -174,8 +174,8 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         ILeague.PlayerStats memory winnerStats = league.getPlayerStats(0, player1, token1);
         assertEq(winnerStats.wins, 1);
@@ -191,8 +191,8 @@ contract LeagueTest is Test {
         losers[1] = player3;
         losers[2] = player4;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 3 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 3 ether);
         
         ILeague.PlayerStats memory winnerStats = league.getPlayerStats(0, player1, token1);
         assertEq(winnerStats.wins, 1);
@@ -207,11 +207,11 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         ILeague.PlayerStats memory winnerStats = league.getPlayerStats(0, player1, token1);
         assertEq(winnerStats.wins, 2);
@@ -225,11 +225,11 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token2, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token2, 2 ether);
         
         ILeague.PlayerStats memory stats1 = league.getPlayerStats(0, player1, token1);
         assertEq(stats1.tokensWon, 1 ether);
@@ -244,16 +244,16 @@ contract LeagueTest is Test {
         
         vm.prank(player1);
         vm.expectRevert(League.UnauthorizedCaller.selector);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
     }
     
     function test_RecordMatchResult_RevertInvalidWinner() public {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
+        vm.prank(scoreContract);
         vm.expectRevert(League.InvalidWinner.selector);
-        league.recordMatchResult(address(0), losers, token1, 1 ether);
+        league.onScoreRecorded(address(0), losers, token1, 1 ether);
     }
     
     // ============ Cycle Transition Tests ============
@@ -263,15 +263,15 @@ contract LeagueTest is Test {
         losers[0] = player2;
         
         // Record first match
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         // Warp past cycle end
         vm.warp(block.timestamp + league.cycleDuration() + 1);
         
         // Record another match - should trigger cycle transition
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         assertEq(league.getCurrentCycleId(), 1);
         
@@ -287,12 +287,12 @@ contract LeagueTest is Test {
         losers[0] = player2;
         
         // Record matches
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         losers[0] = player1;
-        vm.prank(matchContract);
-        league.recordMatchResult(player2, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player2, losers, token1, 1 ether);
         
         // Finalize
         vm.prank(controller);
@@ -312,8 +312,8 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         vm.prank(controller);
         league.finalizeCycle();
@@ -330,8 +330,8 @@ contract LeagueTest is Test {
         losers[0] = player2;
         losers[1] = player3;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         address[] memory players = league.getCyclePlayers(0);
         assertEq(players.length, 3);
@@ -341,11 +341,11 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token2, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token2, 1 ether);
         
         address[] memory tokens = league.getCycleTokens(0);
         assertEq(tokens.length, 2);
@@ -355,12 +355,12 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         losers[0] = player1;
-        vm.prank(matchContract);
-        league.recordMatchResult(player2, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player2, losers, token1, 1 ether);
         
         (address[] memory players, ) = league.getLeaderboard(0, token1, 10);
         
@@ -371,12 +371,12 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         losers[0] = player1;
-        vm.prank(matchContract);
-        league.recordMatchResult(player2, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player2, losers, token1, 1 ether);
         
         vm.prank(controller);
         league.finalizeCycle();
@@ -392,12 +392,12 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         losers[0] = player1;
-        vm.prank(matchContract);
-        league.recordMatchResult(player2, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player2, losers, token1, 1 ether);
         
         uint256 rank1 = league.getPlayerRank(0, player1, token1);
         uint256 rank2 = league.getPlayerRank(0, player2, token1);
@@ -410,8 +410,8 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         uint256 rank = league.getPlayerRank(0, player2, token1);
         assertEq(rank, 0); // No tokens won = rank 0
@@ -421,8 +421,8 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 2 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 2 ether);
         
         (address[] memory players, ) = league.getTopPlayers(0, 10);
         
@@ -434,8 +434,8 @@ contract LeagueTest is Test {
         losers[0] = player2;
         losers[1] = player3;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         assertEq(league.getCyclePlayerCount(0), 3);
     }
@@ -444,11 +444,11 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token2, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token2, 1 ether);
         
         assertEq(league.getCycleTokenCount(0), 2);
     }
@@ -479,8 +479,8 @@ contract LeagueTest is Test {
         
         // Create and finalize multiple cycles by warping time between each
         for (uint256 i = 0; i < 6; i++) {
-            vm.prank(matchContract);
-            league.recordMatchResult(player1, losers, token1, 1 ether);
+            vm.prank(scoreContract);
+            league.onScoreRecorded(player1, losers, token1, 1 ether);
             
             currentTime += 3601;
             vm.warp(currentTime);
@@ -504,8 +504,8 @@ contract LeagueTest is Test {
         address[] memory losers = new address[](1);
         losers[0] = player2;
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         // Cannot cleanup current cycle
         vm.prank(owner);
@@ -521,13 +521,13 @@ contract LeagueTest is Test {
         losers[0] = player2;
         
         // Create 2 cycles
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         vm.warp(block.timestamp + 3601);
         
-        vm.prank(matchContract);
-        league.recordMatchResult(player1, losers, token1, 1 ether);
+        vm.prank(scoreContract);
+        league.onScoreRecorded(player1, losers, token1, 1 ether);
         
         // Cycle 0 is not old enough (current - 0 < maxCyclesKept)
         vm.prank(owner);
@@ -547,8 +547,8 @@ contract LeagueTest is Test {
         
         // Create enough cycles to allow cleanup
         for (uint256 i = 0; i < 6; i++) {
-            vm.prank(matchContract);
-            league.recordMatchResult(player1, losers, token1, 1 ether);
+            vm.prank(scoreContract);
+            league.onScoreRecorded(player1, losers, token1, 1 ether);
             
             if (i < 5) {
                 vm.warp(block.timestamp + 3601);

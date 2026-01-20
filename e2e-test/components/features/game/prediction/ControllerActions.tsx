@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useOharaAi } from '@ohara-ai/sdk'
+import { useOharaAi, type ServerPredictionOperations } from '@ohara-ai/sdk'
 import { Shield, Lock, Plus, AlertCircle } from 'lucide-react'
 
 interface ControllerActionsProps {
@@ -48,7 +48,7 @@ export function ControllerActions({ contractAddress }: ControllerActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
       
       if (!operations.createMarket) {
         setError('createMarket function not available. Server operations required.')
@@ -87,7 +87,7 @@ export function ControllerActions({ contractAddress }: ControllerActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
       
       if (!operations.closeBetting) {
         setError('closeBetting function not available. Server operations required.')

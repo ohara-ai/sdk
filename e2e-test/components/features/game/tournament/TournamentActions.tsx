@@ -58,9 +58,9 @@ export function TournamentActions({
 
       setSuccess(`Tournament activated! TX: ${data.txHash.slice(0, 10)}...`)
       if (onActionComplete) onActionComplete()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error activating tournament:', err)
-      setError(err.message || 'Failed to activate tournament')
+      setError(err instanceof Error ? err.message : 'Failed to activate tournament')
     } finally {
       setIsActivating(false)
     }
@@ -91,9 +91,9 @@ export function TournamentActions({
 
       setSuccess(`Tournament cancelled! TX: ${data.txHash.slice(0, 10)}...`)
       if (onActionComplete) onActionComplete()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error canceling tournament:', err)
-      setError(err.message || 'Failed to cancel tournament')
+      setError(err instanceof Error ? err.message : 'Failed to cancel tournament')
     } finally {
       setIsCanceling(false)
     }
@@ -156,9 +156,9 @@ export function TournamentActions({
       setResolveMatchIndex('')
       setResolveWinner('')
       if (onActionComplete) onActionComplete()
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error resolving match:', err)
-      setError(err.message || 'Failed to resolve match')
+      setError(err instanceof Error ? err.message : 'Failed to resolve match')
     } finally {
       setIsResolving(false)
     }

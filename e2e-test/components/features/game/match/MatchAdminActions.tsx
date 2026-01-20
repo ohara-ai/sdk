@@ -30,7 +30,7 @@ interface MatchAdminActionsProps {
 }
 
 export function MatchAdminActions({
-  matchId,
+  matchId: _matchId,
   onActionComplete,
 }: MatchAdminActionsProps) {
   const { address } = useAccount()

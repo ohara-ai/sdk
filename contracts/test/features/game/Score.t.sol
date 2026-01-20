@@ -768,16 +768,18 @@ contract ScoreTest is Test {
     event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
 }
 
-contract ScorePrizeIntegrationTest is Test {
+contract ScoreListenerIntegrationTest is Test {
     Score public score;
     
     address public owner = address(0x1);
     address public recorder = address(0x2);
     address public player1 = address(0x3);
     address public player2 = address(0x4);
-    address public prizeContract = address(0x5);
+    address public listenerContract = address(0x5);
+    address public listenerContract2 = address(0x6);
     
-    event PrizeContractUpdated(address indexed previousPrize, address indexed newPrize);
+    event ScoreListenerAdded(address indexed listener);
+    event ScoreListenerRemoved(address indexed listener);
     
     function setUp() public {
         score = new Score();
@@ -787,30 +789,64 @@ contract ScorePrizeIntegrationTest is Test {
         score.setRecorderAuthorization(recorder, true);
     }
     
-    function test_SetPrize() public {
+    function test_AddScoreListener() public {
         vm.prank(owner);
-        vm.expectEmit(true, true, false, true);
-        emit PrizeContractUpdated(address(0), prizeContract);
-        score.setPrize(prizeContract);
+        vm.expectEmit(true, false, false, true);
+        emit ScoreListenerAdded(listenerContract);
+        score.addScoreListener(listenerContract);
         
-        assertEq(address(score.prize()), prizeContract);
+        address[] memory listeners = score.getScoreListeners();
+        assertEq(listeners.length, 1);
+        assertEq(listeners[0], listenerContract);
     }
     
-    function test_OnlyControllerCanSetPrize() public {
+    function test_OnlyControllerCanAddListener() public {
         vm.prank(recorder);
         vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
-        score.setPrize(prizeContract);
+        score.addScoreListener(listenerContract);
     }
     
-    function test_CanDisablePrize() public {
+    function test_CannotAddZeroAddress() public {
         vm.prank(owner);
-        score.setPrize(prizeContract);
+        vm.expectRevert(Score.InvalidListener.selector);
+        score.addScoreListener(address(0));
+    }
+    
+    function test_CannotAddDuplicateListener() public {
+        vm.prank(owner);
+        score.addScoreListener(listenerContract);
         
         vm.prank(owner);
-        vm.expectEmit(true, true, false, true);
-        emit PrizeContractUpdated(prizeContract, address(0));
-        score.setPrize(address(0));
+        vm.expectRevert(Score.ListenerAlreadyRegistered.selector);
+        score.addScoreListener(listenerContract);
+    }
+    
+    function test_RemoveScoreListener() public {
+        vm.prank(owner);
+        score.addScoreListener(listenerContract);
         
-        assertEq(address(score.prize()), address(0));
+        vm.prank(owner);
+        vm.expectEmit(true, false, false, true);
+        emit ScoreListenerRemoved(listenerContract);
+        score.removeScoreListener(listenerContract);
+        
+        address[] memory listeners = score.getScoreListeners();
+        assertEq(listeners.length, 0);
+    }
+    
+    function test_CannotRemoveNonexistentListener() public {
+        vm.prank(owner);
+        vm.expectRevert(Score.ListenerNotFound.selector);
+        score.removeScoreListener(listenerContract);
+    }
+    
+    function test_MultipleListeners() public {
+        vm.startPrank(owner);
+        score.addScoreListener(listenerContract);
+        score.addScoreListener(listenerContract2);
+        vm.stopPrank();
+        
+        address[] memory listeners = score.getScoreListeners();
+        assertEq(listeners.length, 2);
     }
 }

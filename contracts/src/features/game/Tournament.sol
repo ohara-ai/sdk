@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IPrediction} from "../../interfaces/game/IPrediction.sol";
+import {IScoreNotifiable} from "../../interfaces/game/IScoreNotifiable.sol";
 import {ITournament} from "../../interfaces/game/ITournament.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
@@ -12,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
  * @notice Single elimination bracket management
  * @dev Receives match results from Score and advances winners through rounds
  */
-contract Tournament is ITournament, IFeature, FeatureController, Initializable {
+contract Tournament is ITournament, IScoreNotifiable, IFeature, FeatureController, Initializable {
     uint256 private _idCounter;
 
     struct TournamentData {
@@ -146,9 +147,32 @@ contract Tournament is ITournament, IFeature, FeatureController, Initializable {
         emit TournamentActivated(id);
     }
 
+    /// @inheritdoc IScoreNotifiable
+    function onScoreRecorded(
+        address winner,
+        address[] calldata losers,
+        address, // token - not used by Tournament
+        uint256 // prizeAmount - not used by Tournament
+    ) external {
+        if (msg.sender != scoreContract) revert UnauthorizedCaller();
+        // Tournament only cares about winner vs first loser for bracket matching
+        if (losers.length > 0) {
+            _processMatchResult(winner, losers[0]);
+        }
+    }
+
     /// @inheritdoc ITournament
     function onMatchResult(address winner, address loser) external {
         if (msg.sender != scoreContract) revert UnauthorizedCaller();
+        _processMatchResult(winner, loser);
+    }
+
+    /**
+     * @notice Internal function to process a match result
+     * @param winner The match winner
+     * @param loser The match loser
+     */
+    function _processMatchResult(address winner, address loser) internal {
 
         bytes32 key = _matchKey(winner, loser);
         PendingMatch[] storage pending = _pendingMatches[key];

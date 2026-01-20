@@ -675,7 +675,7 @@ export const LEAGUE_ABI = [
         "internalType": "address"
       },
       {
-        "name": "_matchContract",
+        "name": "_scoreContract",
         "type": "address",
         "internalType": "address"
       },
@@ -703,19 +703,6 @@ export const LEAGUE_ABI = [
   },
   {
     "type": "function",
-    "name": "matchContract",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "maxCyclesKept",
     "inputs": [],
     "outputs": [
@@ -726,6 +713,34 @@ export const LEAGUE_ABI = [
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "onScoreRecorded",
+    "inputs": [
+      {
+        "name": "winner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "losers",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "token",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "prizeAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -792,31 +807,16 @@ export const LEAGUE_ABI = [
   },
   {
     "type": "function",
-    "name": "recordMatchResult",
-    "inputs": [
+    "name": "scoreContract",
+    "inputs": [],
+    "outputs": [
       {
-        "name": "winner",
+        "name": "",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "losers",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "token",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "totalPrize",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -846,19 +846,6 @@ export const LEAGUE_ABI = [
   },
   {
     "type": "function",
-    "name": "setMatchContract",
-    "inputs": [
-      {
-        "name": "_matchContract",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "setMaxCyclesKept",
     "inputs": [
       {
@@ -876,6 +863,19 @@ export const LEAGUE_ABI = [
     "inputs": [
       {
         "name": "_prediction",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setScoreContract",
+    "inputs": [
+      {
+        "name": "_scoreContract",
         "type": "address",
         "internalType": "address"
       }
@@ -1157,25 +1157,6 @@ export const LEAGUE_ABI = [
   },
   {
     "type": "event",
-    "name": "MatchContractUpdated",
-    "inputs": [
-      {
-        "name": "previousMatch",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "newMatch",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "MatchRecorded",
     "inputs": [
       {
@@ -1289,6 +1270,25 @@ export const LEAGUE_ABI = [
   },
   {
     "type": "event",
+    "name": "ScoreContractUpdated",
+    "inputs": [
+      {
+        "name": "previousScore",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newScore",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "TransferFailed",
     "inputs": [
       {
@@ -1354,17 +1354,17 @@ export const LEAGUE_ABI = [
   },
   {
     "type": "error",
-    "name": "InvalidMatchContract",
-    "inputs": []
-  },
-  {
-    "type": "error",
     "name": "InvalidMaxCycles",
     "inputs": []
   },
   {
     "type": "error",
     "name": "InvalidOwner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidScoreContract",
     "inputs": []
   },
   {

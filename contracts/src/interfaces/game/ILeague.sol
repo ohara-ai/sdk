@@ -58,27 +58,13 @@ interface ILeague {
     /// @notice Emitted when a new player is registered
     event PlayerRegistered(uint256 indexed cycleId, address indexed player);
 
-    /// @notice Emitted when the Match contract is updated
-    event MatchContractUpdated(address indexed previousMatch, address indexed newMatch);
+    /// @notice Emitted when the Score contract is updated
+    event ScoreContractUpdated(address indexed previousScore, address indexed newScore);
 
     /// @notice Emitted when the cycle duration is updated
     event CycleDurationUpdated(uint256 previousDuration, uint256 newDuration);
 
     // ============ Functions ============
-
-    /**
-     * @notice Record a match result (called by Match contract only)
-     * @param winner The address of the winner
-     * @param losers Array of addresses of losers
-     * @param token The token used for stakes
-     * @param totalPrize The total prize amount
-     */
-    function recordMatchResult(
-        address winner,
-        address[] calldata losers,
-        address token,
-        uint256 totalPrize
-    ) external;
 
     /**
      * @notice Force finalize the current cycle (controller only)

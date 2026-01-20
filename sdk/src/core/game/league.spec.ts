@@ -79,7 +79,7 @@ describe('League Operations - Specification Tests', () => {
         'getCycleTokenCount',
         'isCycleStarted',
         'getOldestCycleId',
-        'getMatchContract',
+        'getScoreContract',
         'getMaxCyclesKept',
         'getConstants',
       ])
@@ -424,13 +424,13 @@ describe('League Operations - Specification Tests', () => {
       expect(oldestId).toBe(0n)
     })
 
-    it('SPEC: getMatchContract() - returns match contract address', async () => {
-      const matchAddress = '0x4444444444444444444444444444444444444444'
-      vi.spyOn(publicClient, 'readContract').mockResolvedValue(matchAddress)
+    it('SPEC: getScoreContract() - returns score contract address', async () => {
+      const scoreAddress = '0x4444444444444444444444444444444444444444'
+      vi.spyOn(publicClient, 'readContract').mockResolvedValue(scoreAddress)
 
-      const address = await operations.getMatchContract()
+      const address = await operations.getScoreContract()
 
-      expect(address).toBe(matchAddress)
+      expect(address).toBe(scoreAddress)
     })
 
     it('SPEC: getMaxCyclesKept() - returns max cycles configuration', async () => {
@@ -479,7 +479,7 @@ describe('League Operations - Specification Tests', () => {
 
       // Verify no write methods are present on client operations
       expect(operations).not.toHaveProperty('finalizeCycle')
-      expect(operations).not.toHaveProperty('setMatchContract')
+      expect(operations).not.toHaveProperty('setScoreContract')
       expect(operations).not.toHaveProperty('setPrediction')
       expect(operations).not.toHaveProperty('setCycleDuration')
       expect(operations).not.toHaveProperty('setMaxCyclesKept')

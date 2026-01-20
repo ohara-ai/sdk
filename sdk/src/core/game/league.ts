@@ -157,9 +157,9 @@ export interface LeagueOperations {
   getOldestCycleId(): Promise<bigint>
 
   /**
-   * Get the match contract address
+   * Get the score contract address
    */
-  getMatchContract(): Promise<Address>
+  getScoreContract(): Promise<Address>
 
   /**
    * Get max cycles kept configuration
@@ -193,9 +193,9 @@ export interface ServerLeagueOperations extends LeagueOperations {
   finalizeCycle(): Promise<Hash>
 
   /**
-   * Set the match contract (controller only)
+   * Set the score contract (controller only)
    */
-  setMatchContract(matchContract: Address): Promise<Hash>
+  setScoreContract(scoreContract: Address): Promise<Hash>
 
   /**
    * Set the prediction contract for automatic betting closure (controller only)
@@ -430,11 +430,11 @@ function createOperationsInternal(
       })
     },
 
-    async getMatchContract(): Promise<Address> {
+    async getScoreContract(): Promise<Address> {
       return publicClient.readContract({
         address: contractAddress,
         abi: LEAGUE_ABI,
-        functionName: 'matchContract',
+        functionName: 'scoreContract',
       })
     },
 
@@ -569,12 +569,12 @@ function createOperationsInternal(
       })
     },
 
-    async setMatchContract(matchContract: Address): Promise<Hash> {
+    async setScoreContract(scoreContract: Address): Promise<Hash> {
       if (oharaApiClient && chainId) {
         const result = await oharaApiClient.executeContractFunction({
           contractAddress,
-          functionName: 'setMatchContract',
-          params: { _matchContract: matchContract },
+          functionName: 'setScoreContract',
+          params: { _scoreContract: scoreContract },
           chainId,
         })
 
@@ -594,8 +594,8 @@ function createOperationsInternal(
       return wallet.writeContract({
         address: contractAddress,
         abi: LEAGUE_ABI,
-        functionName: 'setMatchContract',
-        args: [matchContract],
+        functionName: 'setScoreContract',
+        args: [scoreContract],
         account,
         chain: undefined,
       })

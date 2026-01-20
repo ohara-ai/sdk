@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {ILeague} from "../../interfaces/game/ILeague.sol";
+import {IScoreNotifiable} from "../../interfaces/game/IScoreNotifiable.sol";
 import {IPrediction} from "../../interfaces/game/IPrediction.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
@@ -12,7 +13,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
  * @notice Tracks player rankings across time-based cycles
  * @dev Receives match results from Match contract and indexes by tokens won
  */
-contract League is ILeague, IFeature, FeatureController, Initializable {
+contract League is ILeague, IScoreNotifiable, IFeature, FeatureController, Initializable {
     // ============ Constants ============
 
     uint256 public constant DEFAULT_CYCLE_DURATION = 604800; // 1 week in seconds
@@ -27,8 +28,8 @@ contract League is ILeague, IFeature, FeatureController, Initializable {
 
     // ============ Storage ============
 
-    /// @notice Match contract that is authorized to record results
-    address public matchContract;
+    /// @notice Score contract that is authorized to record results
+    address public scoreContract;
 
     /// @notice Prediction contract for automatic betting closure
     IPrediction public prediction;
@@ -72,7 +73,7 @@ contract League is ILeague, IFeature, FeatureController, Initializable {
     // ============ Errors ============
 
     error UnauthorizedCaller();
-    error InvalidMatchContract();
+    error InvalidScoreContract();
     error InvalidCycleDuration();
     error CycleNotFinalized();
     error CycleAlreadyFinalized();
@@ -96,19 +97,19 @@ contract League is ILeague, IFeature, FeatureController, Initializable {
      * @notice Initialize the League contract
      * @param _owner Owner address
      * @param _controller Controller address
-     * @param _matchContract Match contract address
+     * @param _scoreContract Score contract address
      * @param _cycleDuration Cycle duration in seconds (0 for default)
      */
     function initialize(
         address _owner,
         address _controller,
-        address _matchContract,
+        address _scoreContract,
         uint256 _cycleDuration
     ) external initializer {
         _initializeFeatureController(_owner, _controller);
 
-        if (_matchContract != address(0)) {
-            matchContract = _matchContract;
+        if (_scoreContract != address(0)) {
+            scoreContract = _scoreContract;
         }
 
         // Apply same validation as setCycleDuration
@@ -124,14 +125,14 @@ contract League is ILeague, IFeature, FeatureController, Initializable {
     // ============ Admin Functions ============
 
     /**
-     * @notice Set the match contract
-     * @param _matchContract Address of the match contract
+     * @notice Set the score contract
+     * @param _scoreContract Address of the score contract
      */
-    function setMatchContract(address _matchContract) external onlyController {
-        if (_matchContract == address(0)) revert InvalidMatchContract();
-        address previousMatch = matchContract;
-        matchContract = _matchContract;
-        emit MatchContractUpdated(previousMatch, _matchContract);
+    function setScoreContract(address _scoreContract) external onlyController {
+        if (_scoreContract == address(0)) revert InvalidScoreContract();
+        address previousScore = scoreContract;
+        scoreContract = _scoreContract;
+        emit ScoreContractUpdated(previousScore, _scoreContract);
     }
 
     /**
@@ -230,14 +231,30 @@ contract League is ILeague, IFeature, FeatureController, Initializable {
 
     // ============ Match Recording ============
 
-    /// @inheritdoc ILeague
-    function recordMatchResult(
+    /// @inheritdoc IScoreNotifiable
+    function onScoreRecorded(
+        address winner,
+        address[] calldata losers,
+        address token,
+        uint256 prizeAmount
+    ) external {
+        if (msg.sender != scoreContract) revert UnauthorizedCaller();
+        _recordMatchResult(winner, losers, token, prizeAmount);
+    }
+
+    /**
+     * @notice Internal function to record match result
+     * @param winner The match winner
+     * @param losers Array of loser addresses
+     * @param token The token used for stakes
+     * @param totalPrize The prize amount
+     */
+    function _recordMatchResult(
         address winner,
         address[] calldata losers,
         address token,
         uint256 totalPrize
-    ) external {
-        if (msg.sender != matchContract) revert UnauthorizedCaller();
+    ) internal {
         if (winner == address(0)) revert InvalidWinner();
 
         // Check if we need to start first cycle or transition to new cycle

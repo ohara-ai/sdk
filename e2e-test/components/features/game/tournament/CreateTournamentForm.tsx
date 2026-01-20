@@ -107,9 +107,9 @@ export function CreateTournamentForm() {
 
       setSuccess(`Tournament created successfully! TX: ${data.txHash.slice(0, 10)}...`)
       setParticipants(['', ''])
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error creating tournament:', err)
-      setError(err.message || 'Failed to create tournament')
+      setError(err instanceof Error ? err.message : 'Failed to create tournament')
     } finally {
       setIsCreating(false)
     }

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { History, Search } from 'lucide-react'
-import { useOharaAi, SCORE_ABI } from '@ohara-ai/sdk'
+import { SCORE_ABI } from '@ohara-ai/sdk'
 import { usePublicClient } from 'wagmi'
 import { formatEther } from 'viem'
 

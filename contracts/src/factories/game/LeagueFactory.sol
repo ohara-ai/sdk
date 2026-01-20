@@ -20,7 +20,7 @@ contract LeagueFactory is OwnedFactory {
         address indexed instance,
         address indexed owner,
         address indexed controller,
-        address matchContract,
+        address scoreContract,
         uint256 cycleDuration
     );
     event DefaultCycleDurationUpdated(uint256 previousValue, uint256 newValue);
@@ -45,11 +45,11 @@ contract LeagueFactory is OwnedFactory {
 
     /**
      * @notice Deploy a new League contract using ERC-1167 minimal proxy
-     * @param matchContract Address of the Match contract (optional)
+     * @param scoreContract Address of the Score contract (optional)
      * @return instance Address of the deployed contract
      * @dev The caller (msg.sender) will be set as the controller of the deployed contract
      */
-    function deployLeague(address matchContract) external returns (address instance) {
+    function deployLeague(address scoreContract) external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
 
         // Clone the implementation contract using ERC-1167
@@ -59,7 +59,7 @@ contract LeagueFactory is OwnedFactory {
         League(instance).initialize(
             instanceOwnerAddress,
             msg.sender,
-            matchContract,
+            scoreContract,
             defaultCycleDuration
         );
 
@@ -67,19 +67,19 @@ contract LeagueFactory is OwnedFactory {
             instance,
             instanceOwnerAddress,
             msg.sender,
-            matchContract,
+            scoreContract,
             defaultCycleDuration
         );
     }
 
     /**
      * @notice Deploy a new League contract with custom cycle duration
-     * @param matchContract Address of the Match contract (optional)
+     * @param scoreContract Address of the Score contract (optional)
      * @param cycleDuration Cycle duration in seconds
      * @return instance Address of the deployed contract
      */
     function deployLeagueWithDuration(
-        address matchContract,
+        address scoreContract,
         uint256 cycleDuration
     ) external returns (address instance) {
         address instanceOwnerAddress = getInstanceOwner();
@@ -89,7 +89,7 @@ contract LeagueFactory is OwnedFactory {
         League(instance).initialize(
             instanceOwnerAddress,
             msg.sender,
-            matchContract,
+            scoreContract,
             cycleDuration
         );
 
@@ -97,7 +97,7 @@ contract LeagueFactory is OwnedFactory {
             instance,
             instanceOwnerAddress,
             msg.sender,
-            matchContract,
+            scoreContract,
             cycleDuration
         );
     }

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Info, Search, Link2, Trophy, Shield } from 'lucide-react'
+import { Info, Search, Link2, Shield } from 'lucide-react'
 import { useOharaAi, SCORE_ABI } from '@ohara-ai/sdk'
 import { useBlockNumber, usePublicClient } from 'wagmi'
 import { isAddress } from 'viem'
@@ -15,12 +15,11 @@ interface ContractDetailsProps {
 }
 
 export function ContractDetails({ contractAddress }: ContractDetailsProps) {
-  const { game } = useOharaAi()
+  const { game: _game } = useOharaAi()
   const publicClient = usePublicClient()
   const { data: blockNumber } = useBlockNumber({ watch: true })
 
-  const [prizeContract, setPrizeContract] = useState<string>()
-  const [tournamentContract, setTournamentContract] = useState<string>()
+  const [scoreListeners, setScoreListeners] = useState<string[]>([])
   const [controllerAddress, setControllerAddress] = useState<string>()
   const [ownerAddress, setOwnerAddress] = useState<string>()
   const [remainingPlayerCapacity, setRemainingPlayerCapacity] = useState<bigint>()
@@ -35,16 +34,11 @@ export function ContractDetails({ contractAddress }: ContractDetailsProps) {
 
     const fetchDetails = async () => {
       try {
-        const [prize, tournament, controller, owner, playerCap, matchCap] = await Promise.all([
+        const [listeners, controller, owner, playerCap, matchCap] = await Promise.all([
           publicClient.readContract({
             address: contractAddress,
             abi: SCORE_ABI,
-            functionName: 'prize',
-          }),
-          publicClient.readContract({
-            address: contractAddress,
-            abi: SCORE_ABI,
-            functionName: 'tournament',
+            functionName: 'getScoreListeners',
           }),
           publicClient.readContract({
             address: contractAddress,
@@ -68,8 +62,7 @@ export function ContractDetails({ contractAddress }: ContractDetailsProps) {
           }),
         ])
 
-        setPrizeContract(prize as string)
-        setTournamentContract(tournament as string)
+        setScoreListeners(listeners as string[])
         setControllerAddress(controller as string)
         setOwnerAddress(owner as string)
         setRemainingPlayerCapacity(playerCap as bigint)
@@ -138,28 +131,22 @@ export function ContractDetails({ contractAddress }: ContractDetailsProps) {
             </code>
           </div>
 
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 md:col-span-2">
             <div className="flex items-center gap-2 mb-2">
               <Link2 className="w-4 h-4 text-purple-600" />
-              <span className="text-xs font-semibold text-gray-700">Prize Contract</span>
+              <span className="text-xs font-semibold text-gray-700">Score Listeners ({scoreListeners.length})</span>
             </div>
-            <code className="text-xs text-gray-900 break-all">
-              {prizeContract === '0x0000000000000000000000000000000000000000'
-                ? 'Not configured'
-                : prizeContract || 'Loading...'}
-            </code>
-          </div>
-
-          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <Trophy className="w-4 h-4 text-amber-600" />
-              <span className="text-xs font-semibold text-gray-700">Tournament Contract</span>
-            </div>
-            <code className="text-xs text-gray-900 break-all">
-              {tournamentContract === '0x0000000000000000000000000000000000000000'
-                ? 'Not configured'
-                : tournamentContract || 'Loading...'}
-            </code>
+            {scoreListeners.length === 0 ? (
+              <span className="text-xs text-gray-500">No listeners registered</span>
+            ) : (
+              <div className="space-y-1">
+                {scoreListeners.map((listener, idx) => (
+                  <code key={idx} className="text-xs text-gray-900 break-all block">
+                    {listener}
+                  </code>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

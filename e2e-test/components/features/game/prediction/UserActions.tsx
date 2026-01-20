@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useOharaAi } from '@ohara-ai/sdk'
+import { useOharaAi, type ServerPredictionOperations } from '@ohara-ai/sdk'
 import { User, Lock, Eye, Trophy, DollarSign, CheckCircle, AlertCircle } from 'lucide-react'
-import { formatEther, parseEther } from 'viem'
+import { parseEther } from 'viem'
 
 interface UserActionsProps {
   marketId: bigint
@@ -66,7 +66,7 @@ export function UserActions({ marketId, onActionComplete }: UserActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
       
       const commitHash = operations.generateCommitHash(
         commitPlayer as `0x${string}`,
@@ -105,7 +105,7 @@ export function UserActions({ marketId, onActionComplete }: UserActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
 
       const txHash = await operations.reveal(
         marketId,
@@ -141,7 +141,7 @@ export function UserActions({ marketId, onActionComplete }: UserActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
 
       const txHash = await operations.predict(
         marketId,
@@ -171,7 +171,7 @@ export function UserActions({ marketId, onActionComplete }: UserActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
 
       const txHash = await operations.claim(marketId)
 
@@ -196,7 +196,7 @@ export function UserActions({ marketId, onActionComplete }: UserActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
 
       const txHash = await operations.claimRefund(marketId)
 
@@ -221,7 +221,7 @@ export function UserActions({ marketId, onActionComplete }: UserActionsProps) {
 
     try {
       setLoading(true)
-      const operations = game.prediction.operations as any
+      const operations = game.prediction.operations as ServerPredictionOperations
 
       const txHash = await operations.resolve(marketId)
 

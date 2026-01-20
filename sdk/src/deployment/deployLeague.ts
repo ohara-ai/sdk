@@ -11,7 +11,7 @@ import { OharaApiClient, getOharaApiClient } from '../server/oharaApiClient'
 import { getConfig } from '../config/oharaConfig'
 
 export interface LeagueDeployParams {
-  matchAddress?: `0x${string}`
+  scoreAddress?: `0x${string}`
 }
 
 /**
@@ -37,7 +37,7 @@ export async function deployLeague(
 
     const result = await apiClient.deployContract({
       factoryType: 'LeagueFactory',
-      matchAddress: params.matchAddress,
+      scoreAddress: params.scoreAddress,
       chainId,
     })
 
@@ -78,7 +78,7 @@ export async function deployLeague(
     address: factoryAddress,
     abi: LEAGUE_FACTORY_ABI,
     functionName: 'deployLeague',
-    args: [params.matchAddress || '0x0000000000000000000000000000000000000000'],
+    args: [params.scoreAddress || '0x0000000000000000000000000000000000000000'],
     chain: null,
     account,
   })

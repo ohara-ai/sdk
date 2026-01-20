@@ -75,9 +75,9 @@ export function TournamentAdminSettings() {
 
       setSuccess(`Score contract updated! TX: ${data.txHash.slice(0, 10)}...`)
       setCurrentScoreAddress(scoreAddress)
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error setting score contract:', err)
-      setError(err.message || 'Failed to set score contract')
+      setError(err instanceof Error ? err.message : 'Failed to set score contract')
     } finally {
       setIsSettingScore(false)
     }
@@ -114,9 +114,9 @@ export function TournamentAdminSettings() {
 
       setSuccess(`Prediction contract updated! TX: ${data.txHash.slice(0, 10)}...`)
       setPredictionAddress('')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error setting prediction contract:', err)
-      setError(err.message || 'Failed to set prediction contract')
+      setError(err instanceof Error ? err.message : 'Failed to set prediction contract')
     } finally {
       setIsSettingPrediction(false)
     }

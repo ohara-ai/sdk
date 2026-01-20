@@ -3,8 +3,7 @@ pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IScore} from "../../interfaces/game/IScore.sol";
-import {IPrize} from "../../interfaces/game/IPrize.sol";
-import {ITournament} from "../../interfaces/game/ITournament.sol";
+import {IScoreNotifiable} from "../../interfaces/game/IScoreNotifiable.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
@@ -53,11 +52,9 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     // Authorized contracts that can record results
     mapping(address => bool) public authorizedRecorders;
 
-    // Optional prize contract for prize pool tracking
-    IPrize public prize;
-
-    // Optional tournament contract for bracket tracking
-    ITournament public tournament;
+    // Contracts that receive score notifications (Prize, Tournament, League, etc.)
+    address[] private _scoreListeners;
+    mapping(address => uint256) private _listenerIndex; // 1-based index, 0 = not registered
 
     // Storage limits to prevent state explosion (configurable by owner)
     uint256 public maxLosersPerMatch; // Limit losers array size
@@ -79,13 +76,16 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     event LimitsUpdated(uint256 maxLosersPerMatch, uint256 maxTotalPlayers, uint256 maxTotalMatches);
     event MatchEvicted(uint256 indexed matchId, uint256 timestamp);
     event PlayerEvicted(address indexed player, uint256 totalWins, uint256 totalPrize);
-    event PrizeContractUpdated(address indexed previousPrize, address indexed newPrize);
-    event TournamentContractUpdated(address indexed previousTournament, address indexed newTournament);
-    event ExternalCallFailed(string indexed target, bytes reason);
+    event ScoreListenerAdded(address indexed listener);
+    event ScoreListenerRemoved(address indexed listener);
+    event ExternalCallFailed(address indexed target, bytes reason);
 
     error UnauthorizedRecorder();
     error InvalidLimit();
     error InvalidWinner();
+    error ListenerAlreadyRegistered();
+    error ListenerNotFound();
+    error InvalidListener();
 
     /**
      * @notice Empty constructor for cloneable pattern
@@ -128,23 +128,48 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
     }
 
     /**
-     * @notice Set the prize contract for prize pool tracking
-     * @param _prize Address of the prize contract (address(0) to disable)
+     * @notice Add a contract to receive score notifications
+     * @param listener Address of the contract implementing IScoreNotifiable
      */
-    function setPrize(address _prize) external onlyController {
-        address previousPrize = address(prize);
-        prize = IPrize(_prize);
-        emit PrizeContractUpdated(previousPrize, _prize);
+    function addScoreListener(address listener) external onlyController {
+        if (listener == address(0)) revert InvalidListener();
+        if (_listenerIndex[listener] != 0) revert ListenerAlreadyRegistered();
+        
+        _scoreListeners.push(listener);
+        _listenerIndex[listener] = _scoreListeners.length; // 1-based index
+        
+        emit ScoreListenerAdded(listener);
     }
 
     /**
-     * @notice Set the tournament contract for bracket tracking
-     * @param _tournament Address of the tournament contract (address(0) to disable)
+     * @notice Remove a contract from score notifications
+     * @param listener Address of the listener to remove
      */
-    function setTournament(address _tournament) external onlyController {
-        address previousTournament = address(tournament);
-        tournament = ITournament(_tournament);
-        emit TournamentContractUpdated(previousTournament, _tournament);
+    function removeScoreListener(address listener) external onlyController {
+        uint256 index = _listenerIndex[listener];
+        if (index == 0) revert ListenerNotFound();
+        
+        uint256 arrayIndex = index - 1; // Convert to 0-based
+        uint256 lastIndex = _scoreListeners.length - 1;
+        
+        if (arrayIndex != lastIndex) {
+            address lastListener = _scoreListeners[lastIndex];
+            _scoreListeners[arrayIndex] = lastListener;
+            _listenerIndex[lastListener] = index;
+        }
+        
+        _scoreListeners.pop();
+        delete _listenerIndex[listener];
+        
+        emit ScoreListenerRemoved(listener);
+    }
+
+    /**
+     * @notice Get all registered score listeners
+     * @return listeners Array of listener addresses
+     */
+    function getScoreListeners() external view returns (address[] memory listeners) {
+        return _scoreListeners;
     }
 
     /**
@@ -324,24 +349,33 @@ contract Score is IScore, IFeature, FeatureController, Initializable {
 
         emit ScoreRecorded(matchId, winner, winnerScore.totalWins, winnerScore.totalPrize);
 
-        // Notify prize contract if configured (routes to token-specific pool)
-        if (address(prize) != address(0)) {
-            // Use try-catch to prevent DoS from buggy prize contracts
-            try prize.recordMatchResult(winner, token) {
-                // Prize recorded successfully
-            } catch (bytes memory reason) {
-                emit ExternalCallFailed("Prize.recordMatchResult", reason);
-            }
-        }
+        // Notify all registered score listeners (Prize, Tournament, League, etc.)
+        _notifyListeners(winner, processedLosers, token, prizeAmount);
+    }
 
-        // Notify tournament contract if configured (for bracket tracking)
-        if (address(tournament) != address(0) && processedLosers.length > 0) {
-            // Use try-catch to prevent DoS from buggy tournament contracts
-            try tournament.onMatchResult(winner, processedLosers[0]) {
-                // Tournament notified successfully
+    /**
+     * @notice Notify all registered listeners about a score being recorded
+     * @param winner The match winner
+     * @param losers Array of loser addresses
+     * @param token The token used for stakes
+     * @param prizeAmount The prize amount
+     */
+    function _notifyListeners(
+        address winner,
+        address[] memory losers,
+        address token,
+        uint256 prizeAmount
+    ) internal {
+        uint256 length = _scoreListeners.length;
+        for (uint256 i = 0; i < length;) {
+            address listener = _scoreListeners[i];
+            // Use try-catch to prevent DoS from buggy listener contracts
+            try IScoreNotifiable(listener).onScoreRecorded(winner, losers, token, prizeAmount) {
+                // Listener notified successfully
             } catch (bytes memory reason) {
-                emit ExternalCallFailed("Tournament.onMatchResult", reason);
+                emit ExternalCallFailed(listener, reason);
             }
+            unchecked { ++i; }
         }
     }
 

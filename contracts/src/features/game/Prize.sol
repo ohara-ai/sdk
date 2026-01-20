@@ -3,6 +3,7 @@ pragma solidity 0.8.23;
 
 import {IFeature} from "../../interfaces/IFeature.sol";
 import {IPrize} from "../../interfaces/game/IPrize.sol";
+import {IScoreNotifiable} from "../../interfaces/game/IScoreNotifiable.sol";
 import {IShares} from "../../interfaces/game/IShares.sol";
 import {FeatureController} from "../../base/FeatureController.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -15,7 +16,7 @@ import {Initializable} from "@openzeppelin/contracts/proxy/utils/Initializable.s
  * @dev Pools are separated by token - each token has its own pool sequence
  *      Top N winners (configurable, default 10) share the prize using distribution strategies
  */
-contract Prize is IPrize, IFeature, FeatureController, Initializable {
+contract Prize is IPrize, IScoreNotifiable, IFeature, FeatureController, Initializable {
     using SafeERC20 for IERC20;
 
     struct PrizePool {
@@ -249,9 +250,29 @@ contract Prize is IPrize, IFeature, FeatureController, Initializable {
         emit RecorderAuthorized(recorder, authorized);
     }
 
+    /// @inheritdoc IScoreNotifiable
+    function onScoreRecorded(
+        address winner,
+        address[] calldata, // losers - not used by Prize
+        address token,
+        uint256 // prizeAmount - not used, Prize tracks its own pool amounts
+    ) external {
+        if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
+        _recordMatchResult(winner, token);
+    }
+
     /// @inheritdoc IPrize
     function recordMatchResult(address winner, address token) external {
         if (!authorizedRecorders[msg.sender]) revert UnauthorizedRecorder();
+        _recordMatchResult(winner, token);
+    }
+
+    /**
+     * @notice Internal function to record a match result
+     * @param winner The match winner
+     * @param token The token used for stakes
+     */
+    function _recordMatchResult(address winner, address token) internal {
         
         // Get or create pool for this token
         uint256 poolId = _currentPoolByToken[token];

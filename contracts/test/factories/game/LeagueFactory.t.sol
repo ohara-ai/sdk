@@ -10,13 +10,13 @@ contract LeagueFactoryTest is Test {
     
     address public owner = address(0x1);
     address public deployer = address(0x2);
-    address public matchContract = address(0x3);
+    address public scoreContract = address(0x3);
     
     event LeagueDeployed(
         address indexed instance,
         address indexed owner,
         address indexed controller,
-        address matchContract,
+        address scoreContract,
         uint256 cycleDuration
     );
     
@@ -33,21 +33,21 @@ contract LeagueFactoryTest is Test {
     
     function test_DeployLeague() public {
         vm.prank(deployer);
-        address instance = factory.deployLeague(matchContract);
+        address instance = factory.deployLeague(scoreContract);
         
         assertTrue(instance != address(0));
         
         League league = League(instance);
         assertEq(league.owner(), owner);
         assertEq(league.controller(), deployer);
-        assertEq(league.matchContract(), matchContract);
+        assertEq(league.scoreContract(), scoreContract);
     }
     
     function test_DeployLeagueWithDuration() public {
         uint256 cycleDuration = 86400; // 1 day
         
         vm.prank(deployer);
-        address instance = factory.deployLeagueWithDuration(matchContract, cycleDuration);
+        address instance = factory.deployLeagueWithDuration(scoreContract, cycleDuration);
         
         assertTrue(instance != address(0));
         
@@ -57,8 +57,8 @@ contract LeagueFactoryTest is Test {
     
     function test_DeployMultipleInstances() public {
         vm.startPrank(deployer);
-        address instance1 = factory.deployLeague(matchContract);
-        address instance2 = factory.deployLeague(matchContract);
+        address instance1 = factory.deployLeague(scoreContract);
+        address instance2 = factory.deployLeague(scoreContract);
         vm.stopPrank();
         
         assertTrue(instance1 != address(0));
@@ -81,13 +81,13 @@ contract LeagueFactoryTest is Test {
         factory.setDefaultCycleDuration(86400);
     }
     
-    function test_DeployWithZeroMatchContract() public {
+    function test_DeployWithZeroScoreContract() public {
         vm.prank(deployer);
         address instance = factory.deployLeague(address(0));
         
         assertTrue(instance != address(0));
         
         League league = League(instance);
-        assertEq(league.matchContract(), address(0));
+        assertEq(league.scoreContract(), address(0));
     }
 }

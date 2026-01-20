@@ -60,8 +60,8 @@ function getControllerKey(): string {
 
 // Configuration
 const RPC_URL = process.env.RPC_URL || 'http://localhost:8545'
-const MATCH_COUNT = 12
-const HEAP_COUNT = 12
+const MATCH_COUNT = 42
+const HEAP_COUNT = 42
 const STAKE_AMOUNT = parseEther('0.01') // 0.01 ETH per stake/contribution
 
 /**

@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useOharaAi } from '@ohara-ai/sdk'
+import { useOharaAi, type ServerPredictionOperations } from '@ohara-ai/sdk'
 import { useAccount } from 'wagmi'
 import { User, TrendingUp, Lock, CheckCircle, XCircle } from 'lucide-react'
 import { formatEther } from 'viem'
@@ -45,7 +45,7 @@ export function UserPredictionInfo({ marketId }: UserPredictionInfoProps) {
 
       try {
         setLoading(true)
-        const operations = game.prediction.operations as any
+        const operations = game.prediction.operations as ServerPredictionOperations
 
         const [pred, commit, payout, correct] = await Promise.all([
           operations.getPrediction(marketId, address).catch(() => null),

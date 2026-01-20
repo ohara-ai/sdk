@@ -55,8 +55,8 @@ contract PrizeTest is Test {
         gameScore.setRecorderAuthorization(address(gameMatch), true);
         // Set Score on Match
         gameMatch.setScore(address(gameScore));
-        // Set Prize on Score
-        gameScore.setPrize(address(prize));
+        // Add Prize as score listener
+        gameScore.addScoreListener(address(prize));
         // Authorize Score to record on Prize
         prize.setRecorderAuthorization(address(gameScore), true);
         vm.stopPrank();

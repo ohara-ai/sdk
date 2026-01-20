@@ -91,6 +91,19 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
+    "name": "addScoreListener",
+    "inputs": [
+      {
+        "name": "listener",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "authorizedRecorders",
     "inputs": [
       {
@@ -433,6 +446,19 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
+    "name": "getScoreListeners",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "listeners",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getTotalMatches",
     "inputs": [],
     "outputs": [
@@ -581,19 +607,6 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "prize",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IPrize"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "recordMatchResult",
     "inputs": [
       {
@@ -622,10 +635,10 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "setController",
+    "name": "removeScoreListener",
     "inputs": [
       {
-        "name": "newController",
+        "name": "listener",
         "type": "address",
         "internalType": "address"
       }
@@ -635,10 +648,10 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "setPrize",
+    "name": "setController",
     "inputs": [
       {
-        "name": "_prize",
+        "name": "newController",
         "type": "address",
         "internalType": "address"
       }
@@ -666,19 +679,6 @@ export const SCORE_ABI = [
   },
   {
     "type": "function",
-    "name": "setTournament",
-    "inputs": [
-      {
-        "name": "_tournament",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "totalFeeShare",
     "inputs": [],
     "outputs": [
@@ -686,19 +686,6 @@ export const SCORE_ABI = [
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "tournament",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract ITournament"
       }
     ],
     "stateMutability": "view"
@@ -790,9 +777,9 @@ export const SCORE_ABI = [
     "inputs": [
       {
         "name": "target",
-        "type": "string",
+        "type": "address",
         "indexed": true,
-        "internalType": "string"
+        "internalType": "address"
       },
       {
         "name": "reason",
@@ -1025,25 +1012,6 @@ export const SCORE_ABI = [
   },
   {
     "type": "event",
-    "name": "PrizeContractUpdated",
-    "inputs": [
-      {
-        "name": "previousPrize",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "newPrize",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "RecorderAuthorized",
     "inputs": [
       {
@@ -1057,6 +1025,32 @@ export const SCORE_ABI = [
         "type": "bool",
         "indexed": false,
         "internalType": "bool"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ScoreListenerAdded",
+    "inputs": [
+      {
+        "name": "listener",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ScoreListenerRemoved",
+    "inputs": [
+      {
+        "name": "listener",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -1088,25 +1082,6 @@ export const SCORE_ABI = [
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "TournamentContractUpdated",
-    "inputs": [
-      {
-        "name": "previousTournament",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "newTournament",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -1163,12 +1138,27 @@ export const SCORE_ABI = [
   },
   {
     "type": "error",
+    "name": "InvalidListener",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidOwner",
     "inputs": []
   },
   {
     "type": "error",
     "name": "InvalidWinner",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ListenerAlreadyRegistered",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ListenerNotFound",
     "inputs": []
   },
   {

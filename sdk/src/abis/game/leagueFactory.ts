@@ -42,7 +42,7 @@ export const LEAGUE_FACTORY_ABI = [
     "name": "deployLeague",
     "inputs": [
       {
-        "name": "matchContract",
+        "name": "scoreContract",
         "type": "address",
         "internalType": "address"
       }
@@ -61,7 +61,7 @@ export const LEAGUE_FACTORY_ABI = [
     "name": "deployLeagueWithDuration",
     "inputs": [
       {
-        "name": "matchContract",
+        "name": "scoreContract",
         "type": "address",
         "internalType": "address"
       },
@@ -232,7 +232,7 @@ export const LEAGUE_FACTORY_ABI = [
         "internalType": "address"
       },
       {
-        "name": "matchContract",
+        "name": "scoreContract",
         "type": "address",
         "indexed": false,
         "internalType": "address"
